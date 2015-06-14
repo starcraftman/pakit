@@ -9,11 +9,6 @@ import signal
 import subprocess as sub
 import tempfile
 
-LOGFILE = os.path.expanduser('/tmp/wok/commands.log')
-if not os.path.exists(os.path.dirname(LOGFILE)):
-    os.makedirs(os.path.dirname(LOGFILE))
-logging.basicConfig(filename=LOGFILE, level=logging.DEBUG)
-
 class Command(object):
     """ Represent a command to be run on the system. """
     def __init__(self, cmd, cmd_dir=None):
@@ -23,7 +18,7 @@ class Command(object):
         self._proc = None
         self._stdout = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
         self._stderr = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
-        logging.debug("CMD NEW: %s", self._cmd)
+        logging.debug("NEW: %s", self._cmd)
 
     def __del__(self):
         """ Clean up at end. """
@@ -34,7 +29,7 @@ class Command(object):
             self._stderr.close()
         except (ValueError, OSError):
             pass
-        logging.debug("CMD DEL: %s", self._cmd)
+        logging.debug("DEL: %s", self._cmd)
 
     @property
     def pid(self):
@@ -63,7 +58,7 @@ class Command(object):
                 stdout=self._stdout, stderr=sub.STDOUT,
                 preexec_fn=os.setsid
         )
-        logging.debug("CMD EXECUTING: %s", self._cmd)
+        logging.debug("EXEC: %s", self._cmd)
 
     def wait(self):
         """ Simple wrapper for wait, blocks until finished. """
