@@ -24,5 +24,5 @@ except OSError:
 
 FORMAT = '%(levelname)s %(asctime)s %(threadName)s %(filename)s %(message)s'
 logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,
-        format=FORMAT, datefmt='[%d/%m/%y %H%M.%S]')
+        format=FORMAT, datefmt='[%d/%m %H%M.%S]')
 logging.debug('Module init finished.')
