@@ -1,7 +1,6 @@
 from wok import Recipe
 
-class Ag(Plan):
-    """ Formula to build latest ag from source. """
+class Ag(Recipe):
     def __init__(self):
         super(Ag, self).__init__(self)
         self._desc = 'Grep like tool sped up with parallelism.'
@@ -9,8 +8,8 @@ class Ag(Plan):
         self._homepage = 'https://github.com/ggreer/the_silver_searcher'
 
     def build(self):
-        self.com('./build.sh --prefix')
-        self.com('make install')
+        self.cmd('./build.sh --prefix')
+        self.cmd('make install')
 
     def verify(self):
-        self.com('ctags --version')
+        self.cmd('ctags --version')
