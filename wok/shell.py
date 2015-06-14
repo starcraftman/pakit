@@ -9,6 +9,7 @@ import subprocess as sub
 import tempfile
 
 LOGFILE = os.path.expanduser('/tmp/wok/commands.log')
+os.makedirs(os.path.dirname(LOGFILE))
 logging.basicConfig(filename=LOGFILE, level=logging.DEBUG)
 
 class Command(object):
