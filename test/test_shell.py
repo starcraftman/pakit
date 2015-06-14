@@ -16,18 +16,19 @@ class TestCommand:
         assert cmd.rcode == 0
 
     def test_command_dir(self):
-        os.makedirs('dummy')
-        with open('dummy/hello', 'w+b') as out:
-            out.write('this is a sample line')
+        try:
+            os.makedirs('dummy')
+            with open('dummy/hello', 'w+b') as out:
+                out.write('this is a sample line')
 
-        cmd = Command('ls', 'dummy')
-        cmd.execute()
-        cmd.wait()
+            cmd = Command('ls', 'dummy')
+            cmd.execute()
+            cmd.wait()
 
-        assert cmd.rcode == 0
-        assert cmd.output() == ['hello']
-
-        shutil.rmtree('dummy')
+            assert cmd.rcode == 0
+            assert cmd.output() == ['hello']
+        finally:
+            shutil.rmtree('dummy')
 
     def test_output(self):
         cmd = Command('echo "Hello py.test"')

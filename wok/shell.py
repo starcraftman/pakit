@@ -4,12 +4,14 @@ from __future__ import absolute_import
 import logging
 import os
 import shlex
+import shutil
 import signal
 import subprocess as sub
 import tempfile
 
 LOGFILE = os.path.expanduser('/tmp/wok/commands.log')
-os.makedirs(os.path.dirname(LOGFILE))
+if not os.path.exists(os.path.dirname(LOGFILE)):
+    os.makedirs(os.path.dirname(LOGFILE))
 logging.basicConfig(filename=LOGFILE, level=logging.DEBUG)
 
 class Command(object):
