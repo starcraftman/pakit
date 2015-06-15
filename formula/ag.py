@@ -8,9 +8,9 @@ class Ag(Recipe):
         self._homepage = self._src
 
     def build(self):
-        self.cmd('./build.sh --prefix {0}'.format(self.idir()), self.sdir())
-        self.cmd('make install', self.sdir())
+        self.cmd('./build.sh --prefix {prefix}')
+        self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/ag --version', self.idir())
+        lines = self.cmd('./bin/ag --version', False)
         return lines[0].find('ag version') != -1

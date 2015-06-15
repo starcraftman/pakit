@@ -15,18 +15,26 @@ class Recipe(object):
         self._desc = 'Short description for the recipe.'
         self._src = 'Source code url, will build bleeding edge version.'
         self._homepage = 'Project site'
-        self._idir = None
+        self._indir = None
 
-    def sdir(self):
-        return os.path.join(self._idir, 'src')
+    def src_dir(self):
+        return os.path.join(self._indir, 'src')
 
-    def idir(self):
-        return self._idir
+    def install_dir(self):
+        return self._indir
 
-    def set_idir(self, idir):
-        self._idir = idir
+    def set_idir(self, indir):
+        self._indir = indir
 
-    def cmd(self, cmd_str, cmd_dir=None):
+    def cmd(self, cmd_str, in_build=True):
+        if in_build is True:
+            cmd_dir = self.src_dir()
+        elif in_build is False:
+            cmd_dir = self.install_dir()
+        else:
+            cmd_dir = in_build
+
+        cmd_str = cmd_str.format(prefix=self.install_dir())
         cmd = Command(cmd_str, cmd_dir)
         cmd.execute()
         cmd.wait()
@@ -36,7 +44,7 @@ class Recipe(object):
     def download(self):
         """ Git source checkout. """
         cmd = Command('git clone --recursive --depth 1 {0} {1}'.format(
-                self._src, self.sdir()))
+                self._src, self.src_dir()))
         cmd.execute()
         cmd.wait()
 
