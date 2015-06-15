@@ -11,18 +11,23 @@ from wok.recipe import Recipe
 
 __version__ = 0.1
 
-# Setup project wide file logging
-LOG_FILE = '/tmp/wok/main.log'
-try:
-    os.makedirs(os.path.dirname(LOG_FILE))
-except OSError:
-    pass
-try:
-    os.remove(LOG_FILE)
-except OSError:
-    pass
+def init_logging():
+    """ Setup project wide file logging. """
+    log_file = '/tmp/wok/main.log'
+    try:
+        os.makedirs(os.path.dirname(log_file))
+    except OSError:
+        pass
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
 
-FORMAT = '%(levelname)s %(asctime)s %(threadName)s %(filename)s %(message)s'
-logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,
-        format=FORMAT, datefmt='[%d/%m %H%M.%S]')
-logging.debug('Module init finished.')
+    log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
+            '%(filename)s %(message)s'
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+            format=log_fmt, datefmt='[%d/%m %H%M.%S]')
+
+    # TODO: Switch to rotating FileHandler later
+
+init_logging()

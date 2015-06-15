@@ -16,8 +16,12 @@ class Command(object):
         self._cmd = cmd
         self._cmd_dir = cmd_dir
         self._proc = None
-        self._stdout = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
-        logging.debug("NEW CMD: %s", self._cmd)
+        self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
+                delete=True, dir='/tmp/wok', prefix='cmd')
+        logging.debug("NEW CMD: %s", self)
+
+    def __str__(self):
+        return '{0} -> {1}'.format(self._cmd_dir, self._cmd)
 
     def __del__(self):
         """ Clean up at end. """
@@ -28,7 +32,7 @@ class Command(object):
         except (ValueError, OSError):
             pass
         logging.debug("CMD LOG: %s \n%s",
-                self._cmd, '\n'.join(self.output()))
+                self, '\n'.join(self.output()))
 
     @property
     def pid(self):
@@ -52,6 +56,7 @@ class Command(object):
 
     def execute(self):
         """ Execute the given command. """
+        logging.debug('CMD EXEC: {0}'.format(self))
         self._proc = sub.Popen(
                 shlex.split(self._cmd), cwd=self._cmd_dir,
                 stdout=self._stdout, stderr=sub.STDOUT,

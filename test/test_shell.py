@@ -21,7 +21,7 @@ class TestCommand:
             with open('dummy/hello', 'w+b') as out:
                 out.write('this is a sample line')
 
-            cmd = Command('ls', 'dummy')
+            cmd = Command('ls', os.path.abspath('./dummy'))
             cmd.execute()
             cmd.wait()
 
