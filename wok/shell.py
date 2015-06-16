@@ -17,31 +17,24 @@ class Command(object):
         self._proc = None
         self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
                 delete=True, dir='/tmp/wok', prefix='cmd')
-        logging.debug("NEW CMD: %s", self)
-
-    def __str__(self):
-        return '{0} -> {1}'.format(self._cmd_dir, self._cmd)
 
     def __del__(self):
         """ Clean up at end. """
+        prefix = '\n    '
+        msg = prefix[1:] + prefix.join(self.output())
+        logging.debug("CMD LOG: %s \n%s", self, msg)
         try:
-            if self._proc is not None:
+            if self.alive:
                 self.terminate()
             self._stdout.close()
         except (ValueError, OSError):
             pass
-        logging.debug("CMD LOG: %s \n%s",
-                self, '\n'.join(self.output()))
 
-    @property
-    def pid(self):
-        """ Returns the PID of the spawned process. """
-        return self._proc.pid
+    def __repr__(self):
+        return '{0}'.format(self._cmd)
 
-    @property
-    def rcode(self):
-        """ Returns the return code, if not finished returns None """
-        return self._proc.returncode
+    def __str__(self):
+        return '{0} -> {1}'.format(self._cmd_dir, self._cmd)
 
     @property
     def alive(self):
@@ -52,6 +45,11 @@ class Command(object):
     def proc(self):
         """ Provides direct access, will be removed later. """
         return self._proc
+
+    @property
+    def rcode(self):
+        """ Returns the return code. """
+        return self._proc.returncode
 
     def execute(self):
         """ Execute the given command. """
@@ -68,6 +66,9 @@ class Command(object):
 
     def output(self):
         """ Return stdout from command. """
+        if self._proc is None:
+            return []
+
         with open(self._stdout.name, 'r') as out:
             lines = [line.rstrip() for line in out.readlines()]
             return lines
@@ -76,5 +77,5 @@ class Command(object):
         """ Terminate the process and all children.
             On return, they are all dead.
         """
-        os.killpg(self.pid, signal.SIGTERM)
+        os.killpg(self._proc.pid, signal.SIGTERM)
         self.proc.wait()

@@ -14,8 +14,8 @@ def main():
         shutil.rmtree(BUILD_DIR)
     os.makedirs(BUILD_DIR)
 
-    build = Ag()
-    build.set_idir(os.path.join(BUILD_DIR, Ag.__name__.lower()))
+    install_dir = os.path.join(BUILD_DIR, Ag.__name__.lower())
+    build = Ag(install_dir)
     build.download()
     build.build()
     assert build.verify()

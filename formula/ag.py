@@ -1,11 +1,12 @@
 from wok import Recipe
 
 class Ag(Recipe):
-    def __init__(self):
+    def __init__(self, install_d):
         super(Ag, self).__init__()
-        self._desc = 'Grep like tool optimized for speed.'
-        self._src = 'https://github.com/ggreer/the_silver_searcher'
-        self._homepage = self._src
+        self.desc = 'Grep like tool optimized for speed.'
+        self.url_src = 'https://github.com/ggreer/the_silver_searcher'
+        self.homepage = self.url_src
+        self.install_d = install_d
 
     def build(self):
         self.cmd('./build.sh --prefix {prefix}')

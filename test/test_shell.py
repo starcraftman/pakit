@@ -39,9 +39,8 @@ class TestCommand:
         assert lines == ['Hello py.test']
 
     def test_terminate(self):
-        cmd = Command('cat -')
+        cmd = Command('sleep 4')
         cmd.execute()
         assert cmd.alive
         cmd.terminate()
         assert not cmd.alive
-
