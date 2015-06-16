@@ -36,7 +36,7 @@ Work In Progress
 
 Probably going to be a python class.
 Should provide helpers to facilitate common tasks like download/extract archive.
-In final stage expecting either stable or source
+User has choice between stable release & source build.
 
 Example:
 ```py
