@@ -1,23 +1,21 @@
 ## Final Expected Behaviour
----------------------------
 
-* Install several packages: `wok --install tmux ag`
-* Update local packages:    `wok --update`
-* Update recipes:           `wok --recipes`
-* Remove packages:          `wok --remove tmux`
-* List available formula:   `wok --list`
-* Search packs:             `wok --search a*`
-* Override default config:  `wok --conf ./a.yml -i ag`
+* `wok --install tmux ag`       -- Install several programs
+* `wok --update`                -- Update local programs
+* `wok --remove tmux            -- Remove program
+* `wok --list`                  -- List installed programs
+* `wok --available`             -- List available formula
+* `wok --search lib`            -- Display matching avilable recipes
+* `wok --conf ./a.yml -i ag`    -- Override default config
 
-shtopts: -i -u -c -r -l -s
+Short opts in order: -i -u -r -l -a -s -c
 
 ## Configuration
-----------------
 
 * File config by hidden YAML file at `~/.wok.yml`.
 
-* install_to:   `wok --install ag` will put all ag files under `install_dir/ag`
-* link_to:      The single folder you will put on your PATH
+* install_to:   Folder that will contain built programs
+* link_to:      The folder you will put on your path
 * threads:      Max number builds running
 * opts:         Allow you to optionally provide flags to the builds
 
@@ -33,16 +31,16 @@ opts:
 ```
 
 ## Recipe Spec
---------------
-WIP: Not finalized yet.
 
-Could be a python class or simple file. Python class allows more flexility without requiring a DSL.
-Should provide common helpers to minimize duplication.
-Notably, means to specify download method of source (VCS or archive).
+Work In Progress
+
+Probably going to be a python class.
+Should provide helpers to facilitate common tasks like download/extract archive.
+In final stage expecting either stable or source
 
 Example:
 ```py
-from wok import Recipe, cmd
+from wok import Recipe, cmd, git
 
 class Ag(Recipe):
     def __init__(self, install_d):
@@ -51,16 +49,27 @@ class Ag(Recipe):
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
 
+    def release(self):
+        """ Download latest stable release. """
+        self.tap()
+
+    def tap(self):
+        """ Download the source from the tap. """
+        git(self.src)
+
     def build(self):
-        """ Commands get executed INSIDE the source dir. """
+        """ Commands to build & install program.
+            Executed inside the build environment.
+        """
         cmd('./build.sh --prefix {prefix}')
         cmd('make install')
 
     def verify(self):
-        """ Commands get executed INSIDE the source dir.
-            May be more complex ensuring command/lib works/links.
+        """ Verify built program is working.
+            Do arbitrary actions to verify.
+
+            return: True only if program works.
         """
-        cmd('./build.sh --prefix {prefix}')
         lines = self.cmd('./bin/ag --version', False)
         return lines[0].find('ag version') != -1
 ```
