@@ -1,7 +1,6 @@
-# wok [![travis-ci](https://travis-ci.org/starcraftman/wok.svg?branch=master)](https://travis-ci.org/starcraftman/wok)
----------
+# wok
 
-[![Join the chat at https://gitter.im/starcraftman/wok](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcraftman/wok?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![travis-ci](https://travis-ci.org/starcraftman/wok.svg?branch=master)](https://travis-ci.org/starcraftman/wok)[![Join the chat at https://gitter.im/starcraftman/wok](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcraftman/wok?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Goal:
 * A python like homebrew application for posix systems.
@@ -22,7 +21,7 @@ Just a rough guess of what I should be implementing when.
 * Add list/searching support.
 * Figure out how to scale recipes well.
 
-### 0.3 
+### 0.3
 * Add dependency logic, so one recipe can depend on another.
 
 ### 0.4
