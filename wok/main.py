@@ -20,18 +20,16 @@ def main():
     parser = argparse.ArgumentParser(description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
-    parser.add_argument('-w', '--wokinit', nargs='?',
+    parser.add_argument('-w', '--wokinit',
                         default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
-    ex_main = parser.add_mutually_exclusive_group()
-    ex_main.add_argument('-i', '--install', dest='action', action='store_const',
-                        const='i', help='install specified programs')
-    ex_main.add_argument('-r', '--remove', dest='action', action='store_const',
-                        const='r', help='remove specified programs')
-    ex_main.add_argument('-u', '--update', dest='action', action='store_const',
-                        const='u', help='update installed programs')
-    parser.add_argument(dest='progs', metavar='PROG', nargs='*',
-                        help='programs to install')
+    mut1 = parser.add_mutually_exclusive_group()
+    mut1.add_argument('-i', '--install', nargs='+',
+                        metavar='PROG', help='install specified programs')
+    mut1.add_argument('-r', '--remove', nargs='+',
+                        metavar='PROG', help='remove specified programs')
+    mut1.add_argument('-u', '--update', default=False, action='store_true',
+                        help='update installed programs')
     args = parser.parse_args()
 
     config = Config(args.wokinit)
@@ -44,7 +42,7 @@ def main():
     logging.debug('CLI: %s', args)
     logging.debug('Wok Config: %s', config)
 
-    if args.progs is not None and 'ag' in args.progs:
+    if args.install is not None and 'ag' in args.install:
         install_dir = os.path.join(config.install_to, Ag.__name__.lower())
         build = Ag(install_dir)
         build.download()
