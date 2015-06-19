@@ -20,14 +20,14 @@ class Command(object):
 
     def __del__(self):
         """ Clean up at end. """
-        prefix = '\n    '
-        msg = prefix[1:] + prefix.join(self.output())
-        logging.debug("CMD LOG: %s \n%s", self, msg)
         try:
+            prefix = '\n    '
+            msg = prefix[1:] + prefix.join(self.output())
+            logging.debug("CMD LOG: %s \n%s", self, msg)
             if self.alive:
                 self.terminate()
             self._stdout.close()
-        except (ValueError, OSError):
+        except (AttributeError, IOError):
             pass
 
     def __repr__(self):

@@ -8,7 +8,7 @@ import time
 
 from wok.shell import Command
 
-class TestCommand:
+class TestCommand(object):
     def test_simple_command(self):
         cmd = Command('echo "Hello"')
         cmd.execute()

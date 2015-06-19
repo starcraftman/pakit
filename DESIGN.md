@@ -24,10 +24,10 @@ install_to: /tmp/wok/builds
 link_to:    /tmp/linked
 threads:    4
 logging:
-  - on:     True
-  - file:   /tmp/wok/main.log
+  on:       True
+  file:     /tmp/wok/main.log
 opts:
-  - ag:     --enable-module
+  ag:       --enable-module
 ```
 
 ## Recipe Spec
