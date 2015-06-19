@@ -6,6 +6,8 @@ python:
   #- 3.5
 
 before_script: |
- pip install PyYAML
+  pip install PyYAML
 
 script: py.test
+
+#vim:set et sw=2 ts=2:
