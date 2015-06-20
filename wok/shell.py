@@ -1,12 +1,24 @@
 """ All things shell related, including Command class. """
 from __future__ import absolute_import
 
+import atexit
+import glob
 import logging
 import os
 import shlex
 import signal
 import subprocess as sub
 import tempfile
+
+TMP_DIR = '/tmp/wok'
+
+@atexit.register
+def cmd_cleanup():
+    for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
+        try:
+            os.remove(filename)
+        except OSError:
+            logging.error('Could not delete file %s.', filename)
 
 class Command(object):
     """ Represent a command to be run on the system. """
@@ -16,7 +28,7 @@ class Command(object):
         self._cmd_dir = cmd_dir
         self._proc = None
         self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
-                delete=True, dir='/tmp/wok', prefix='cmd')
+                delete=True, dir=TMP_DIR, prefix='cmd')
 
     def __del__(self):
         """ Clean up at end. """

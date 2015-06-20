@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
 """ Config reader & writer. Depends on PyYAML. """
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import logging
 import yaml
@@ -27,10 +24,14 @@ class Config(object):
     def __getattr__(self, name):
         return self._conf.get(name, None)
 
+    def __getitem__(self, name):
+        return self._conf.get(name, None)
+
     def set(self, name, val):
         self._conf[name] = val
 
     def load(self, filename=None):
+        """ If it can't load file, print error and use default. """
         if filename is not None:
             self._filename = filename
 
@@ -42,6 +43,7 @@ class Config(object):
             logging.error('Failed to load user config. %s', exc)
 
     def write(self, filename=None):
+        """ Allows to write the values to a file. """
         if filename is not None:
             self._filename = filename
 

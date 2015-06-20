@@ -45,6 +45,10 @@ class Recipe(object):
         cmd.execute()
         cmd.wait()
 
+    def clean(self):
+        """ Cleanup, by default delete src dir. """
+        self.cmd('rm -rf {0}'.format(self.source_dir()))
+
     @abstractmethod
     def build(self):
         """ Build the program. """
