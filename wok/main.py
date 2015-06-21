@@ -126,6 +126,7 @@ def main():
     # Require at least one for now.
     if len(sys.argv) == 1:
         parser.print_usage()
+        logging.error('No arguments. What should I do?')
         sys.exit(1)
 
     args = parser.parse_args()

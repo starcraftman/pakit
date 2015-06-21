@@ -26,7 +26,15 @@ def init_logging(log_file='/tmp/wok/main.log'):
 
     log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
             '%(filename)s %(message)s'
+    log_datefmt = '[%d/%m %H%M.%S]'
     logging.basicConfig(filename=log_file, level=logging.DEBUG,
-            format=log_fmt, datefmt='[%d/%m %H%M.%S]')
+            format=log_fmt, datefmt=log_datefmt)
+
+    root = logging.getLogger()
+    stream = logging.StreamHandler()
+    stream.setLevel(logging.ERROR)
+    stream_fmt = logging.Formatter(fmt=log_fmt, datefmt=log_datefmt)
+    stream.setFormatter(stream_fmt)
+    root.addHandler(stream)
 
 init_logging()
