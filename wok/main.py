@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-# encoding: utf-8
+""" The obligatory main entry point. """
 from __future__ import absolute_import
 
 import argparse
+import glob
 import logging
 import os
 import shutil
@@ -10,6 +10,7 @@ import sys
 
 from formula import Ag
 from wok.conf import Config
+from wok import __version__
 
 class Installer(object):
     def __init__(self, args, config):
@@ -18,6 +19,7 @@ class Installer(object):
         self.__choose_action(args)
         self.__link_d = config.link_to
         self.__install_d = config.install_to
+        logging.debug(self)
 
     def __str__(self):
         action = None
@@ -37,25 +39,31 @@ class Installer(object):
             self.action = self.update
 
     def install(self):
-        task_d = os.path.join(self.__install_d, Ag.__name__.lower())
-        task = Ag(task_d)
-        task.download()
-        task.build()
-        task.clean()
-        self.walk_and_link(task_d, self.__link_d)
-        return task.verify()
+        try:
+            task_d = os.path.join(self.__install_d, Ag.__name__.lower())
+            task = Ag(task_d)
+            task.download()
+            task.build()
+            task.clean()
+            self.walk_and_link(task_d, self.__link_d)
+            return task.verify()
+        except OSError as exc:
+            logging.error(exc)
 
     def remove(self):
         try:
             task_d = os.path.join(self.__install_d, Ag.__name__.lower())
             self.walk_and_remove(task_d, self.__link_d)
             shutil.rmtree(task_d)
-        except OSError:
-            pass
+        except OSError as exc:
+            logging.error(exc)
 
     def update(self):
         return 'update'
-        #progs = glob.glob(os.path.join(self.__install_d, '*'))
+        try:
+            self.__progs = glob.glob(os.path.join(self.__install_d, '*'))
+        except OSError as exc:
+            logging.error(exc)
 
     def walk_and_link(self, src, dst):
         """ Link a program to dst. """
@@ -72,7 +80,7 @@ class Installer(object):
                     dfile = os.path.join(link_dst, fname)
                     os.symlink(sfile, dfile)
                 except OSError:
-                    pass
+                    logging.error('Could not symlink %s -> %s'.format(sfile, dfile))
 
     def walk_and_remove(self, src, dst):
         """ Before removing program, take care of links. """
@@ -102,16 +110,18 @@ def main():
     parser = argparse.ArgumentParser(description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
+    parser.add_argument('-v', '--version', action='version',
+                        version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
     parser.add_argument('-w', '--wokinit',
                         default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
     mut1 = parser.add_mutually_exclusive_group()
     mut1.add_argument('-i', '--install', nargs='+',
-                        metavar='PROG', help='install specified programs')
+                        metavar='PROG', help='install specified program(s)')
     mut1.add_argument('-r', '--remove', nargs='+',
-                        metavar='PROG', help='remove specified programs')
+                        metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
-                        help='update installed programs')
+                        help='update installed program(s)')
 
     # Require at least one for now.
     if len(sys.argv) == 1:
@@ -127,7 +137,6 @@ def main():
     dir_check(config)
 
     inst = Installer(args, config)
-    print(inst)
     inst.action()
 
 if __name__ == '__main__':
