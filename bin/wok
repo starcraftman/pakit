@@ -1,0 +1,6 @@
+#!/bin/sh
+
+PPATH=$(dirname $(readlink -f $(dirname $0)))
+PYTHONPATH=PPATH python -m wok.main $@
+
+# vim:set et sw=2 ts=4:
