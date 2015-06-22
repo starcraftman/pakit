@@ -9,19 +9,21 @@ import shutil
 from wok.main import *
 from wok.conf import Config
 
-WOK_CONF = os.path.expanduser('~/wok.yaml')
+WOK_CONF = os.path.expanduser('~/.wok.yaml')
 
 class TestAction(object):
     def setup(self):
         self.config = Config(WOK_CONF)
         self.config.load()
+
+    def test_act_install(self):
+        # One time ensure for now
         try:
             shutil.rmtree(self.config.install_to)
             shutil.rmtree(self.config.link_to)
         except OSError:
             pass
 
-    def test_act_install(self):
         inst = InstallAction(config=self.config, progs=['ags'])
         inst()
 
@@ -30,16 +32,20 @@ class TestAction(object):
         assert os.path.exists(bin_installed)
         assert os.path.exists(bin_linked)
 
-    @pytest.mark.xfail
     def test_act_list(self):
-        assert False
+        list = ListAction(config=self.config)
+        assert list() == ['ag']
 
     def test_act_remove(self):
         rem = RemoveAction(config=self.config, progs=['ag'])
         rem()
 
-        assert not os.path.exists(self.config.install_to)
-        assert not os.path.exists(self.config.link_to)
+        assert os.path.exists(self.config.install_to)
+        assert len(glob.glob(os.path.join(
+                self.config.install_to, '*'))) == 0
+        assert os.path.exists(self.config.link_to)
+        assert len(glob.glob(os.path.join(
+                self.config.link_to, '*'))) == 0
 
     @pytest.mark.xfail
     def test_act_update(self):

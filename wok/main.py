@@ -1,5 +1,5 @@
 """ The obligatory main entry point. """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import argparse
 import glob
@@ -103,6 +103,14 @@ class ListAction(object):
 
     def __call__(self):
         logging.debug('List Action')
+        try:
+            installed = os.listdir(self.__config.install_to)
+            print("The following programs are installed:")
+            for prog in installed:
+                print('*', prog)
+            return installed
+        except OSError as exc:
+            logging.error(exc)
 
 def dir_check(config):
     for dirname in [config.install_to, config.link_to]:
@@ -132,7 +140,9 @@ def main():
     mut1.add_argument('-r', '--remove', nargs='+',
                         metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
-                        help='update installed program(s)')
+                        help='update installed programs')
+    mut1.add_argument('-l', '--list', default=False, action='store_true',
+                        help='list installed programs')
 
     # Require at least one for now.
     if len(sys.argv) == 1:
