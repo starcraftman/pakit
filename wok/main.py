@@ -93,7 +93,7 @@ class UpdateAction(object):
     def __call__(self):
         try:
             logging.debug('Update Action')
-            self.__progs = glob.glob(os.path.join(self.__config.install_d, '*'))
+            self.__progs = glob.glob(os.path.join(self.__config.install_to, '*'))
         except OSError as exc:
             logging.error(exc)
 
