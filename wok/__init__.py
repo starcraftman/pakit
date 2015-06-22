@@ -24,6 +24,7 @@ def init_logging(log_file='/tmp/wok/main.log'):
         pass
 
     root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
     log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
             '%(filename)s %(message)s'
     my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
