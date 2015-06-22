@@ -18,11 +18,6 @@ def init_logging(log_file='/tmp/wok/main.log'):
     except OSError:
         pass
 
-    try:
-        os.remove(log_file)
-    except OSError:
-        pass
-
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
@@ -30,7 +25,7 @@ def init_logging(log_file='/tmp/wok/main.log'):
     my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
 
     max_size = (1024 ** 2) * 1
-    rot = logging.handlers.RotatingFileHandler(log_file, mode='w',
+    rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
             maxBytes=max_size, backupCount=4)
     rot.setLevel(logging.DEBUG)
     rot.setFormatter(my_fmt)

@@ -12,56 +12,34 @@ from formula import Ag
 from wok.conf import Config
 from wok import __version__
 
-class Installer(object):
-    def __init__(self, args, config):
-        self.action = None
-        self.__progs = []
-        self.__choose_action(args)
-        self.__link_d = config.link_to
-        self.__install_d = config.install_to
-        logging.debug(self)
+def select_action(args, config):
+    ret = None
+    if args.install is not None:
+        ret = InstallAction(config=config, progs=args.install)
+    elif args.remove is not None:
+        ret = RemoveAction(config=config, progs=args.remove)
+    elif args.update is True:
+        ret = UpdateAction(config=config)
+    elif args.list is True:
+        ret = ListAction(config=config)
 
-    def __str__(self):
-        action = None
-        if self.action is not None:
-            action = self.action.__name__
-        return '{0} : {1}'.format(action, self.__progs)
+    return ret
 
-    def __choose_action(self, args):
-        """ Primitive strategy selection. """
-        if args.install is not None:
-            self.action = self.install
-            self.__progs = args.install
-        elif args.remove is not None:
-            self.action = self.remove
-            self.__progs = args.remove
-        elif args.update is True:
-            self.action = self.update
+class InstallAction(object):
+    def __init__(self, **kwargs):
+        self.__config = kwargs.get('config')
+        self.__progs = kwargs.get('install', [])
 
-    def install(self):
+    def __call__(self):
         try:
-            task_d = os.path.join(self.__install_d, Ag.__name__.lower())
+            logging.debug('Install Action')
+            task_d = os.path.join(self.__config.install_to, Ag.__name__.lower())
             task = Ag(task_d)
             task.download()
             task.build()
             task.clean()
-            self.walk_and_link(task_d, self.__link_d)
+            self.walk_and_link(task_d, self.__config.link_to)
             return task.verify()
-        except OSError as exc:
-            logging.error(exc)
-
-    def remove(self):
-        try:
-            task_d = os.path.join(self.__install_d, Ag.__name__.lower())
-            self.walk_and_remove(task_d, self.__link_d)
-            shutil.rmtree(task_d)
-        except OSError as exc:
-            logging.error(exc)
-
-    def update(self):
-        return 'update'
-        try:
-            self.__progs = glob.glob(os.path.join(self.__install_d, '*'))
         except OSError as exc:
             logging.error(exc)
 
@@ -82,6 +60,20 @@ class Installer(object):
                 except OSError:
                     logging.error('Could not symlink %s -> %s'.format(sfile, dfile))
 
+class RemoveAction(object):
+    def __init__(self, **kwargs):
+        self.__config = kwargs.get('config')
+        self.__progs = kwargs.get('remove', [])
+
+    def __call__(self):
+        try:
+            logging.debug('Remove Action')
+            task_d = os.path.join(self.__config.install_to, Ag.__name__.lower())
+            self.walk_and_remove(task_d, self.__config.link_to)
+            shutil.rmtree(task_d)
+        except OSError as exc:
+            logging.error(exc)
+
     def walk_and_remove(self, src, dst):
         """ Before removing program, take care of links. """
         for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
@@ -94,11 +86,30 @@ class Installer(object):
             except OSError:
                 pass
 
+class UpdateAction(object):
+    def __init__(self, **kwargs):
+        self.__config = kwargs.get('config')
+
+    def __call__(self):
+        try:
+            logging.debug('Update Action')
+            self.__progs = glob.glob(os.path.join(self.__config.install_d, '*'))
+        except OSError as exc:
+            logging.error(exc)
+
+class ListAction(object):
+    def __init__(self, **kwargs):
+        self.__config = kwargs.get('config')
+
+    def __call__(self):
+        logging.debug('List Action')
+
 def dir_check(config):
     for dirname in [config.install_to, config.link_to]:
-        if os.path.exists(dirname):
-            shutil.rmtree(dirname)
-        os.makedirs(dirname)
+        try:
+            os.makedirs(dirname)
+        except OSError:
+            pass
 
 # TODO: Path modification during operation by os.environ
 def main():
@@ -137,8 +148,8 @@ def main():
 
     dir_check(config)
 
-    inst = Installer(args, config)
-    inst.action()
+    inst = select_action(args, config)
+    inst()
 
 if __name__ == '__main__':
     main()
