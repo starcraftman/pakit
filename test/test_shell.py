@@ -34,7 +34,6 @@ class TestCommand(object):
         cmd.execute()
         cmd.wait()
         lines = cmd.output()
-        assert type(lines) == type([])
         assert lines == ['Hello py.test']
 
     def test_terminate(self):

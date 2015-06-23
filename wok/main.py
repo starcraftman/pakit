@@ -2,7 +2,6 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-import glob
 import logging
 import os
 import shutil
@@ -33,7 +32,8 @@ class InstallAction(object):
     def __call__(self):
         try:
             logging.debug('Install Action')
-            task_d = os.path.join(self.__config.install_to, Ag.__name__.lower())
+            task_d = os.path.join(self.__config.install_to,
+                    Ag.__name__.lower())
             task = Ag(task_d)
             task.download()
             task.build()
@@ -58,7 +58,8 @@ class InstallAction(object):
                     dfile = os.path.join(link_dst, fname)
                     os.symlink(sfile, dfile)
                 except OSError:
-                    logging.error('Could not symlink %s -> %s'.format(sfile, dfile))
+                    logging.error('Could not symlink %s -> %s'.format(sfile,
+                            dfile))
 
 class RemoveAction(object):
     def __init__(self, **kwargs):
@@ -68,7 +69,8 @@ class RemoveAction(object):
     def __call__(self):
         try:
             logging.debug('Remove Action')
-            task_d = os.path.join(self.__config.install_to, Ag.__name__.lower())
+            task_d = os.path.join(self.__config.install_to,
+                    Ag.__name__.lower())
             self.walk_and_remove(task_d, self.__config.link_to)
             shutil.rmtree(task_d)
         except OSError as exc:
@@ -76,7 +78,8 @@ class RemoveAction(object):
 
     def walk_and_remove(self, src, dst):
         """ Before removing program, take care of links. """
-        for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
+        for dirpath, _, filenames in os.walk(src,
+                topdown=False, followlinks=True):
             link_dst = os.path.join(dst, dirpath.replace(src + '/', ''))
             for fname in filenames:
                 os.remove(os.path.join(link_dst, fname))
@@ -93,7 +96,7 @@ class UpdateAction(object):
     def __call__(self):
         try:
             logging.debug('Update Action')
-            self.__progs = glob.glob(os.path.join(self.__config.install_to, '*'))
+            #progs = os.listdir(self.__config.install_to))
         except OSError as exc:
             logging.error(exc)
 

@@ -51,7 +51,7 @@ class Command(object):
     @property
     def alive(self):
         """ Returns if the process is running. """
-        return self._proc.poll() == None
+        return self._proc.poll() is None
 
     @property
     def proc(self):

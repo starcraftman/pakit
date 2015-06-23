@@ -6,10 +6,10 @@ import yaml
 
 # The default file
 TEMPLATE = {
-    'install_to'  : '/tmp/wok/builds',
-    'link_to'     : '/tmp/wok/links',
-    'log_file'    : '/tmp/wok/main.log',
-    'log_on'      : True,
+    'install_to': '/tmp/wok/builds',
+    'link_to': '/tmp/wok/links',
+    'log_file': '/tmp/wok/main.log',
+    'log_on': True,
 }
 
 class Config(object):
