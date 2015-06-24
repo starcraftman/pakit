@@ -12,22 +12,23 @@ Short opts in order: -i -u -r -l -a -s -c
 
 ## Configuration
 
-* File config by hidden YAML file at `~/.wok.yml`.
-
-* install_to:   Folder that will contain built programs
-* link_to:      The folder you will put on your path
-* threads:      Max number builds running
-* opts:         Allow you to optionally provide flags to the builds
+File config by hidden YAML file at `~/.wok.yml`.
+Most are self-explanitory, except for opts.
+The idea is a user can define a dict that overrides default
+configuration variables of the build in his config file. Allows flexible recipes.
 
 ```yaml
-install_to: /tmp/wok/builds
-link_to:    /tmp/linked
-threads:    4
+path:
+  install:  /tmp/wok/builds
+  link:     /tmp/linked
+  sources:  /tmp/wok/src
 logging:
   on:       True
   file:     /tmp/wok/main.log
 opts:
-  ag:       --enable-module
+  ag:
+    opt1:   --enable-mod1
+    opt2:   --enable-mod2
 ```
 
 ## Recipe Spec
@@ -40,7 +41,7 @@ User has choice between stable release & source build.
 
 Example:
 ```py
-from wok import Recipe, cmd, git
+from wok import Recipe
 
 class Ag(Recipe):
     def __init__(self, install_d):
