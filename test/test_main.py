@@ -20,12 +20,15 @@ class TestAction(object):
         # One time ensure for now
         try:
             shutil.rmtree(self.config.install_to)
+        except OSError:
+            pass
+        try:
             shutil.rmtree(self.config.link_to)
         except OSError:
             pass
 
-        inst = InstallAction(config=self.config, progs=['ag'])
-        assert inst()
+        install = InstallAction(config=self.config, progs=['ag'])
+        install()
 
         bin_installed = os.path.join(self.config.install_to, 'ag', 'bin', 'ag')
         bin_linked = os.path.join(self.config.link_to, 'bin', 'ag')

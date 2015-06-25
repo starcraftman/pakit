@@ -12,7 +12,6 @@ from wok.conf import Config
 from wok import __version__
 
 def select_action(args, config):
-    ret = None
     if args.install is not None:
         ret = InstallAction(config=config, progs=args.install)
     elif args.remove is not None:
@@ -21,6 +20,8 @@ def select_action(args, config):
         ret = UpdateAction(config=config)
     elif args.list is True:
         ret = ListAction(config=config)
+    else:
+        ret = None
 
     return ret
 
@@ -31,19 +32,22 @@ class InstallAction(object):
 
     def __call__(self):
         for name in self.__progs:
-            try:
-                logging.debug('Install Action {0}'.format(name))
-                cls = import_recipe(name)
-                task_d = os.path.join(self.__config.install_to,
-                        cls.__name__.lower())
-                task = cls(task_d)
-                task.download()
-                task.build()
-                task.clean()
-                self.walk_and_link(task_d, self.__config.link_to)
-                return task.verify()
-            except OSError as exc:
-                logging.error(exc)
+            self.install(name)
+
+    def install(self, name):
+        try:
+            logging.debug('Install Action {0}'.format(name))
+            cls = import_recipe(name)
+            task_d = os.path.join(self.__config.install_to,
+                    cls.__name__.lower())
+            task = cls(task_d)
+            task.download()
+            task.build()
+            task.clean()
+            self.walk_and_link(task_d, self.__config.link_to)
+            return task.verify()
+        except OSError as exc:
+            logging.error(exc)
 
     def walk_and_link(self, src, dst):
         """ Link a program to dst. """
@@ -70,16 +74,19 @@ class RemoveAction(object):
 
     def __call__(self):
         for name in self.__progs:
-            try:
-                cls = import_recipe(name)
-                task_d = os.path.join(self.__config.install_to,
-                        cls.__name__.lower())
-                self.walk_and_remove(task_d, self.__config.link_to)
-                shutil.rmtree(task_d)
-            except OSError as exc:
-                logging.error(exc)
+            self.remove(name)
 
-    def walk_and_remove(self, src, dst):
+    def remove(self, name):
+        try:
+            cls = import_recipe(name)
+            task_d = os.path.join(self.__config.install_to,
+                    cls.__name__.lower())
+            self.walk_and_unlink(task_d, self.__config.link_to)
+            shutil.rmtree(task_d)
+        except OSError as exc:
+            logging.error(exc)
+
+    def walk_and_unlink(self, src, dst):
         """ Before removing program, take care of links. """
         for dirpath, _, filenames in os.walk(src,
                 topdown=False, followlinks=True):
@@ -99,7 +106,7 @@ class UpdateAction(object):
     def __call__(self):
         try:
             logging.debug('Update Action')
-            #progs = os.listdir(self.__config.install_to))
+            progs = os.listdir(self.__config.install_to)
         except OSError as exc:
             logging.error(exc)
 
@@ -170,7 +177,8 @@ def main():
     dir_check(config)
 
     try:
-        select_action(args, config)()
+        action = select_action(args, config)
+        action()
     except TypeError:
         parser.print_usage()
         logging.error('Insufficient arguments. What should I do?')
