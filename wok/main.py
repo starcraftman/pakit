@@ -58,7 +58,7 @@ class InstallAction(object):
                     dfile = os.path.join(link_dst, fname)
                     os.symlink(sfile, dfile)
                 except OSError:
-                    logging.error('Could not symlink %s -> %s'.format(sfile,
+                    logging.error('Could not symlink {0} -> {1}'.format(sfile,
                             dfile))
 
 class RemoveAction(object):
@@ -134,7 +134,7 @@ def main():
                                      RawDescriptionHelpFormatter)
     parser.add_argument('-v', '--version', action='version',
                         version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
-    parser.add_argument('-c', '--conf', default='~/.wok.yaml',
+    parser.add_argument('-c', '--conf', default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
     mut1 = parser.add_mutually_exclusive_group()
     mut1.add_argument('-i', '--install', nargs='+',

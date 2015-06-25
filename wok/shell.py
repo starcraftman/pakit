@@ -35,7 +35,7 @@ class Command(object):
         try:
             prefix = '\n    '
             msg = prefix[1:] + prefix.join(self.output())
-            logging.debug("CMD LOG: %s \n%s", self, msg)
+            logging.debug("CMD LOG: %s\n%s", self, msg)
             if self.alive:
                 self.terminate()
             self._stdout.close()
