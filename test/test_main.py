@@ -24,8 +24,8 @@ class TestAction(object):
         except OSError:
             pass
 
-        inst = InstallAction(config=self.config, progs=['ags'])
-        inst()
+        inst = InstallAction(config=self.config, progs=['ag'])
+        assert inst()
 
         bin_installed = os.path.join(self.config.install_to, 'ag', 'bin', 'ag')
         bin_linked = os.path.join(self.config.link_to, 'bin', 'ag')

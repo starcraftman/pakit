@@ -7,7 +7,7 @@ import os
 import shutil
 import sys
 
-from formula.ag import Ag
+from formula import *
 from wok.conf import Config
 from wok import __version__
 
@@ -27,21 +27,23 @@ def select_action(args, config):
 class InstallAction(object):
     def __init__(self, **kwargs):
         self.__config = kwargs.get('config')
-        self.__progs = kwargs.get('install', [])
+        self.__progs = kwargs.get('progs', [])
 
     def __call__(self):
-        try:
-            logging.debug('Install Action')
-            task_d = os.path.join(self.__config.install_to,
-                    Ag.__name__.lower())
-            task = Ag(task_d)
-            task.download()
-            task.build()
-            task.clean()
-            self.walk_and_link(task_d, self.__config.link_to)
-            return task.verify()
-        except OSError as exc:
-            logging.error(exc)
+        for name in self.__progs:
+            try:
+                logging.debug('Install Action {0}'.format(name))
+                cls = import_recipe(name)
+                task_d = os.path.join(self.__config.install_to,
+                        cls.__name__.lower())
+                task = cls(task_d)
+                task.download()
+                task.build()
+                task.clean()
+                self.walk_and_link(task_d, self.__config.link_to)
+                return task.verify()
+            except OSError as exc:
+                logging.error(exc)
 
     def walk_and_link(self, src, dst):
         """ Link a program to dst. """
@@ -64,17 +66,18 @@ class InstallAction(object):
 class RemoveAction(object):
     def __init__(self, **kwargs):
         self.__config = kwargs.get('config')
-        self.__progs = kwargs.get('remove', [])
+        self.__progs = kwargs.get('progs', [])
 
     def __call__(self):
-        try:
-            logging.debug('Remove Action')
-            task_d = os.path.join(self.__config.install_to,
-                    Ag.__name__.lower())
-            self.walk_and_remove(task_d, self.__config.link_to)
-            shutil.rmtree(task_d)
-        except OSError as exc:
-            logging.error(exc)
+        for name in self.__progs:
+            try:
+                cls = import_recipe(name)
+                task_d = os.path.join(self.__config.install_to,
+                        cls.__name__.lower())
+                self.walk_and_remove(task_d, self.__config.link_to)
+                shutil.rmtree(task_d)
+            except OSError as exc:
+                logging.error(exc)
 
     def walk_and_remove(self, src, dst):
         """ Before removing program, take care of links. """
@@ -122,6 +125,12 @@ def dir_check(config):
         except OSError:
             pass
 
+def import_recipe(name):
+    """ Return a reference to the class. """
+    mod = __import__('formula.' + name)
+    mod = getattr(mod, name)
+    return getattr(mod, name.capitalize())
+
 # TODO: Path modification during operation by os.environ
 def main():
     # TODO: Add choices kwarg for install/remove based on avail formula
@@ -161,8 +170,7 @@ def main():
     dir_check(config)
 
     try:
-        inst = select_action(args, config)
-        inst()
+        select_action(args, config)()
     except TypeError:
         parser.print_usage()
         logging.error('Insufficient arguments. What should I do?')

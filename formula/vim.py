@@ -5,7 +5,7 @@ class Vim(Recipe):
         super(Vim, self).__init__()
         self.desc = 'The classic mode based terminal editor.'
         self.url_src = 'https://github.com/vim/vim'
-        self.homepage = self.url_src
+        self.homepage = 'www.vim.org'
         self.install_d = install_d
 
     def build(self):
