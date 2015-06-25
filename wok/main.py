@@ -134,8 +134,7 @@ def main():
                                      RawDescriptionHelpFormatter)
     parser.add_argument('-v', '--version', action='version',
                         version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
-    parser.add_argument('-w', '--wokinit',
-                        default=os.path.expanduser('~/.wok.yaml'),
+    parser.add_argument('-c', '--conf', default='~/.wok.yaml',
                         help='yaml config file')
     mut1 = parser.add_mutually_exclusive_group()
     mut1.add_argument('-i', '--install', nargs='+',
@@ -156,13 +155,18 @@ def main():
     args = parser.parse_args()
     logging.debug('CLI: %s', args)
 
-    config = Config(args.wokinit)
+    config = Config(args.conf)
     logging.debug('Wok Config: %s', config)
 
     dir_check(config)
 
-    inst = select_action(args, config)
-    inst()
+    try:
+        inst = select_action(args, config)
+        inst()
+    except TypeError:
+        parser.print_usage()
+        logging.error('Insufficient arguments. What should I do?')
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
