@@ -11,15 +11,15 @@ from formula import *
 from wok.conf import Config
 from wok import __version__
 
-def select_action(args, config):
+def select_action(args, paths):
     if args.install is not None:
-        ret = InstallAction(config=config, progs=args.install)
+        ret = InstallAction(paths=paths, progs=args.install)
     elif args.remove is not None:
-        ret = RemoveAction(config=config, progs=args.remove)
+        ret = RemoveAction(paths=paths, progs=args.remove)
     elif args.update is True:
-        ret = UpdateAction(config=config)
+        ret = UpdateAction(paths=paths)
     elif args.list is True:
-        ret = ListAction(config=config)
+        ret = ListAction(paths=paths)
     else:
         ret = None
 
@@ -27,8 +27,10 @@ def select_action(args, config):
 
 class InstallAction(object):
     def __init__(self, **kwargs):
-        self.__config = kwargs.get('config')
+        self.__paths = kwargs.get('paths')
         self.__progs = kwargs.get('progs', [])
+        logging.error(str(kwargs))
+        logging.error(self.__paths)
 
     def __call__(self):
         for name in self.__progs:
@@ -38,13 +40,13 @@ class InstallAction(object):
         try:
             logging.debug('Install Action {0}'.format(name))
             cls = import_recipe(name)
-            task_d = os.path.join(self.__config.install_to,
+            task_d = os.path.join(self.__paths.get('prefix'),
                     cls.__name__.lower())
             task = cls(task_d)
             task.download()
             task.build()
             task.clean()
-            self.walk_and_link(task_d, self.__config.link_to)
+            self.walk_and_link(task_d, self.__paths.get('link'))
             return task.verify()
         except OSError as exc:
             logging.error(exc)
@@ -69,7 +71,7 @@ class InstallAction(object):
 
 class RemoveAction(object):
     def __init__(self, **kwargs):
-        self.__config = kwargs.get('config')
+        self.__paths = kwargs.get('paths')
         self.__progs = kwargs.get('progs', [])
 
     def __call__(self):
@@ -79,9 +81,9 @@ class RemoveAction(object):
     def remove(self, name):
         try:
             cls = import_recipe(name)
-            task_d = os.path.join(self.__config.install_to,
+            task_d = os.path.join(self.__paths.get('prefix'),
                     cls.__name__.lower())
-            self.walk_and_unlink(task_d, self.__config.link_to)
+            self.walk_and_unlink(task_d, self.__paths.get('link'))
             shutil.rmtree(task_d)
         except OSError as exc:
             logging.error(exc)
@@ -101,23 +103,23 @@ class RemoveAction(object):
 
 class UpdateAction(object):
     def __init__(self, **kwargs):
-        self.__config = kwargs.get('config')
+        self.__paths = kwargs.get('paths')
 
     def __call__(self):
         try:
             logging.debug('Update Action')
-            progs = os.listdir(self.__config.install_to)
+            progs = os.listdir(self.__paths.get('prefix'))
         except OSError as exc:
             logging.error(exc)
 
 class ListAction(object):
     def __init__(self, **kwargs):
-        self.__config = kwargs.get('config')
+        self.__paths = kwargs.get('paths')
 
     def __call__(self):
         logging.debug('List Action')
         try:
-            installed = os.listdir(self.__config.install_to)
+            installed = os.listdir(self.__paths.get('prefix'))
             print("The following programs are installed:")
             for prog in installed:
                 print('*', prog)
@@ -125,8 +127,8 @@ class ListAction(object):
         except OSError as exc:
             logging.error(exc)
 
-def dir_check(config):
-    for dirname in [config.install_to, config.link_to]:
+def dir_check(paths):
+    for dirname in [paths.get('prefix'), paths.get('link'), paths.get('sources')]:
         try:
             os.makedirs(dirname)
         except OSError:
@@ -174,10 +176,10 @@ def main():
     config = Config(args.conf)
     logging.debug('Wok Config: %s', config)
 
-    dir_check(config)
+    dir_check(config.paths)
 
     try:
-        action = select_action(args, config)
+        action = select_action(args, config.paths)
         action()
     except TypeError:
         parser.print_usage()
