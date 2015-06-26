@@ -13,7 +13,7 @@ class Recipe(object):
     def __init__(self):
         super(Recipe, self).__init__()
         self.desc = 'Short description for the recipe.'
-        self.url_src = 'Source code url, will build bleeding edge version.'
+        self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
         self.install_d = 'Where final install should be rooted'
 
@@ -31,7 +31,9 @@ class Recipe(object):
         else:
             cmd_dir = in_build
 
-        cmd_str = cmd_str.format(prefix=self.install_dir())
+        # TODO: Later, pickup opts from config & extend with prefix.
+        opts = {'prefix': self.install_dir()}
+        cmd_str = cmd_str.format(**opts)
         cmd = Command(cmd_str, cmd_dir)
         cmd.execute()
         cmd.wait()
@@ -41,7 +43,7 @@ class Recipe(object):
     def download(self):
         """ Git source checkout. """
         cmd = Command('git clone --recursive --depth 1 {0} {1}'.format(
-                self.url_src, self.source_dir()))
+                self.src, self.source_dir()))
         cmd.execute()
         cmd.wait()
 
