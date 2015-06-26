@@ -12,6 +12,31 @@ import tempfile
 
 TMP_DIR = '/tmp/wok'
 
+def get_hg(**kwargs):
+    """ Clones a mercurial repo to a target, optionally checks out a branch. """
+    def_branch = {'branch': '-b ' + kwargs.get('branch')
+            if kwargs.has_key('branch') else ''}
+    kwargs.update(def_branch)
+
+    cmd = Command('hg clone {url} {target}'.format(**kwargs))
+    cmd.execute()
+    cmd.wait()
+
+def get_git(**kwargs):
+    """ Clones a git repo to a target, optionally checks out a branch. """
+    def_branch = {'branch': '-b ' + kwargs.get('branch')
+            if kwargs.has_key('branch') else ''}
+    kwargs.update(def_branch)
+
+    cmd = Command('git clone --recursive --depth 1 {branch} {url} {target}'.format(**kwargs))
+    cmd.execute()
+    cmd.wait()
+
+def get_svn(**kwargs):
+    cmd = Command('svn checkout {url} {target}'.format(**kwargs))
+    cmd.execute()
+    cmd.wait()
+
 @atexit.register
 def cmd_cleanup():
     for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
@@ -31,7 +56,7 @@ class Command(object):
                 delete=True, dir=TMP_DIR, prefix='cmd')
 
     def __del__(self):
-        """ Clean up at end. """
+        """ Ensure terminated & fully logged for tracking. """
         try:
             prefix = '\n    '
             msg = prefix[1:] + prefix.join(self.output())

@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 import os
 
-from wok.shell import Command
+from wok.shell import Command, get_git
 
 class Recipe(object):
     """ A schema to build some binary. """
@@ -42,10 +42,7 @@ class Recipe(object):
 
     def download(self):
         """ Git source checkout. """
-        cmd = Command('git clone --recursive --depth 1 {0} {1}'.format(
-                self.src, self.source_dir()))
-        cmd.execute()
-        cmd.wait()
+        get_git(url=self.src, target=self.source_dir())
 
     def clean(self):
         """ Cleanup, by default delete src dir. """

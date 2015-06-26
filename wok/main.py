@@ -29,8 +29,8 @@ class InstallAction(object):
     def __init__(self, **kwargs):
         self.__paths = kwargs.get('paths')
         self.__progs = kwargs.get('progs', [])
-        logging.error(str(kwargs))
-        logging.error(self.__paths)
+        logging.debug(str(kwargs))
+        logging.debug(self.__paths)
 
     def __call__(self):
         for name in self.__progs:
@@ -128,7 +128,7 @@ class ListAction(object):
             logging.error(exc)
 
 def dir_check(paths):
-    for dirname in [paths.get('prefix'), paths.get('link'), paths.get('sources')]:
+    for dirname in [paths.get('prefix'), paths.get('link'), paths.get('source')]:
         try:
             os.makedirs(dirname)
         except OSError:
