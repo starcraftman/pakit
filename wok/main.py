@@ -154,6 +154,8 @@ def main():
                         version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
     parser.add_argument('-c', '--conf', default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
+    parser.add_argument('--create-conf', default=False, action='store_true',
+                        help='(over)write the conf at $HOME/.wok.yaml')
     mut1 = parser.add_mutually_exclusive_group()
     mut1.add_argument('-i', '--install', nargs='+',
                         metavar='PROG', help='install specified program(s)')
@@ -175,6 +177,9 @@ def main():
 
     config = Config(args.conf)
     logging.debug('Wok Config: %s', config)
+
+    if args.create_conf:
+        config.write(default=True)
 
     dir_check(config.paths)
 
