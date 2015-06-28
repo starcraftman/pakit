@@ -60,7 +60,7 @@ class Config(object):
         self.__conf = TEMPLATE
 
     def set(self, name, val):
-        """ Modify underlying config. Creates nodes as needed. """
+        """ Modify underlying config. Assumes nodes exist."""
         obj = self.__conf
         leaf = name.split('.')[-1]
         for word in name.split('.')[0:-1]:
