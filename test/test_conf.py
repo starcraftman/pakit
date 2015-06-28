@@ -2,32 +2,40 @@
 from __future__ import absolute_import
 
 import os
+import yaml
 
-from wok.conf import Config
+from wok.conf import Config, TEMPLATE
 
 WOK_FILE = './wok.yaml'
-TEMPLATE = """\
-install_to: /tmp/wok/builds
-link_to: /tmp/wok/links
-log_on: true
-log_to: /tmp/wok/main.log,
-"""
 
 class TestConfig(object):
     def setup(self):
+        output = yaml.dump(TEMPLATE)
         with open(WOK_FILE, 'w') as fout:
-            fout.write(TEMPLATE)
+            fout.write(output)
+
+        self.co = Config(WOK_FILE)
 
     def teardown(self):
         os.remove(WOK_FILE)
 
     def test_get(self):
-        co = Config(WOK_FILE)
-        assert co.install_to == '/tmp/wok/builds'
+        assert self.co.paths.get('prefix') == '/tmp/wok/builds'
+
+    def test_filename(self):
+        wok2 = './wok2.yaml'
+        self.co.filename = wok2
+        self.co.write()
+        assert os.path.exists(wok2)
+        os.remove(wok2)
+
+    def test_set(self):
+        self.co.set('paths.prefix', '/dev/null')
+        assert self.co.paths.get('prefix') == '/dev/null'
 
     def test_write(self):
-        co = Config(WOK_FILE)
-        co.set('install_to', 22)
-        co.write()
-        co.load()
-        assert co.install_to == 22
+        self.co.set('paths.install', 22)
+        self.co.write()
+        self.co.load()
+        assert self.co.paths.get('install') == 22
+

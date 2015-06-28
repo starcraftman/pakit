@@ -19,13 +19,14 @@ TEMPLATE = {
 }
 
 class Config(object):
-    def __init__(self, filename):
+    """ All logic to manage configuration parsing. """
+    def __init__(self, filename=os.path.expanduser('~/.wok.yaml')):
         self.__conf = TEMPLATE
         self.__filename = filename
         self.load()
 
     def __str__(self):
-        return str(self.__conf)
+        return 'File {0}.\n{1}'.format(self.filename, str(self.__conf))
 
     def __getattr__(self, name):
         return self.__conf.get(name, None)
@@ -33,14 +34,20 @@ class Config(object):
     def __getitem__(self, name):
         return self.__conf.get(name, None)
 
-    def set(self, name, val):
-        self.__conf[name] = val
+    @property
+    def filename(self):
+        """ The filename of the yaml config. """
+        return self.__filename
 
-    def load(self, filename=None):
-        """ If it can't load file, print error and use default. """
-        if filename is not None:
-            self.__filename = filename
+    @filename.setter
+    def filename(self, new_filename):
+        if not os.path.exists(new_filename):
+            logging.error('File not found: {0}'.format(new_filename))
 
+        self.__filename = new_filename
+
+    def load(self):
+        """ Load associated config file. """
         try:
             with open(self.__filename) as fin:
                 self.__conf = yaml.load(fin)
@@ -48,15 +55,20 @@ class Config(object):
         except IOError as exc:
             logging.error('Failed to load user config. %s', exc)
 
-    def write(self, **kwargs):
+    def reset(self):
+        """ Reset to default template. """
+        self.__conf = TEMPLATE
+
+    def set(self, name, val):
+        """ Modify underlying config. Creates nodes as needed. """
+        obj = self.__conf
+        leaf = name.split('.')[-1]
+        for word in name.split('.')[0:-1]:
+            obj = obj.get(word)
+        obj[leaf] = val
+
+    def write(self):
         """ Allows to write the values to a file. """
-        new_name = kwargs.get('filename', None)
-        if new_name is not None:
-            self.__filename = new_name
-
-        if kwargs.get('default', False):
-            self.__conf = TEMPLATE
-
         with open(self.__filename, 'w') as fout:
             yaml.dump(self.__conf, fout, default_flow_style=False)
             logging.debug('Config written to: %s', self.__filename)
