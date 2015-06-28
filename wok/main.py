@@ -7,7 +7,6 @@ import os
 import shutil
 import sys
 
-from formula import *
 from wok.conf import Config
 from wok import __version__
 

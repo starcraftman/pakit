@@ -4,11 +4,12 @@
 * `wok --update`                -- Update local programs
 * `wok --remove tmux            -- Remove program
 * `wok --list`                  -- List installed programs
-* `wok --available`             -- List available formula
+* `wok --available`             -- List ALL available formula
 * `wok --search lib`            -- Display matching avilable recipes
 * `wok --conf ./a.yml -i ag`    -- Override default config
+* 'wok --display vim ag`        -- Display package information
 
-Short opts in order: -i -u -r -l -a -s -c
+Short opts in order: -i -u -r -l -a -s -c -d
 
 ## Configuration
 
