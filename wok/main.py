@@ -39,13 +39,12 @@ class InstallAction(object):
         try:
             logging.debug('Install Action {0}'.format(name))
             cls = import_recipe(name)
-            task_d = os.path.join(self.__paths.get('prefix'),
-                    cls.__name__.lower())
-            task = cls(task_d)
+            task = cls()
+            task.set_paths(self.__paths)
             task.download()
             task.build()
             task.clean()
-            self.walk_and_link(task_d, self.__paths.get('link'))
+            self.walk_and_link(task.install_dir(), self.__paths.get('link'))
             return task.verify()
         except OSError as exc:
             logging.error(exc)
@@ -80,10 +79,10 @@ class RemoveAction(object):
     def remove(self, name):
         try:
             cls = import_recipe(name)
-            task_d = os.path.join(self.__paths.get('prefix'),
-                    cls.__name__.lower())
-            self.walk_and_unlink(task_d, self.__paths.get('link'))
-            shutil.rmtree(task_d)
+            task = cls()
+            task.set_paths(self.__paths)
+            self.walk_and_unlink(task.install_dir(), self.__paths.get('link'))
+            shutil.rmtree(task.install_dir())
         except OSError as exc:
             logging.error(exc)
 

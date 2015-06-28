@@ -15,13 +15,16 @@ class Recipe(object):
         self.desc = 'Short description for the recipe.'
         self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
-        self.install_d = 'Where final install should be rooted'
+        self.paths = None
 
     def source_dir(self):
-        return os.path.join(self.install_d, 'src')
+        return os.path.join(self.paths.get('source'), self.__class__.__name__.lower())
 
     def install_dir(self):
-        return self.install_d
+        return os.path.join(self.paths.get('prefix'), self.__class__.__name__.lower())
+
+    def set_paths(self, paths):
+        self.paths = paths
 
     def cmd(self, cmd_str, in_build=True):
         if in_build is True:
