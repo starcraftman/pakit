@@ -12,5 +12,5 @@ class Ag(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/ag --version', self.link_dir())
+        lines = self.cmd('{link}/bin/ag --version')
         return lines[0].find('ag version') != -1

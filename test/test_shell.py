@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import os
+import pytest
 import shutil
 import time
 
@@ -37,6 +38,7 @@ class TestVCS(object):
         cmd.wait()
         assert cmd.rcode == 0
 
+    @pytest.mark.skipif('os.path.expanduser("~") != "/home/travis"', reason='Long Test')
     def test_svn(self):
         svn_url = 'http://svn.apache.org/repos/asf/spamassassin/trunk'
         get_svn(url=svn_url, target=self.test_dir)

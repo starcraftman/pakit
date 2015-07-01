@@ -37,7 +37,8 @@ class Recipe(object):
             cmd_dir = self.source_dir()
 
         # TODO: Later, pickup opts from config & extend with prefix.
-        opts = {'prefix': self.install_dir()}
+        opts = {'link': self.link_dir(), 'prefix': self.install_dir(),
+                'source': self.source_dir()}
         cmd_str = cmd_str.format(**opts)
         cmd = Command(cmd_str, cmd_dir)
         cmd.execute()
@@ -51,7 +52,7 @@ class Recipe(object):
 
     def clean(self):
         """ Cleanup, by default delete src dir. """
-        self.cmd('rm -rf {0}'.format(self.source_dir()))
+        self.cmd('rm -rf {source}')
 
     @abstractmethod
     def build(self):
