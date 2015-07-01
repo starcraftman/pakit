@@ -17,22 +17,24 @@ class Recipe(object):
         self.homepage = 'Project site'
         self.paths = None
 
-    def source_dir(self):
-        return os.path.join(self.paths.get('source'), self.__class__.__name__.lower())
-
-    def install_dir(self):
-        return os.path.join(self.paths.get('prefix'), self.__class__.__name__.lower())
-
     def set_paths(self, paths):
         self.paths = paths
 
-    def cmd(self, cmd_str, in_build=True):
-        if in_build is True:
+    def install_dir(self):
+        return os.path.join(self.paths.get('prefix'), self.name())
+
+    def link_dir(self):
+        return self.paths.get('link')
+
+    def source_dir(self):
+        return os.path.join(self.paths.get('source'), self.name())
+
+    def name(self):
+        return self.__class__.__name__.lower()
+
+    def cmd(self, cmd_str, cmd_dir=None):
+        if cmd_dir is None:
             cmd_dir = self.source_dir()
-        elif in_build is False:
-            cmd_dir = self.install_dir()
-        else:
-            cmd_dir = in_build
 
         # TODO: Later, pickup opts from config & extend with prefix.
         opts = {'prefix': self.install_dir()}
