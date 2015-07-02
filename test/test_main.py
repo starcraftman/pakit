@@ -9,12 +9,9 @@ import shutil
 from wok.main import *
 from wok.conf import Config
 
-WOK_CONF = os.path.expanduser('~/.wok.yaml')
-
 class TestAction(object):
     def setup(self):
-        self.config = Config(WOK_CONF)
-        self.config.load()
+        self.config = Config()
         self.paths = self.config.paths
 
     def test_act_install(self):

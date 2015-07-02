@@ -1,6 +1,7 @@
 """ Config reader & writer. Depends on PyYAML. """
 from __future__ import absolute_import
 
+import copy
 import logging
 import os
 import yaml
@@ -21,7 +22,7 @@ TEMPLATE = {
 class Config(object):
     """ All logic to manage configuration parsing. """
     def __init__(self, filename=os.path.expanduser('~/.wok.yaml')):
-        self.__conf = TEMPLATE
+        self.__conf = copy.deepcopy(TEMPLATE)
         self.__filename = filename
 
     def __str__(self):
