@@ -4,27 +4,22 @@ from __future__ import absolute_import
 import os
 import yaml
 
-from wok.conf import Config, TEMPLATE
-
-WOK_FILE = './wok.yaml'
+from wok.conf import Config
 
 class TestConfig(object):
     def setup(self):
-        output = yaml.dump(TEMPLATE)
-        with open(WOK_FILE, 'w') as fout:
-            fout.write(output)
-
-        self.config = Config(WOK_FILE)
+        self.config = Config('./wok.yaml')
 
     def teardown(self):
-        os.remove(WOK_FILE)
+        try:
+            os.remove(self.config.filename)
+        except OSError:
+            pass
 
     def test_filename(self):
-        wok2 = './wok2.yaml'
-        self.config.filename = wok2
         self.config.write()
-        assert os.path.exists(wok2)
-        os.remove(wok2)
+        assert os.path.exists(self.config.filename)
+        os.remove(self.config.filename)
 
     def test_get(self):
         assert self.config.paths.get('prefix') == '/tmp/wok/builds'
