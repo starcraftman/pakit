@@ -33,8 +33,12 @@ class Recipe(object):
         return self.__class__.__name__.lower()
 
     def cmd(self, cmd_str, cmd_dir=None):
+        # FIXME: Temporary hack, need to refactor cmd function.
         if cmd_dir is None:
-            cmd_dir = self.source_dir()
+            if os.path.exists(self.source_dir()):
+                cmd_dir = self.source_dir()
+            else:
+                cmd_dir = os.path.dirname(self.link_dir())
 
         # TODO: Later, pickup opts from config & extend with prefix.
         opts = {'link': self.link_dir(), 'prefix': self.install_dir(),
