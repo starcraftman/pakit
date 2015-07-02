@@ -2,9 +2,76 @@
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
+import glob
+import logging
 import os
 
 from wok.shell import Command, get_git
+
+class RecipeNotFound(Exception):
+    pass
+
+class RecipeDB(object):
+    """ Simple object database, allows queries and can search paths. """
+    def __init__(self, config):
+        self.__db = {}
+        self.__config = config
+
+    def update_db(self, path):
+        """ Glob path, and update db with new recipes. """
+        logging.debug(path)
+        new_recs = glob.glob(os.path.join(path, '*.py'))
+        logging.debug(new_recs)
+        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+        new_recs.remove('__init__')
+
+        mod = os.path.basename(path)
+        logging.debug(mod)
+        for cls in new_recs:
+            obj = self.__recipe_obj(mod, cls)
+            self.__db.update({cls: obj})
+
+    def __recipe_obj(self, mod_name, cls_name):
+        """ Return an instanciated object of cls_name. """
+        logging.debug('%s %s', mod_name, cls_name)
+        mod = __import__('{mod}.{cls}.'.format(mod=mod_name, cls=cls_name))
+        mod = getattr(mod, cls_name)
+        cls = getattr(mod, cls_name.capitalize())
+        obj = cls()
+        obj.set_config(self.__config)
+        return obj
+
+    def available(self):
+        return self.__db.keys()
+
+    def has(self, name):
+        return self.__db.has_key(name)
+
+    def get(self, name):
+        obj = self.__db.get(name)
+        if obj is None:
+            raise RecipeNotFound('Database missing entry: ' + name)
+        return obj
+
+    def search(self, sequence):
+        """ Search all available for matches to subsequence. """
+        matched = []
+        for name in self.available():
+            if self.__seq_match(name, sequence):
+                matched.append(name)
+
+        return matched
+
+    def __seq_match(self, word, sequence):
+        """ Subsequence matcher. """
+        seq = list(sequence)
+        for char in word:
+            if char == seq[0]:
+                seq.remove(seq[0])
+            if len(seq) == 0:
+                return True
+
+        return False
 
 class Recipe(object):
     """ A schema to build some binary. """
@@ -19,6 +86,9 @@ class Recipe(object):
 
     def set_paths(self, paths):
         self.paths = paths
+
+    def set_config(self, config):
+        self.paths = config.paths
 
     def install_dir(self):
         return os.path.join(self.paths.get('prefix'), self.name())

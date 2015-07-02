@@ -174,10 +174,11 @@ def main():
     logging.debug('CLI: %s', args)
 
     config = Config(args.conf)
+    config.load()
     logging.debug('Wok Config: %s', config)
 
     if args.create_conf:
-        config.write(default=True)
+        config.write()
 
     dir_check(config.paths)
 

@@ -23,7 +23,6 @@ class Config(object):
     def __init__(self, filename=os.path.expanduser('~/.wok.yaml')):
         self.__conf = TEMPLATE
         self.__filename = filename
-        self.load()
 
     def __str__(self):
         return 'File {0}.\n{1}'.format(self.filename, str(self.__conf))
