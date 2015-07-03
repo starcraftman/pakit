@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
 import glob
-import logging
 import os
 
 from wok.shell import Command, get_git
@@ -17,23 +16,22 @@ class RecipeDB(object):
         self.__db = {}
         self.__config = config
 
+    def __str__(self):
+        return 'Available Programs: ' + str(self.__db.keys())
+
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
-        logging.debug(path)
         new_recs = glob.glob(os.path.join(path, '*.py'))
-        logging.debug(new_recs)
         new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
         new_recs.remove('__init__')
 
         mod = os.path.basename(path)
-        logging.debug(mod)
         for cls in new_recs:
             obj = self.__recipe_obj(mod, cls)
             self.__db.update({cls: obj})
 
     def __recipe_obj(self, mod_name, cls_name):
         """ Return an instanciated object of cls_name. """
-        logging.debug('%s %s', mod_name, cls_name)
         mod = __import__('{mod}.{cls}.'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)
         cls = getattr(mod, cls_name.capitalize())
