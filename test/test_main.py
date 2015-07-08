@@ -9,22 +9,24 @@ import shutil
 from wok.main import *
 from wok.conf import Config
 
+@pytest.fixture(scope='module')
+def clean_up(request):
+    """ Ensure clean test area. """
+    try:
+        shutil.rmtree(request.paths.get('prefix'))
+    except OSError:
+        pass
+    try:
+        shutil.rmtree(request.paths.get('link'))
+    except OSError:
+        pass
+
 class TestAction(object):
     def setup(self):
         self.config = Config()
         self.paths = self.config.paths
 
     def test_act_install(self):
-        # One time ensure for now
-        try:
-            shutil.rmtree(self.paths.get('prefix'))
-        except OSError:
-            pass
-        try:
-            shutil.rmtree(self.paths.get('link'))
-        except OSError:
-            pass
-
         install = InstallAction(paths=self.paths, progs=['ag'])
         install()
 

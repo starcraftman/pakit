@@ -11,10 +11,16 @@ class RecipeNotFound(Exception):
     pass
 
 class RecipeDB(object):
+    __instance = None
     """ Simple object database, allows queries and can search paths. """
-    def __init__(self, config):
-        self.__db = {}
-        self.__config = config
+    def __new__(cls, config=None):
+        """ Used to implement singleton. """
+        if cls.__instance is None:
+            cls.__instance = super(RecipeDB, cls).__new__(cls)
+            cls.__instance.__db = {}
+        if config is not None:
+            cls.__instance.__config = config
+        return cls.__instance
 
     def __str__(self):
         return 'Available Programs: ' + str(self.__db.keys())

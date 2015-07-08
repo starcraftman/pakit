@@ -12,13 +12,14 @@ class TestRecipeDB(object):
         self.config = Config()
         self.rdb = RecipeDB(self.config)
         self.formulas = __file__
-        for i in range(0, 2):
+        for _ in range(0, 2):
             self.formulas = os.path.dirname(self.formulas)
         self.formulas = os.path.join(self.formulas, 'formula')
         self.rdb.update_db(self.formulas)
 
     def test_available(self):
-        assert self.rdb.available() == ['ag', 'vim']
+        for prog in ['ag', 'vim']:
+            assert prog in self.rdb.available()
 
     def test_has(self):
         assert self.rdb.has('ag')
