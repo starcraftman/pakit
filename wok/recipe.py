@@ -119,7 +119,6 @@ class Recipe(object):
                 'source': self.source_dir()}
         cmd_str = cmd_str.format(**opts)
         cmd = Command(cmd_str, cmd_dir)
-        cmd.execute()
         cmd.wait()
 
         return cmd.output()
