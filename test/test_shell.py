@@ -39,15 +39,16 @@ class TestGit(object):
         self.git.clean()
         assert not os.path.exists(self.git.target)
 
-    def test_version(self):
+    def test_commit(self):
         self.git.tag = '0.29.0'
         self.git.download()
-        assert self.git.version == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+        assert self.git.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_with_func(self):
+        repo_git = os.path.join(self.git.target, '.git')
         with self.git:
-            assert os.path.exists(os.path.join(self.git.target, '.git'))
-        assert not os.path.exists(os.path.join(self.git.target, '.git'))
+            assert os.path.exists(repo_git)
+        assert not os.path.exists(repo_git)
 
 class TestVCS(object):
     def setup(self):

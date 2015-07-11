@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 import glob
 import os
 
-from wok.shell import Command, get_git
+from wok.shell import Command, Git
 
 class RecipeNotFound(Exception):
     pass
@@ -125,7 +125,8 @@ class Recipe(object):
 
     def download(self):
         """ Git source checkout. """
-        get_git(url=self.src, target=self.source_dir())
+        repo = Git(self.src, target=self.source_dir())
+        repo.download()
 
     def clean(self):
         """ Cleanup, by default delete src dir. """

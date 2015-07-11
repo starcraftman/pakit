@@ -20,11 +20,15 @@ class Git(object):
         self.__tag = tag
 
     def __enter__(self):
+        """ Guarantees that the repo is downloaded then cleaned. """
         if not self.is_cloned:
             self.download()
 
     def __exit__(self, typ, value, traceback):
         self.clean()
+
+    def __str__(self):
+        return 'Git: {src} @ {target}'.format(src=self.src, target=self.target)
 
     @property
     def is_cloned(self):
@@ -56,22 +60,21 @@ class Git(object):
     def target(self, new_target):
         if os.path.exists(os.path.dirname(new_target)):
             raise IOError('Target already exists.')
-
         self.__target = new_target
 
     @property
-    def version(self):
+    def commit(self):
         """ Get the commit hash of the relevant repo. """
-        def v_cmd():
+        def __cmd():
             cmd = Command('git log -1 ', self.target)
             cmd.wait()
             return cmd.output()[0]
 
         if not self.is_cloned:
             with self:
-                return v_cmd()
+                return __cmd()
         else:
-            return v_cmd()
+            return __cmd()
 
     def checkout(self, new_tag=None):
         if new_tag is None:

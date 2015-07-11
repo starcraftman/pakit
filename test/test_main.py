@@ -8,16 +8,19 @@ import shutil
 
 from wok.main import *
 from wok.conf import Config
+from wok.shell import TMP_DIR
 
-@pytest.fixture(scope='module')
-def clean_up(request):
-    """ Ensure clean test area. """
+def setup_module(module):
     try:
-        shutil.rmtree(request.paths.get('prefix'))
+        shutil.rmtree(TMP_DIR)
+        os.mkdir(TMP_DIR)
     except OSError:
         pass
+
+def teardown_module(module):
     try:
-        shutil.rmtree(request.paths.get('link'))
+        shutil.rmtree(TMP_DIR)
+        os.mkdir(TMP_DIR)
     except OSError:
         pass
 
@@ -40,6 +43,8 @@ class TestAction(object):
         assert list() == ['ag']
 
     def test_act_remove(self):
+        assert os.path.exists(os.path.join(self.paths.get('prefix'), 'ag'))
+
         rem = RemoveAction(paths=self.paths, progs=['ag'])
         rem()
 
