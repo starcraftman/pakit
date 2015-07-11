@@ -34,9 +34,6 @@ class TestGit(object):
         with pytest.raises(IOError):
             self.git.target = self.test_dir
 
-    #def test_tag_set(self):
-        #self.git.download()
-
     def test_clean(self):
         self.git.download()
         self.git.clean()
@@ -46,6 +43,11 @@ class TestGit(object):
         self.git.tag = '0.29.0'
         self.git.download()
         assert self.git.version == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+
+    def test_with_func(self):
+        with self.git:
+            assert os.path.exists(os.path.join(self.git.target, '.git'))
+        assert not os.path.exists(os.path.join(self.git.target, '.git'))
 
 class TestVCS(object):
     def setup(self):

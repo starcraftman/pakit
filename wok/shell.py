@@ -19,12 +19,12 @@ class Git(object):
         self.__target = target
         self.__tag = tag
 
-    #def __enter__(self):
-        #if not self.is_cloned:
-            #self.download()
+    def __enter__(self):
+        if not self.is_cloned:
+            self.download()
 
-    #def __exit__(self, type, value, traceback):
-        #self.clean()
+    def __exit__(self, typ, value, traceback):
+        self.clean()
 
     @property
     def is_cloned(self):
@@ -62,15 +62,21 @@ class Git(object):
     @property
     def version(self):
         """ Get the commit hash of the relevant repo. """
+        def v_cmd():
+            cmd = Command('git log -1 ', self.target)
+            cmd.wait()
+            return cmd.output()[0]
+
         if not self.is_cloned:
-            self.download()
+            with self:
+                return v_cmd()
+        else:
+            return v_cmd()
 
-        cmd = Command('git log -1 ', self.target)
-        cmd.wait()
-        return cmd.output()[0]
-
-    def checkout(self):
-        cmd = Command('git checkout ' + self.tag, self.target)
+    def checkout(self, new_tag=None):
+        if new_tag is None:
+            new_tag = self.tag
+        cmd = Command('git checkout ' + new_tag, self.target)
         cmd.wait()
 
     def clean(self):
@@ -89,7 +95,7 @@ class Git(object):
         else:
             tag = '-b ' + self.tag
 
-        cmd = Command('git clone --recursive --depth 1 {tag} {url} {target}'.format(
+        cmd = Command('git clone --recursive {tag} {url} {target}'.format(
                 tag=tag, url=self.src, target=self.target))
         cmd.wait()
 
