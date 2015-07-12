@@ -1,5 +1,6 @@
 """ All things shell related, including Command class. """
 from __future__ import absolute_import
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 import atexit
 import glob
@@ -12,9 +13,13 @@ import tempfile
 
 TMP_DIR = '/tmp/wok'
 
-class Git(object):
-    """ Represent a git repository. """
-    def __init__(self, src, target='', tag=None):
+class VersionRepo(object):
+    """ Base class for all version control downloaders. """
+    __metaclass__ = ABCMeta
+
+    def __init__(self, src, target, tag):
+        if target is None:
+            target = os.path.basename(src)
         self.src = src
         self.__target = target
         self.__tag = tag
@@ -28,7 +33,94 @@ class Git(object):
         self.clean()
 
     def __str__(self):
-        return 'Git: {src} @ {target}'.format(src=self.src, target=self.target)
+        return '{name}: {src} @ {target}'.format(name=self.__class__.__name__,
+                src=self.src, target=self.target)
+
+    @property
+    def tag(self):
+        """ A tag or branch of the git repository. """
+        return self.__tag
+
+    @tag.setter
+    def tag(self, new_tag):
+        self.__tag = new_tag
+
+    @property
+    def target(self):
+        """ Path to clone the repository to. """
+        return self.__target
+
+    @target.setter
+    def target(self, new_target):
+        if os.path.exists(new_target):
+            raise IOError('Target already exists.')
+        self.__target = new_target
+
+    def clean(self):
+        """ Simply purges the source tree. """
+        cmd = Command('rm -rf ' + self.target)
+        cmd.wait()
+
+    @abstractproperty
+    def commit(self):
+        """ Returns the commit hash of the current repo state. """
+        pass
+
+    @abstractproperty
+    def is_cloned(self):
+        """ Returns true iff the folder exists & matches the repo url. """
+        pass
+
+    @abstractmethod
+    def checkout(self):
+        """ Checks out the designated tag or branch. """
+        pass
+
+    @abstractmethod
+    def download(self, target=None):
+        """ Download the repo to with specified opts.
+
+            target: Change the clone target directory.
+        """
+        pass
+
+class Hg(VersionRepo):
+    """ Represents a mercurial repository. """
+    def __init__(self, src, target=None, tag=None):
+        super(Hg, self).__init__(src, target, tag)
+
+    @property
+    def commit(self):
+        pass
+
+    @property
+    def is_cloned(self):
+        pass
+
+    def checkout(self):
+        pass
+
+    def download(self, target=None):
+        pass
+
+class Git(VersionRepo):
+    """ Represents a git repository. """
+    def __init__(self, src, target=None, tag=None):
+        super(Git, self).__init__(src, target, tag)
+
+    @property
+    def commit(self):
+        """ Get the commit hash of the repo. """
+        def __cmd():
+            cmd = Command('git log -1 ', self.target)
+            cmd.wait()
+            return cmd.output()[0]
+
+        if not self.is_cloned:
+            with self:
+                return __cmd()
+        else:
+            return __cmd()
 
     @property
     def is_cloned(self):
@@ -43,47 +135,10 @@ class Git(object):
 
         return True
 
-    @property
-    def tag(self):
-        """ A tag or branch of the git repository. """
-        return self.__tag
-
-    @tag.setter
-    def tag(self, new_tag):
-        self.__tag = new_tag
-
-    @property
-    def target(self):
-        return self.__target
-
-    @target.setter
-    def target(self, new_target):
-        if os.path.exists(os.path.dirname(new_target)):
-            raise IOError('Target already exists.')
-        self.__target = new_target
-
-    @property
-    def commit(self):
-        """ Get the commit hash of the relevant repo. """
-        def __cmd():
-            cmd = Command('git log -1 ', self.target)
-            cmd.wait()
-            return cmd.output()[0]
-
-        if not self.is_cloned:
-            with self:
-                return __cmd()
-        else:
-            return __cmd()
-
     def checkout(self, new_tag=None):
         if new_tag is None:
             new_tag = self.tag
         cmd = Command('git checkout ' + new_tag, self.target)
-        cmd.wait()
-
-    def clean(self):
-        cmd = Command('rm -rf ' + self.target)
         cmd.wait()
 
     def download(self, target=None):
@@ -109,15 +164,6 @@ def get_hg(**kwargs):
     kwargs.update(def_branch)
 
     cmd = Command('hg clone {url} {target}'.format(**kwargs))
-    cmd.wait()
-
-def get_git(**kwargs):
-    """ Clones a git repo to a target, optionally checks out a branch. """
-    def_branch = {'branch': '-b ' + kwargs.get('branch')
-            if kwargs.has_key('branch') else ''}
-    kwargs.update(def_branch)
-
-    cmd = Command('git clone --recursive --depth 1 {branch} {url} {target}'.format(**kwargs))
     cmd.wait()
 
 def get_svn(**kwargs):

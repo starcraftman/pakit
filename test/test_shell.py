@@ -60,15 +60,6 @@ class TestVCS(object):
         except OSError:
             pass
 
-    def test_git(self):
-        git_url = 'https://github.com/ggreer/the_silver_searcher'
-        get_git(url=git_url, target=self.test_dir)
-        assert os.path.exists(os.path.join(self.test_dir, '.git'))
-
-        cmd = Command('git status', self.test_dir)
-        cmd.wait()
-        assert cmd.rcode == 0
-
     def test_hg(self):
         hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
         get_hg(url=hg_url, target=self.test_dir)
