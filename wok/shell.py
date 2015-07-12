@@ -101,7 +101,13 @@ class Hg(VersionRepo):
         pass
 
     def download(self, target=None):
-        pass
+        if target is not None:
+            self.target = target
+        tag = '' if self.tag is None else '-b ' + self.tag
+
+        cmd = Command('hg clone {tag} {url} {target}'.format(
+            tag=tag, url=self.src, target=self.target))
+        cmd.wait()
 
 class Git(VersionRepo):
     """ Represents a git repository. """
@@ -148,10 +154,7 @@ class Git(VersionRepo):
         """
         if target is not None:
             self.target = target
-        if self.tag is None:
-            tag = ''
-        else:
-            tag = '-b ' + self.tag
+        tag = '' if self.tag is None else '-b ' + self.tag
 
         cmd = Command('git clone --recursive {tag} {url} {target}'.format(
                 tag=tag, url=self.src, target=self.target))

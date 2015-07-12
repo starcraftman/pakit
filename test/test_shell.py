@@ -11,8 +11,8 @@ from wok.shell import *
 class TestGit(object):
     def setup(self):
         self.test_dir = './temp'
-        self.url = 'https://github.com/ggreer/the_silver_searcher'
-        self.git = Git(self.url, self.test_dir)
+        git_url = 'https://github.com/ggreer/the_silver_searcher'
+        self.repo = Git(git_url, self.test_dir)
 
     def teardown(self):
         try:
@@ -21,34 +21,76 @@ class TestGit(object):
             pass
 
     def test_download(self):
-        self.git.download()
-        assert os.path.exists(os.path.join(self.git.target, '.git'))
+        self.repo.download()
+        assert os.path.exists(os.path.join(self.repo.target, '.git'))
 
     def test_is_cloned(self):
-        assert not self.git.is_cloned
-        self.git.download()
-        assert self.git.is_cloned
+        assert not self.repo.is_cloned
+        self.repo.download()
+        assert self.repo.is_cloned
 
     def test_target(self):
         os.mkdir(self.test_dir)
         with pytest.raises(IOError):
-            self.git.target = self.test_dir
+            self.repo.target = self.test_dir
 
     def test_clean(self):
-        self.git.download()
-        self.git.clean()
-        assert not os.path.exists(self.git.target)
+        self.repo.download()
+        self.repo.clean()
+        assert not os.path.exists(self.repo.target)
 
     def test_commit(self):
-        self.git.tag = '0.29.0'
-        self.git.download()
-        assert self.git.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+        self.repo.tag = '0.29.0'
+        self.repo.download()
+        assert self.repo.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_with_func(self):
-        repo_git = os.path.join(self.git.target, '.git')
-        with self.git:
+        repo_git = os.path.join(self.repo.target, '.git')
+        with self.repo:
             assert os.path.exists(repo_git)
         assert not os.path.exists(repo_git)
+
+class TestHg(object):
+    def setup(self):
+        self.test_dir = './temp'
+        hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
+        self.repo = Hg(hg_url, self.test_dir)
+
+    def teardown(self):
+        try:
+            shutil.rmtree(self.test_dir)
+        except OSError:
+            pass
+
+    def test_download(self):
+        self.repo.download()
+        assert os.path.exists(os.path.join(self.repo.target, '.hg'))
+
+    #def test_is_cloned(self):
+        #assert not self.git.is_cloned
+        #self.git.download()
+        #assert self.git.is_cloned
+
+    #def test_target(self):
+        #os.mkdir(self.test_dir)
+        #with pytest.raises(IOError):
+            #self.git.target = self.test_dir
+
+    #def test_clean(self):
+        #self.git.download()
+        #self.git.clean()
+        #assert not os.path.exists(self.git.target)
+
+    #def test_commit(self):
+        #self.git.tag = '0.29.0'
+        #self.git.download()
+        #assert self.git.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+
+    #def test_with_func(self):
+        #repo_git = os.path.join(self.git.target, '.git')
+        #with self.git:
+            #assert os.path.exists(repo_git)
+        #assert not os.path.exists(repo_git)
 
 class TestVCS(object):
     def setup(self):
