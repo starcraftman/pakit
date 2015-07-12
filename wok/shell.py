@@ -145,7 +145,7 @@ class Hg(VersionRepo):
     def commit(self):
         """ Return the commit hash of the repo state. """
         def __cmd():
-            cmd = Command('hg parent', self.target)
+            cmd = Command('hg parents', self.target)
             cmd.wait()
             return cmd.output()[0]
 
