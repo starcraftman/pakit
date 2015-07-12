@@ -20,6 +20,16 @@ class TestGit(object):
         except OSError:
             pass
 
+    def test_commit(self):
+        self.repo.tag = '0.29.0'
+        self.repo.download()
+        assert self.repo.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+
+    def test_clean(self):
+        self.repo.download()
+        self.repo.clean()
+        assert not os.path.exists(self.repo.target)
+
     def test_download(self):
         self.repo.download()
         assert os.path.exists(os.path.join(self.repo.target, '.git'))
@@ -33,16 +43,6 @@ class TestGit(object):
         os.mkdir(self.test_dir)
         with pytest.raises(IOError):
             self.repo.target = self.test_dir
-
-    def test_clean(self):
-        self.repo.download()
-        self.repo.clean()
-        assert not os.path.exists(self.repo.target)
-
-    def test_commit(self):
-        self.repo.tag = '0.29.0'
-        self.repo.download()
-        assert self.repo.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_with_func(self):
         repo_git = os.path.join(self.repo.target, '.git')
@@ -62,35 +62,19 @@ class TestHg(object):
         except OSError:
             pass
 
+    def test_commit(self):
+        self.repo.tag = '0.2'
+        self.repo.download()
+        assert self.repo.commit == 'changeset:   80:a6ec48f03985'
+
     def test_download(self):
         self.repo.download()
         assert os.path.exists(os.path.join(self.repo.target, '.hg'))
 
-    #def test_is_cloned(self):
-        #assert not self.git.is_cloned
-        #self.git.download()
-        #assert self.git.is_cloned
-
-    #def test_target(self):
-        #os.mkdir(self.test_dir)
-        #with pytest.raises(IOError):
-            #self.git.target = self.test_dir
-
-    #def test_clean(self):
-        #self.git.download()
-        #self.git.clean()
-        #assert not os.path.exists(self.git.target)
-
-    #def test_commit(self):
-        #self.git.tag = '0.29.0'
-        #self.git.download()
-        #assert self.git.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
-
-    #def test_with_func(self):
-        #repo_git = os.path.join(self.git.target, '.git')
-        #with self.git:
-            #assert os.path.exists(repo_git)
-        #assert not os.path.exists(repo_git)
+    def test_is_cloned(self):
+        assert not self.repo.is_cloned
+        self.repo.download()
+        assert self.repo.is_cloned
 
 class TestVCS(object):
     def setup(self):
@@ -101,15 +85,6 @@ class TestVCS(object):
             shutil.rmtree(self.test_dir)
         except OSError:
             pass
-
-    def test_hg(self):
-        hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
-        get_hg(url=hg_url, target=self.test_dir)
-        assert os.path.exists(os.path.join(self.test_dir, '.hg'))
-
-        cmd = Command('hg status', self.test_dir)
-        cmd.wait()
-        assert cmd.rcode == 0
 
     @pytest.mark.skipif('os.path.expanduser("~") != "/home/travis"', reason='Long Test')
     def test_svn(self):

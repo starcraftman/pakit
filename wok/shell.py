@@ -38,7 +38,7 @@ class VersionRepo(object):
 
     @property
     def tag(self):
-        """ A tag or branch of the git repository. """
+        """ A tag or branch of the repository. """
         return self.__tag
 
     @tag.setter
@@ -63,17 +63,17 @@ class VersionRepo(object):
 
     @abstractproperty
     def commit(self):
-        """ Returns the commit hash of the current repo state. """
+        """ Return the commit hash of the repo state. """
         pass
 
     @abstractproperty
     def is_cloned(self):
-        """ Returns true iff the folder exists & matches the repo url. """
+        """ Returns true iff the target exists & matches the repo url. """
         pass
 
     @abstractmethod
-    def checkout(self):
-        """ Checks out the designated tag or branch. """
+    def checkout(self, new_tag=None):
+        """ Updates the repository to the tag. """
         pass
 
     @abstractmethod
@@ -83,31 +83,6 @@ class VersionRepo(object):
             target: Change the clone target directory.
         """
         pass
-
-class Hg(VersionRepo):
-    """ Represents a mercurial repository. """
-    def __init__(self, src, target=None, tag=None):
-        super(Hg, self).__init__(src, target, tag)
-
-    @property
-    def commit(self):
-        pass
-
-    @property
-    def is_cloned(self):
-        pass
-
-    def checkout(self):
-        pass
-
-    def download(self, target=None):
-        if target is not None:
-            self.target = target
-        tag = '' if self.tag is None else '-b ' + self.tag
-
-        cmd = Command('hg clone {tag} {url} {target}'.format(
-            tag=tag, url=self.src, target=self.target))
-        cmd.wait()
 
 class Git(VersionRepo):
     """ Represents a git repository. """
@@ -142,15 +117,16 @@ class Git(VersionRepo):
         return True
 
     def checkout(self, new_tag=None):
+        """ Updates the repository to the tag. """
         if new_tag is None:
             new_tag = self.tag
         cmd = Command('git checkout ' + new_tag, self.target)
         cmd.wait()
 
     def download(self, target=None):
-        """ Download the repo to with specified opts.
+        """ Download the repo to target.
 
-            target: Change the clone target directory.
+            target: Where the repository will be stored
         """
         if target is not None:
             self.target = target
@@ -160,15 +136,61 @@ class Git(VersionRepo):
                 tag=tag, url=self.src, target=self.target))
         cmd.wait()
 
-def get_hg(**kwargs):
-    """ Clones a mercurial repo to a target, optionally checks out a branch. """
-    def_branch = {'branch': '-b ' + kwargs.get('branch')
-            if kwargs.has_key('branch') else ''}
-    kwargs.update(def_branch)
+class Hg(VersionRepo):
+    """ Represents a mercurial repository. """
+    def __init__(self, src, target=None, tag=None):
+        super(Hg, self).__init__(src, target, tag)
 
-    cmd = Command('hg clone {url} {target}'.format(**kwargs))
-    cmd.wait()
+    @property
+    def commit(self):
+        """ Return the commit hash of the repo state. """
+        def __cmd():
+            cmd = Command('hg parent', self.target)
+            cmd.wait()
+            return cmd.output()[0]
 
+        if not self.is_cloned:
+            with self:
+                return __cmd()
+        else:
+            return __cmd()
+
+    @property
+    def is_cloned(self):
+        """ True iff the target exists & is the required repository. """
+        if not os.path.exists(os.path.join(self.target, '.hg')):
+            return False
+
+        found = False
+        with open(os.path.join(self.target, '.hg', 'hgrc')) as fin:
+            for line in fin:
+                if self.src in line:
+                    found = True
+                    break
+
+        return found
+
+    def checkout(self, new_tag=None):
+        """ Updates the repository to the tag. """
+        if new_tag is None:
+            new_tag = self.tag
+        cmd = Command('hg update ' + new_tag, self.target)
+        cmd.wait()
+
+    def download(self, target=None):
+        """ Download the repo to target.
+
+            target: Where the repository will be stored
+        """
+        if target is not None:
+            self.target = target
+        tag = '' if self.tag is None else '-u ' + self.tag
+
+        cmd = Command('hg clone {tag} {url} {target}'.format(
+            tag=tag, url=self.src, target=self.target))
+        cmd.wait()
+
+# TODO: Convert svn to above format.
 def get_svn(**kwargs):
     cmd = Command('svn checkout {url} {target}'.format(**kwargs))
     cmd.wait()
