@@ -60,11 +60,15 @@ class Config(object):
         self.__conf = copy.deepcopy(TEMPLATE)
 
     def set(self, name, val):
-        """ Modify underlying config. Assumes nodes exist."""
+        """ Modify underlying config, will create nodes if needed. """
         obj = self.__conf
         leaf = name.split('.')[-1]
         for word in name.split('.')[0:-1]:
-            obj = obj.get(word)
+            new_obj = obj.get(word, None)
+            if new_obj is None:
+                obj[word] = dict()
+                new_obj = obj.get(word)
+            obj = new_obj
         obj[leaf] = val
 
     def write(self):

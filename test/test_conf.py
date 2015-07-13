@@ -28,6 +28,9 @@ class TestConfig(object):
         self.config.set('paths.prefix', '/dev/null')
         assert self.config.paths.get('prefix') == '/dev/null'
 
+        self.config.set('hello.world', True)
+        assert self.config.hello.get('world') is True
+
     def test_write(self):
         self.config.set('paths.install', 22)
         self.config.write()
