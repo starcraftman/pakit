@@ -31,6 +31,6 @@ class TestConfig(object):
     def test_write(self):
         self.config.set('paths.install', 22)
         self.config.write()
-        self.config.load()
+        self.config.read()
         assert self.config.paths.get('install') == 22
 

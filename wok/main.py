@@ -174,7 +174,7 @@ def main():
     logging.debug('CLI: %s', args)
 
     config = Config(args.conf)
-    config.load()
+    config.read()
     logging.debug('Wok Config: %s', config)
 
     if args.create_conf:

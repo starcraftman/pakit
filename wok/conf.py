@@ -46,7 +46,7 @@ class Config(object):
 
         self.__filename = new_filename
 
-    def load(self):
+    def read(self):
         """ Load associated config file. """
         try:
             with open(self.__filename) as fin:
@@ -57,7 +57,7 @@ class Config(object):
 
     def reset(self):
         """ Reset to default template. """
-        self.__conf = TEMPLATE
+        self.__conf = copy.deepcopy(TEMPLATE)
 
     def set(self, name, val):
         """ Modify underlying config. Assumes nodes exist."""
