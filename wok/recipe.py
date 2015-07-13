@@ -11,8 +11,9 @@ class RecipeNotFound(Exception):
     pass
 
 class RecipeDB(object):
-    __instance = None
     """ Simple object database, allows queries and can search paths. """
+    __instance = None
+
     def __new__(cls, config=None):
         """ Used to implement singleton. """
         if cls.__instance is None:
@@ -20,10 +21,19 @@ class RecipeDB(object):
             cls.__instance.__db = {}
         if config is not None:
             cls.__instance.__config = config
+        cls.__instance.__default_formulas()
         return cls.__instance
 
     def __str__(self):
         return 'Available Programs: ' + str(self.__db.keys())
+
+    def __default_formulas(self):
+        """ Populate the default formulas. """
+        def_formulas = __file__
+        for _ in range(0, 2):
+            def_formulas = os.path.dirname(def_formulas)
+        def_formulas = os.path.join(def_formulas, 'formula')
+        self.update_db(def_formulas)
 
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """

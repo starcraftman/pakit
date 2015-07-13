@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 
 from wok.recipe import Recipe
+from wok.shell import Git, Hg
 
 __version__ = 0.1
 

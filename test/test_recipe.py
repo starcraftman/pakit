@@ -11,11 +11,6 @@ class TestRecipeDB(object):
     def setup(self):
         self.config = Config()
         self.rdb = RecipeDB(self.config)
-        self.formulas = __file__
-        for _ in range(0, 2):
-            self.formulas = os.path.dirname(self.formulas)
-        self.formulas = os.path.join(self.formulas, 'formula')
-        self.rdb.update_db(self.formulas)
 
     def test_available(self):
         for prog in ['ag', 'vim']:

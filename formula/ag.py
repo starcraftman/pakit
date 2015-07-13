@@ -1,4 +1,4 @@
-from wok import Recipe
+from wok import Recipe, Git
 
 class Ag(Recipe):
     def __init__(self):
@@ -6,6 +6,7 @@ class Ag(Recipe):
         self.desc = 'Grep like tool optimized for speed.'
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
+        self.unstable = Git(self.src)
 
     def build(self):
         self.cmd('./build.sh --prefix {prefix}')
