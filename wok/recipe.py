@@ -97,12 +97,18 @@ class Recipe(object):
         self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
         self.paths = None
+        self.stable = None
+        self.unstable = None
 
     def set_paths(self, paths):
         self.paths = paths
 
     def set_config(self, config):
         self.paths = config.paths
+        if self.unstable is not None:
+            self.unstable.target = self.source_dir()
+        if self.stable is not None:
+            self.stable.target = self.source_dir()
 
     def install_dir(self):
         return os.path.join(self.paths.get('prefix'), self.name())
