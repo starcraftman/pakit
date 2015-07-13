@@ -60,7 +60,10 @@ class Config(object):
         self.__conf = copy.deepcopy(TEMPLATE)
 
     def set(self, name, val):
-        """ Modify underlying config, will create nodes if needed. """
+        """ Modify underlying config, will create nodes if needed. 
+
+            name: some path down the dict, i.e. paths.prefix or logging.enable
+        """
         obj = self.__conf
         leaf = name.split('.')[-1]
         for word in name.split('.')[0:-1]:
