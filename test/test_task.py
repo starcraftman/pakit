@@ -1,6 +1,7 @@
 """ All tests related to tasks. """
 from __future__ import absolute_import
 
+import glob
 import logging
 import os
 import pytest
@@ -15,18 +16,13 @@ def setup_module(module):
     Task.set_config(config)
     for path in config.paths.values():
         try:
+            shutil.rmtree(path)
             os.mkdir(path)
         except OSError:
             pass
 
 def teardown_module(module):
-    config = Config()
-    for path in config.paths.values():
-        try:
-            shutil.rmtree(path)
-            os.mkdir(path)
-        except OSError:
-            pass
+    setup_module(module)
 
 class TestTasks(object):
     def setup(self):
@@ -50,6 +46,15 @@ class TestTasks(object):
     def test_update(self):
         pass
 
-    @pytest.mark.xfail
     def test_remove(self):
-        pass
+        task  = RemoveTask('ag')
+        assert os.path.exists(os.path.join(task.prefix, 'ag'))
+
+        task.do()
+
+        assert os.path.exists(task.prefix)
+        assert len(glob.glob(os.path.join(
+                task.prefix, '*'))) == 0
+        assert os.path.exists(task.link)
+        assert len(glob.glob(os.path.join(
+                task.prefix, '*'))) == 0

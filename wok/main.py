@@ -7,123 +7,26 @@ import os
 import shutil
 import sys
 
-from wok.conf import Config
 from wok import __version__
+from wok.conf import Config
+from wok.recipe import RecipeDB
+from wok.task import *
 
-#def select_action(args, paths):
-    #if args.install is not None:
-        #ret = InstallAction(paths=paths, progs=args.install)
-    #elif args.remove is not None:
-        #ret = RemoveAction(paths=paths, progs=args.remove)
-    #elif args.update is True:
-        #ret = UpdateAction(paths=paths)
-    #elif args.list is True:
-        #ret = ListAction(paths=paths)
-    #else:
-        #ret = None
+def parse_tasks(args):
+    """ Take program arguments and make a task list. """
+    tasks = []
 
-    #return ret
+    if args.install is not None:
+        tasks.extend([InstallTask(prog) for prog in args.install])
+    if args.remove is not None:
+        tasks.extend([RemoveTask(prog) for prog in args.remove])
+    if args.update is True:
+        pass
+    if args.list is True:
+        tasks.append(ListTask())
 
-#class InstallAction(object):
-    #def __init__(self, **kwargs):
-        #self.__paths = kwargs.get('paths')
-        #self.__progs = kwargs.get('progs', [])
-        #logging.debug(str(kwargs))
-        #logging.debug(self.__paths)
+    return tasks
 
-    #def __call__(self):
-        #for name in self.__progs:
-            #self.install(name)
-
-    #def install(self, name):
-        #try:
-            #logging.debug('Install Action {0}'.format(name))
-            #cls = import_recipe(name)
-            #task = cls()
-            #task.set_paths(self.__paths)
-            #task.download()
-            #task.build()
-            #task.clean()
-            #self.walk_and_link(task.install_dir(), self.__paths.get('link'))
-            #return task.verify()
-        #except OSError as exc:
-            #logging.error(exc)
-
-    #def walk_and_link(self, src, dst):
-        #""" Link a program to dst. """
-        #for dirpath, _, filenames in os.walk(src, followlinks=True):
-            #link_dst = os.path.join(dst, dirpath.replace(src + '/', ''))
-            #try:
-                #os.makedirs(link_dst)
-            #except OSError:
-                #pass
-
-            #for fname in filenames:
-                #try:
-                    #sfile = os.path.join(dirpath, fname)
-                    #dfile = os.path.join(link_dst, fname)
-                    #os.symlink(sfile, dfile)
-                #except OSError:
-                    #logging.error('Could not symlink {0} -> {1}'.format(sfile,
-                            #dfile))
-
-#class RemoveAction(object):
-    #def __init__(self, **kwargs):
-        #self.__paths = kwargs.get('paths')
-        #self.__progs = kwargs.get('progs', [])
-
-    #def __call__(self):
-        #for name in self.__progs:
-            #self.remove(name)
-
-    #def remove(self, name):
-        #try:
-            #cls = import_recipe(name)
-            #task = cls()
-            #task.set_paths(self.__paths)
-            #self.walk_and_unlink(task.install_dir(), self.__paths.get('link'))
-            #shutil.rmtree(task.install_dir())
-        #except OSError as exc:
-            #logging.error(exc)
-
-    #def walk_and_unlink(self, src, dst):
-        #""" Before removing program, take care of links. """
-        #for dirpath, _, filenames in os.walk(src,
-                #topdown=False, followlinks=True):
-            #link_dst = os.path.join(dst, dirpath.replace(src + '/', ''))
-            #for fname in filenames:
-                #os.remove(os.path.join(link_dst, fname))
-
-            #try:
-                #os.rmdir(link_dst)
-            #except OSError:
-                #pass
-
-#class UpdateAction(object):
-    #def __init__(self, **kwargs):
-        #self.__paths = kwargs.get('paths')
-
-    #def __call__(self):
-        #try:
-            #logging.debug('Update Action')
-            #progs = os.listdir(self.__paths.get('prefix'))
-        #except OSError as exc:
-            #logging.error(exc)
-
-#class ListAction(object):
-    #def __init__(self, **kwargs):
-        #self.__paths = kwargs.get('paths')
-
-    #def __call__(self):
-        #logging.debug('List Action')
-        #try:
-            #installed = os.listdir(self.__paths.get('prefix'))
-            #print("The following programs are installed:")
-            #for prog in installed:
-                #print('*', prog)
-            #return installed
-        #except OSError as exc:
-            #logging.error(exc)
 
 def dir_check(paths):
     for dirname in [paths.get('prefix'), paths.get('link'), paths.get('source')]:
@@ -131,12 +34,6 @@ def dir_check(paths):
             os.makedirs(dirname)
         except OSError:
             pass
-
-def import_recipe(name):
-    """ Return a reference to the class. """
-    mod = __import__('formula.' + name)
-    mod = getattr(mod, name)
-    return getattr(mod, name.capitalize())
 
 # TODO: Path modification during operation by os.environ
 def main():
@@ -181,14 +78,20 @@ def main():
         config.write()
 
     dir_check(config.paths)
+    Task.set_config(config)
+    RecipeDB(config)
 
-    #try:
-        #action = select_action(args, config.paths)
-        #action()
-    #except TypeError:
-        #parser.print_usage()
-        #logging.error('Insufficient arguments. What should I do?')
-        #sys.exit(1)
+    try:
+        tasks = parse_tasks(args)
+        if len(tasks) == 0:
+            parser.print_usage()
+            logging.error('Insufficient arguments. What should I do?')
+            sys.exit(1)
+
+        for task in tasks:
+            task.do()
+    except Exception as exc:
+        logging.error(exc)
 
 if __name__ == '__main__':
     main()

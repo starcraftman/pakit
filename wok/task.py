@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 import logging
 import os
+import shutil
 
 from wok.recipe import RecipeDB
 
@@ -43,8 +44,11 @@ class Task(object):
     __metaclass__ = ABCMeta
     __config = None
 
-    def __init__(self):
-        pass
+    def __init__(self, recipe_name=None):
+        self.__recipe_name = recipe_name
+
+    def __str__(self):
+        return '{cls}: {recipe}'.format(cls=self.__class__.__name__, recipe=self.recipe_name)
 
     @classmethod
     def config(cls):
@@ -66,19 +70,23 @@ class Task(object):
     def source(self):
         return self.__class__.__config.paths.get('source')
 
+    @property
+    def recipe_name(self):
+        return self.__recipe_name
+
     @abstractmethod
     def do(self):
         pass
 
 class InstallTask(Task):
     def __init__(self, recipe_name):
-        super(InstallTask, self).__init__()
-        self.recipe_name = recipe_name
+        super(InstallTask, self).__init__(recipe_name)
 
     def do(self):
         self.install()
 
     def install(self):
+        """ Separate function to subclass for update task. """
         logging.debug('Installing %s', self.recipe_name)
         recipe = RecipeDB().get(self.recipe_name)
         with recipe.unstable:
@@ -86,6 +94,25 @@ class InstallTask(Task):
             walk_and_link(recipe.install_dir(), recipe.link_dir())
             sucess = recipe.verify()
         return sucess
+
+class RemoveTask(Task):
+    def __init__(self, recipe_name):
+        super(RemoveTask, self).__init__(recipe_name)
+
+    def do(self):
+        logging.debug('Removing %s', self.recipe_name)
+        recipe = RecipeDB().get(self.recipe_name)
+
+        walk_and_unlink(recipe.install_dir(), recipe.link_dir())
+        shutil.rmtree(recipe.install_dir())
+
+class UpdateTask(Task):
+    """ Update a program, don't do it unless changes made. """
+    def __init__(self, recipe_name):
+        super(UpdateTask, self).__init__(recipe_name)
+
+    def do(self):
+        logging.debug('Updating %s', self.recipe_name)
 
 class ListTask(Task):
     """ List all installed programs. """
@@ -98,5 +125,7 @@ class ListTask(Task):
         msg = 'The following programs are installed:\n'
         for prog in installed:
             msg += '* ' + prog
+
+        print msg
 
         return msg
