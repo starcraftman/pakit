@@ -17,12 +17,11 @@ class VersionRepo(object):
     """ Base class for all version control downloaders. """
     __metaclass__ = ABCMeta
 
-    def __init__(self, src, target, tag):
-        if target is None:
-            target = os.path.basename(src)
-        self.src = src
+    def __init__(self, uri, target, tag=None, branch=None):
+        self.uri = uri
         self.__target = target
         self.__tag = tag
+        self.__branch = branch
 
     def __enter__(self):
         """ Guarantees that the repo is downloaded then cleaned. """
@@ -33,8 +32,12 @@ class VersionRepo(object):
         self.clean()
 
     def __str__(self):
-        return '{name}: {src} @ {target}'.format(name=self.__class__.__name__,
-                src=self.src, target=self.target)
+        if self.__tag is not None:
+            tag = 'tag: ' + self.__tag
+        elif self.__branch is not None:
+            tag = 'branch: ' + self.__branch
+        return '{name}: {uri} on {tag} @ {target}'.format(name=self.__class__.__name__,
+                uri=self.uri, target=self.target, tag=self.tag)
 
     @property
     def tag(self):
@@ -62,18 +65,18 @@ class VersionRepo(object):
         cmd.wait()
 
     @abstractproperty
-    def commit(self):
-        """ Return the commit hash of the repo state. """
+    def hash(self):
+        """ Return the hash of the current commit. """
         pass
 
     @abstractproperty
     def is_cloned(self):
-        """ Returns true iff the target exists & matches the repo url. """
+        """ Returns true iff the target exists & is correct. """
         pass
 
     @abstractmethod
     def checkout(self, new_tag=None):
-        """ Updates the repository to the tag. """
+        """ Updates the repository so that branch/tag changes are reflected. """
         pass
 
     @abstractmethod
@@ -86,11 +89,11 @@ class VersionRepo(object):
 
 class Git(VersionRepo):
     """ Represents a git repository. """
-    def __init__(self, src, target=None, tag=None):
-        super(Git, self).__init__(src, target, tag)
+    def __init__(self, uri, target=None, tag=None):
+        super(Git, self).__init__(uri, target, tag)
 
     @property
-    def commit(self):
+    def hash(self):
         """ Get the commit hash of the repo. """
         def __cmd():
             cmd = Command('git log -1 ', self.target)
@@ -99,9 +102,11 @@ class Git(VersionRepo):
 
         if not self.is_cloned:
             with self:
-                return __cmd()
+                hash = __cmd()
         else:
-            return __cmd()
+            hash = __cmd()
+
+        return hash.split()[-1]
 
     @property
     def is_cloned(self):
@@ -111,7 +116,7 @@ class Git(VersionRepo):
 
         cmd = Command('git remote show origin', self.target)
         cmd.wait()
-        if self.src not in cmd.output()[1]:
+        if self.uri not in cmd.output()[1]:
             return False
 
         return True
@@ -132,17 +137,17 @@ class Git(VersionRepo):
             self.target = target
         tag = '' if self.tag is None else '-b ' + self.tag
 
-        cmd = Command('git clone --recursive {tag} {url} {target}'.format(
-                tag=tag, url=self.src, target=self.target))
+        cmd = Command('git clone --recursive {tag} {uri} {target}'.format(
+                tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
 class Hg(VersionRepo):
     """ Represents a mercurial repository. """
-    def __init__(self, src, target=None, tag=None):
-        super(Hg, self).__init__(src, target, tag)
+    def __init__(self, uri, target=None, tag=None):
+        super(Hg, self).__init__(uri, target, tag)
 
     @property
-    def commit(self):
+    def hash(self):
         """ Return the commit hash of the repo state. """
         def __cmd():
             cmd = Command('hg parents', self.target)
@@ -151,9 +156,11 @@ class Hg(VersionRepo):
 
         if not self.is_cloned:
             with self:
-                return __cmd()
+                hash = __cmd()
         else:
-            return __cmd()
+            hash = __cmd()
+
+        return hash.split()[-1]
 
     @property
     def is_cloned(self):
@@ -164,7 +171,7 @@ class Hg(VersionRepo):
         found = False
         with open(os.path.join(self.target, '.hg', 'hgrc')) as fin:
             for line in fin:
-                if self.src in line:
+                if self.uri in line:
                     found = True
                     break
 
@@ -186,8 +193,8 @@ class Hg(VersionRepo):
             self.target = target
         tag = '' if self.tag is None else '-u ' + self.tag
 
-        cmd = Command('hg clone {tag} {url} {target}'.format(
-            tag=tag, url=self.src, target=self.target))
+        cmd = Command('hg clone {tag} {uri} {target}'.format(
+            tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
 # TODO: Convert svn to above format.

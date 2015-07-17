@@ -20,10 +20,10 @@ class TestGit(object):
         except OSError:
             pass
 
-    def test_commit(self):
+    def test_hash(self):
         self.repo.tag = '0.29.0'
         self.repo.download()
-        assert self.repo.commit == 'commit 808b32de91196b4a9a571e75ac96efa58ca90b99'
+        assert self.repo.hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_clean(self):
         self.repo.download()
@@ -62,10 +62,10 @@ class TestHg(object):
         except OSError:
             pass
 
-    def test_commit(self):
+    def test_hash(self):
         self.repo.tag = '0.2'
         self.repo.download()
-        assert self.repo.commit == 'changeset:   80:a6ec48f03985'
+        assert self.repo.hash == '80:a6ec48f03985'
 
     def test_download(self):
         self.repo.download()
