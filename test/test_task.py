@@ -12,6 +12,7 @@ from wok.task import *
 
 def setup_module(module):
     config = Config()
+    Task.set_config(config)
     for path in config.paths.values():
         try:
             os.mkdir(path)
@@ -33,12 +34,12 @@ class TestTasks(object):
         self.rdb = RecipeDB(self.config)
 
     def test_install(self):
-        task = InstallTask(self.config, 'ag')
+        task = InstallTask('ag')
         task.do()
         assert os.path.exists(os.path.join(task.prefix, 'ag', 'bin', 'ag'))
 
     def test_list(self):
-        task = ListTask(self.config)
+        task = ListTask()
         assert task.do() == 'The following programs are installed:\n* ag'
 
     @pytest.mark.xfail

@@ -41,29 +41,38 @@ def walk_and_unlink(src, dst):
 class Task(object):
     """ Top level task. """
     __metaclass__ = ABCMeta
+    __config = None
 
-    def __init__(self, config, recipe_name=None):
-        self.__config = config
+    def __init__(self):
+        pass
+
+    @classmethod
+    def config(cls):
+        return cls.__config
+
+    @classmethod
+    def set_config(cls, new_config):
+        cls.__config = new_config
 
     @property
     def link(self):
-        return self.__config.paths.get('link')
+        return self.__class__.__config.paths.get('link')
 
     @property
     def prefix(self):
-        return self.__config.paths.get('prefix')
+        return self.__class__.__config.paths.get('prefix')
 
     @property
     def source(self):
-        return self.__config.paths.get('source')
+        return self.__class__.__config.paths.get('source')
 
     @abstractmethod
     def do(self):
         pass
 
 class InstallTask(Task):
-    def __init__(self, config, recipe_name):
-        super(InstallTask, self).__init__(config)
+    def __init__(self, recipe_name):
+        super(InstallTask, self).__init__()
         self.recipe_name = recipe_name
 
     def do(self):
@@ -80,8 +89,8 @@ class InstallTask(Task):
 
 class ListTask(Task):
     """ List all installed programs. """
-    def __init__(self, config):
-        super(ListTask, self).__init__(config)
+    def __init__(self):
+        super(ListTask, self).__init__()
 
     def do(self):
         logging.debug('List Action')
