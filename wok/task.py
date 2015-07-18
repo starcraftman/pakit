@@ -44,7 +44,7 @@ class Task(object):
     __metaclass__ = ABCMeta
     __config = None
 
-    def __init__(self, recipe_name=None):
+    def __init__(self, recipe_name=''):
         self.__recipe_name = recipe_name
 
     def __str__(self):
@@ -58,17 +58,20 @@ class Task(object):
     def set_config(cls, new_config):
         cls.__config = new_config
 
+    def __path(self, name):
+        return self.__class__.__config.paths.get(name)
+
     @property
     def link(self):
-        return self.__class__.__config.paths.get('link')
+        return self.__path('link')
 
     @property
     def prefix(self):
-        return self.__class__.__config.paths.get('prefix')
+        return self.__path('prefix')
 
     @property
     def source(self):
-        return self.__class__.__config.paths.get('source')
+        return self.__path('source')
 
     @property
     def recipe_name(self):
@@ -122,9 +125,9 @@ class ListTask(Task):
     def do(self):
         logging.debug('List Action')
         installed = os.listdir(self.prefix)
-        msg = 'The following programs are installed:\n'
+        msg = 'The following programs are installed:'
         for prog in installed:
-            msg += '* ' + prog
+            msg += '\n  - ' + prog
 
         print msg
 

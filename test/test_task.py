@@ -36,7 +36,7 @@ class TestTasks(object):
 
     def test_list(self):
         task = ListTask()
-        assert task.do() == 'The following programs are installed:\n* ag'
+        assert task.do() == 'The following programs are installed:\n  - ag'
 
     @pytest.mark.xfail
     def test_search(self):

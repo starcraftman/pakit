@@ -25,7 +25,8 @@ class RecipeDB(object):
         return cls.__instance
 
     def __str__(self):
-        return 'Available Programs: ' + str(self.__db.keys())
+        progs = ['\n- {prog}'.format(prog) for prog in self.__db.keys()]
+        return 'Available To Install: ' + ''.join(progs)
 
     def __default_formulas(self):
         """ Populate the default formulas. """
@@ -138,11 +139,6 @@ class Recipe(object):
         cmd.wait()
 
         return cmd.output()
-
-    def download(self):
-        """ Git source checkout. """
-        repo = Git(self.src, target=self.source_dir())
-        repo.download()
 
     def clean(self):
         """ Cleanup, by default delete src dir. """
