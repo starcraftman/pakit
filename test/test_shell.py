@@ -12,7 +12,7 @@ class TestGit(object):
     def setup(self):
         self.test_dir = './temp'
         git_url = 'https://github.com/ggreer/the_silver_searcher'
-        self.repo = Git(git_url, self.test_dir)
+        self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
 
     def teardown(self):
         try:
@@ -21,7 +21,6 @@ class TestGit(object):
             pass
 
     def test_hash(self):
-        self.repo.tag = '0.29.0'
         self.repo.download()
         assert self.repo.hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
@@ -54,7 +53,7 @@ class TestHg(object):
     def setup(self):
         self.test_dir = './temp'
         hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
-        self.repo = Hg(hg_url, self.test_dir)
+        self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
 
     def teardown(self):
         try:
@@ -63,7 +62,6 @@ class TestHg(object):
             pass
 
     def test_hash(self):
-        self.repo.tag = '0.2'
         self.repo.download()
         assert self.repo.hash == '80:a6ec48f03985'
 

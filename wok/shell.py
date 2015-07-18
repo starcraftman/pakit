@@ -14,14 +14,24 @@ import tempfile
 TMP_DIR = '/tmp/wok'
 
 class VersionRepo(object):
-    """ Base class for all version control downloaders. """
+    """ Base class for all version control downloaders.
+
+        uri: The url of the repository.
+
+        Optional Kwargs:
+        target:     A path on local disk where it will be cloned. Usually set by wok.
+        branch:     A branch to checkout during clone.
+        tag:        A tag to checkout during clone.
+        latest_tag: Default False, use latest commit. If True, query repo for last tag set.
+        """
     __metaclass__ = ABCMeta
 
-    def __init__(self, uri, target, tag=None, branch=None):
+    def __init__(self, uri, **kwargs):
         self.uri = uri
-        self.__target = target
-        self.__tag = tag
-        self.__branch = branch
+        self.__target = kwargs.get('target', None)
+        self.__tag = kwargs.get('tag', None)
+        self.__branch = kwargs.get('branch', None)
+        self.__latest_tag = kwargs.get('latest_tag', False)
 
     def __enter__(self):
         """ Guarantees that the repo is downloaded then cleaned. """
@@ -40,13 +50,13 @@ class VersionRepo(object):
                 uri=self.uri, target=self.target, tag=self.tag)
 
     @property
+    def branch(self):
+        return self.__branch
+
+    @property
     def tag(self):
         """ A tag or branch of the repository. """
         return self.__tag
-
-    @tag.setter
-    def tag(self, new_tag):
-        self.__tag = new_tag
 
     @property
     def target(self):
@@ -56,7 +66,9 @@ class VersionRepo(object):
     @target.setter
     def target(self, new_target):
         if os.path.exists(new_target):
-            raise IOError('Target already exists.')
+            msg = 'Target Already Exists: ' + new_target
+            logging.error(msg)
+            raise IOError(msg)
         self.__target = new_target
 
     def clean(self):
@@ -89,8 +101,8 @@ class VersionRepo(object):
 
 class Git(VersionRepo):
     """ Represents a git repository. """
-    def __init__(self, uri, target=None, tag=None):
-        super(Git, self).__init__(uri, target, tag)
+    def __init__(self, uri, **kwargs):
+        super(Git, self).__init__(uri, **kwargs)
 
     @property
     def hash(self):
@@ -143,8 +155,8 @@ class Git(VersionRepo):
 
 class Hg(VersionRepo):
     """ Represents a mercurial repository. """
-    def __init__(self, uri, target=None, tag=None):
-        super(Hg, self).__init__(uri, target, tag)
+    def __init__(self, uri, **kwargs):
+        super(Hg, self).__init__(uri, **kwargs)
 
     @property
     def hash(self):
