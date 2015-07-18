@@ -29,9 +29,15 @@ class VersionRepo(object):
     def __init__(self, uri, **kwargs):
         self.uri = uri
         self.__target = kwargs.get('target', None)
-        self.__tag = kwargs.get('tag', None)
-        self.__branch = kwargs.get('branch', None)
         self.__latest_tag = kwargs.get('latest_tag', False)
+
+        tag = kwargs.get('tag', None)
+        if tag is not None:
+            self.__tag = tag
+            self.__on_branch = False
+        else:
+            self.__tag = kwargs.get('branch', None)
+            self.__on_branch = True
 
     def __enter__(self):
         """ Guarantees that the repo is downloaded then cleaned. """
@@ -42,21 +48,32 @@ class VersionRepo(object):
         self.clean()
 
     def __str__(self):
-        if self.__tag is not None:
-            tag = 'tag: ' + self.__tag
-        elif self.__branch is not None:
-            tag = 'branch: ' + self.__branch
-        return '{name}: {uri} on {tag} @ {target}'.format(name=self.__class__.__name__,
-                uri=self.uri, target=self.target, tag=self.tag)
+        desc = 'tag' if not self.__on_branch else 'branch'
+        tag = desc + ': ' + self.__tag
+        return '{name}: {uri} @ {target}\n{tag}, latest_tag={latest}'.format(
+                name=self.__class__.__name__,
+                uri=self.uri, target=self.target, tag=tag,
+                latest=self.__latest_tag)
 
     @property
     def branch(self):
-        return self.__branch
+        """ A branch of the repository. """
+        return self.__tag
+
+    @branch.setter
+    def branch(self, new_branch):
+        self.__on_branc = True
+        self.__tag = new_branch
 
     @property
     def tag(self):
-        """ A tag or branch of the repository. """
+        """ A tag of the repository. """
         return self.__tag
+
+    @tag.setter
+    def tag(self, new_tag):
+        self.__on_branch = False
+        self.__tag = new_tag
 
     @property
     def target(self):
