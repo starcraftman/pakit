@@ -15,8 +15,8 @@ Just a rough guess of what I should be implementing when.
 - [x] Implement basic tasks to install & remove 'ag' program.
 - [x] Support Git & Hg repositories.
 - [x] Simple config from `.wok.yml`.
-- [ ] Upgrading logic & caching (i.e. don't rebuild if latest).
-- [ ] Decide on a license.
+- [ ] Upgrade logic.
+- [ ] Pick a license.
 
 ### 0.2
 - [ ] Add archive support, supports download, hashing & extracting.
