@@ -62,7 +62,7 @@ class VersionRepo(object):
 
     @branch.setter
     def branch(self, new_branch):
-        self.__on_branc = True
+        self.__on_branch = True
         self.__tag = new_branch
 
     @property
@@ -104,7 +104,7 @@ class VersionRepo(object):
         pass
 
     @abstractmethod
-    def checkout(self, new_tag=None):
+    def checkout(self):
         """ Updates the repository so that branch/tag changes are reflected. """
         pass
 
@@ -112,7 +112,7 @@ class VersionRepo(object):
     def download(self, target=None):
         """ Download the repo to with specified opts.
 
-            target: Change the clone target directory.
+            target: Set target directory before downloading.
         """
         pass
 
@@ -150,11 +150,9 @@ class Git(VersionRepo):
 
         return True
 
-    def checkout(self, new_tag=None):
+    def checkout(self):
         """ Updates the repository to the tag. """
-        if new_tag is None:
-            new_tag = self.tag
-        cmd = Command('git checkout ' + new_tag, self.target)
+        cmd = Command('git checkout ' + self.tag, self.target)
         cmd.wait()
 
     def download(self, target=None):
@@ -206,11 +204,9 @@ class Hg(VersionRepo):
 
         return found
 
-    def checkout(self, new_tag=None):
+    def checkout(self):
         """ Updates the repository to the tag. """
-        if new_tag is None:
-            new_tag = self.tag
-        cmd = Command('hg update ' + new_tag, self.target)
+        cmd = Command('hg update ' + self.tag, self.target)
         cmd.wait()
 
     def download(self, target=None):

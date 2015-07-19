@@ -49,6 +49,12 @@ class TestGit(object):
             assert os.path.exists(repo_git)
         assert not os.path.exists(repo_git)
 
+    def test_checkout(self):
+        self.repo.download()
+        self.repo.tag = '0.20.0'
+        self.repo.checkout()
+        assert self.repo.hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
+
 class TestHg(object):
     def setup(self):
         self.test_dir = './temp'
@@ -73,6 +79,12 @@ class TestHg(object):
         assert not self.repo.is_cloned
         self.repo.download()
         assert self.repo.is_cloned
+
+    def test_checkout(self):
+        self.repo.download()
+        self.repo.tag = '0.1'
+        self.repo.checkout()
+        assert self.repo.hash == '14:d390b5e27191'
 
 class TestVCS(object):
     def setup(self):
