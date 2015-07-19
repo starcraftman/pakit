@@ -12,24 +12,27 @@ Goal:
 Just a rough guess of what I should be implementing when.
 
 ### 0.1
-* Complete example to install/remove ag.
-* Upgrading logic & caching (i.e. don't rebuild if latest).
-* Simple config from `.wok.yml`.
+- [x] Implement basic tasks to install & remove 'ag' program.
+- [x] Support Git & Hg repositories.
+- [x] Simple config from `.wok.yml`.
+- [ ] Upgrading logic & caching (i.e. don't rebuild if latest).
+- [ ] Decide on a license.
 
 ### 0.2
-* Add archive support & other VCS.
-* Add list/searching support.
-* Figure out how to scale recipes well.
+- [ ] Add archive support, to download & hash.
+- Minimum Support should include: tar.gz, tar.bz2, tar.xz, zip
+- [ ] Add list/searching support.
+- [ ] Figure out how to scale recipes well.
 
 ### 0.3
-* Add dependency logic, so one recipe can depend on another.
+- [ ] Add dependency logic, so one recipe can depend on another.
 
 ### 0.4
-* Parallelism, ability to install/upgrade in parallel.
+- [ ] Parallelism, envisioned as some task based dependency.
 
 ### Beyond
-* Make an organization.
-* Formulas go to separate repo.
-* Create tool to convert homebrew ruby formula.
-* Make a simple io website & promote?
-* Find a helper? If you are interested, make an issue & ping me.
+- [ ] Make an organization.
+- [ ] Formulas go to separate repo.
+- [ ] Create tool to convert homebrew ruby formula.
+- [ ] Make a simple io website & promote?
+- [ ] Contributors?

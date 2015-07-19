@@ -38,10 +38,7 @@ def dir_check(paths):
 # TODO: Path modification during operation by os.environ
 def main():
     # TODO: Add choices kwarg for install/remove based on avail formula
-    mesg = """wok is a homebrew like installer.
-
-    Available Programs:
-    """
+    mesg = """    wok is a homebrew like installer"""
     parser = argparse.ArgumentParser(description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)

@@ -22,7 +22,7 @@ class VersionRepo(object):
         target:     A path on local disk where it will be cloned. Usually set by wok.
         branch:     A branch to checkout during clone.
         tag:        A tag to checkout during clone.
-        """
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, uri, **kwargs):
