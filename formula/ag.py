@@ -3,9 +3,10 @@ from wok import Recipe, Git
 class Ag(Recipe):
     def __init__(self):
         super(Ag, self).__init__()
-        self.desc = 'Grep like tool optimized for speed.'
+        self.desc = 'Grep like tool optimized for speed'
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
+        self.stable = Git(self.src, tag='0.30.0')
         self.unstable = Git(self.src)
 
     def build(self):

@@ -46,9 +46,11 @@ class VersionRepo(object):
         self.clean()
 
     def __str__(self):
-        desc = 'tag' if not self.__on_branch else 'branch'
-        tag = desc + ': ' + self.__tag
-        return '{name}: {uri} @ {target}\n{tag}}'.format(
+        if self.__on_branch:
+            tag = 'branch: ' + 'DEFAULT' if self.tag is None else self.tag
+        else:
+            tag = 'tag: ' + self.tag
+        return '{name}: {uri} @ {target}\n    {tag}'.format(
                 name=self.__class__.__name__,
                 uri=self.uri, target=self.target, tag=tag)
 

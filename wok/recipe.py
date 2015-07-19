@@ -25,7 +25,7 @@ class RecipeDB(object):
         return cls.__instance
 
     def __str__(self):
-        progs = ['\n- {prog}'.format(prog) for prog in self.__db.keys()]
+        progs = ['\n- {0}'.format(str(prog)) for prog in self.__db.values()]
         return 'Available To Install: ' + ''.join(progs)
 
     def update_db(self, path):
@@ -99,6 +99,17 @@ class Recipe(object):
         self.homepage = 'Project site'
         self.stable = None
         self.unstable = None
+
+    def __str__(self):
+        """ Short description. """
+        return self.name() + ': ' + self.desc
+
+    def info(self):
+        """ Long description. """
+        return '{desc}{nl}{home}{nl}Stable Build:{nl}  {stable}{nl}Unstable Build:{nl}  {unstable}'.format(
+                desc=str(self), nl='\n  ', home='Homepage: ' + self.homepage,
+                stable=str(self.stable), unstable=str(self.unstable)
+                )
 
     def set_config(self, config):
         self.paths = config.paths
