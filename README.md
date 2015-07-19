@@ -19,10 +19,14 @@ Just a rough guess of what I should be implementing when.
 - [ ] Decide on a license.
 
 ### 0.2
-- [ ] Add archive support, to download & hash.
-- Minimum Support should include: tar.gz, tar.bz2, tar.xz, zip
+- [ ] Add archive support, supports download, hashing & extracting.
+  - [ ] Tar (tarfile)
+  - [ ] Zip (zipfile)
+  - [ ] tar.xz (cmdline)
+  - [ ] Rar (cmdline?)
 - [ ] Add list/searching support.
-- [ ] Figure out how to scale recipes well.
+- [ ] Test alternative recipe approaches for scaling.
+- [ ] User defined recipes via config.
 
 ### 0.3
 - [ ] Add dependency logic, so one recipe can depend on another.
