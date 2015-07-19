@@ -105,7 +105,6 @@ class RemoveTask(Task):
     def do(self):
         logging.debug('Removing %s', self.recipe_name)
         recipe = RecipeDB().get(self.recipe_name)
-
         walk_and_unlink(recipe.install_dir(), recipe.link_dir())
         shutil.rmtree(recipe.install_dir())
 
@@ -123,7 +122,7 @@ class ListTask(Task):
         super(ListTask, self).__init__()
 
     def do(self):
-        logging.debug('List Action')
+        logging.debug('List Task')
         installed = os.listdir(self.prefix)
         msg = 'The following programs are installed:'
         for prog in installed:

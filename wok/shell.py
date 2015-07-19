@@ -22,14 +22,12 @@ class VersionRepo(object):
         target:     A path on local disk where it will be cloned. Usually set by wok.
         branch:     A branch to checkout during clone.
         tag:        A tag to checkout during clone.
-        latest_tag: Default False, use latest commit. If True, query repo for last tag set.
         """
     __metaclass__ = ABCMeta
 
     def __init__(self, uri, **kwargs):
         self.uri = uri
         self.__target = kwargs.get('target', None)
-        self.__latest_tag = kwargs.get('latest_tag', False)
 
         tag = kwargs.get('tag', None)
         if tag is not None:
@@ -50,10 +48,9 @@ class VersionRepo(object):
     def __str__(self):
         desc = 'tag' if not self.__on_branch else 'branch'
         tag = desc + ': ' + self.__tag
-        return '{name}: {uri} @ {target}\n{tag}, latest_tag={latest}'.format(
+        return '{name}: {uri} @ {target}\n{tag}}'.format(
                 name=self.__class__.__name__,
-                uri=self.uri, target=self.target, tag=tag,
-                latest=self.__latest_tag)
+                uri=self.uri, target=self.target, tag=tag)
 
     @property
     def branch(self):
@@ -245,13 +242,16 @@ class Command(object):
     """
     def __init__(self, cmd, cmd_dir=None):
         super(Command, self).__init__()
-        self._cmd = cmd
+        if type(cmd) is type([]):
+            self._cmd = cmd
+        else:
+            self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
         self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
                 delete=True, dir=TMP_DIR, prefix='cmd')
-        logging.debug('CMD EXEC: {0}'.format(self))
+        logging.debug('CMD START: {0}'.format(self))
         self._proc = sub.Popen(
-                shlex.split(self._cmd), cwd=self._cmd_dir,
+                self._cmd, cwd=self._cmd_dir,
                 stdout=self._stdout, stderr=sub.STDOUT,
                 preexec_fn=os.setsid
         )
@@ -268,11 +268,8 @@ class Command(object):
         except (AttributeError, IOError):
             pass
 
-    def __repr__(self):
-        return '{0}'.format(self._cmd)
-
     def __str__(self):
-        return '{0} -> {1}'.format(self._cmd_dir, self._cmd)
+        return 'Command: {0}, {1}'.format(self._cmd, self._cmd_dir)
 
     @property
     def alive(self):

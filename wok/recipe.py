@@ -28,14 +28,6 @@ class RecipeDB(object):
         progs = ['\n- {prog}'.format(prog) for prog in self.__db.keys()]
         return 'Available To Install: ' + ''.join(progs)
 
-    def __default_formulas(self):
-        """ Populate the default formulas. """
-        def_formulas = __file__
-        for _ in range(0, 2):
-            def_formulas = os.path.dirname(def_formulas)
-        def_formulas = os.path.join(def_formulas, 'formula')
-        self.update_db(def_formulas)
-
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
         new_recs = glob.glob(os.path.join(path, '*.py'))
@@ -47,15 +39,6 @@ class RecipeDB(object):
             obj = self.__recipe_obj(mod, cls)
             self.__db.update({cls: obj})
 
-    def __recipe_obj(self, mod_name, cls_name):
-        """ Return an instanciated object of cls_name. """
-        mod = __import__('{mod}.{cls}.'.format(mod=mod_name, cls=cls_name))
-        mod = getattr(mod, cls_name)
-        cls = getattr(mod, cls_name.capitalize())
-        obj = cls()
-        obj.set_config(self.__config)
-        return obj
-
     def available(self):
         return self.__db.keys()
 
@@ -66,6 +49,23 @@ class RecipeDB(object):
         obj = self.__db.get(name)
         if obj is None:
             raise RecipeNotFound('Database missing entry: ' + name)
+        return obj
+
+    def __default_formulas(self):
+        """ Populate the default formulas. """
+        def_formulas = __file__
+        for _ in range(0, 2):
+            def_formulas = os.path.dirname(def_formulas)
+        def_formulas = os.path.join(def_formulas, 'formula')
+        self.update_db(def_formulas)
+
+    def __recipe_obj(self, mod_name, cls_name):
+        """ Return an instanciated object of cls_name. """
+        mod = __import__('{mod}.{cls}.'.format(mod=mod_name, cls=cls_name))
+        mod = getattr(mod, cls_name)
+        cls = getattr(mod, cls_name.capitalize())
+        obj = cls()
+        obj.set_config(self.__config)
         return obj
 
     def search(self, sequence):
@@ -97,12 +97,8 @@ class Recipe(object):
         self.desc = 'Short description for the recipe.'
         self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
-        self.paths = None
         self.stable = None
         self.unstable = None
-
-    def set_paths(self, paths):
-        self.paths = paths
 
     def set_config(self, config):
         self.paths = config.paths

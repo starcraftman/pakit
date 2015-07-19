@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import copy
+import json
 import logging
 import os
 import yaml
@@ -26,7 +27,9 @@ class Config(object):
         self.__filename = filename
 
     def __str__(self):
-        return 'File {0}.\n{1}'.format(self.filename, str(self.__conf))
+        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        return 'Config File: {fname}\nContents: \n{jso}'.format(
+                name=self.filename, jso=pretty_js)
 
     def __getattr__(self, name):
         return self.__conf.get(name, None)
@@ -60,7 +63,7 @@ class Config(object):
         self.__conf = copy.deepcopy(TEMPLATE)
 
     def set(self, name, val):
-        """ Modify underlying config, will create nodes if needed. 
+        """ Modify underlying config, will create nodes if needed.
 
             name: some path down the dict, i.e. paths.prefix or logging.enable
         """
