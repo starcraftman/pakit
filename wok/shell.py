@@ -28,7 +28,6 @@ class VersionRepo(object):
     def __init__(self, uri, **kwargs):
         self.uri = uri
         self.__target = kwargs.get('target', None)
-
         tag = kwargs.get('tag', None)
         if tag is not None:
             self.__tag = tag
@@ -144,10 +143,7 @@ class Git(VersionRepo):
 
         cmd = Command('git remote show origin', self.target)
         cmd.wait()
-        if self.uri not in cmd.output()[1]:
-            return False
-
-        return True
+        return self.uri in cmd.output()[1]
 
     def checkout(self):
         """ Updates the repository to the tag. """
