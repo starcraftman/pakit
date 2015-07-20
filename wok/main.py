@@ -23,7 +23,7 @@ def parse_tasks(args):
     if args.update is True:
         pass
     if args.list is True:
-        tasks.append(ListTask())
+        tasks.append(ListInstalled())
 
     return tasks
 

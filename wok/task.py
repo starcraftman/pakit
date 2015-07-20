@@ -40,15 +40,18 @@ def walk_and_unlink(src, dst):
             pass
 
 class Task(object):
-    """ Top level task. """
+    """ Represents a task for a recipe. """
     __metaclass__ = ABCMeta
     __config = None
 
-    def __init__(self, recipe_name=''):
-        self.__recipe_name = recipe_name
+    def __init__(self, recipe_name=None):
+        super(Task, self).__init__()
+        if recipe_name is not None:
+            self.__recipe = RecipeDB().get(recipe_name)
 
     def __str__(self):
-        return '{cls}: {recipe}'.format(cls=self.__class__.__name__, recipe=self.recipe_name)
+        return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
+                recipe=self.recipe)
 
     @classmethod
     def config(cls):
@@ -74,8 +77,8 @@ class Task(object):
         return self.__path('source')
 
     @property
-    def recipe_name(self):
-        return self.__recipe_name
+    def recipe(self):
+        return self.__recipe
 
     @abstractmethod
     def do(self):
@@ -90,12 +93,11 @@ class InstallTask(Task):
 
     def install(self):
         """ Separate function to subclass for update task. """
-        logging.debug('Installing %s', self.recipe_name)
-        recipe = RecipeDB().get(self.recipe_name)
-        with recipe.unstable:
-            recipe.build()
-            walk_and_link(recipe.install_dir(), recipe.link_dir())
-            sucess = recipe.verify()
+        logging.debug('Installing %s', self.recipe)
+        with self.recipe.unstable:
+            self.recipe.build()
+            walk_and_link(self.recipe.install_dir(), self.recipe.link_dir())
+            sucess = self.recipe.verify()
         return sucess
 
 class RemoveTask(Task):
@@ -103,10 +105,9 @@ class RemoveTask(Task):
         super(RemoveTask, self).__init__(recipe_name)
 
     def do(self):
-        logging.debug('Removing %s', self.recipe_name)
-        recipe = RecipeDB().get(self.recipe_name)
-        walk_and_unlink(recipe.install_dir(), recipe.link_dir())
-        shutil.rmtree(recipe.install_dir())
+        logging.debug('Removing %s', self.recipe)
+        walk_and_unlink(self.recipe.install_dir(), self.recipe.link_dir())
+        shutil.rmtree(self.recipe.install_dir())
 
 class UpdateTask(Task):
     """ Update a program, don't do it unless changes made. """
@@ -114,20 +115,20 @@ class UpdateTask(Task):
         super(UpdateTask, self).__init__(recipe_name)
 
     def do(self):
-        logging.debug('Updating %s', self.recipe_name)
+        logging.debug('Updating %s', self.recipe)
 
-class ListTask(Task):
+class ListInstalled(Task):
     """ List all installed programs. """
     def __init__(self):
-        super(ListTask, self).__init__()
+        super(ListInstalled, self).__init__()
+
+    def installed(self):
+        """ Returns all recipes currently installed. """
+        return [RecipeDB().get(prog) for prog in os.listdir(self.prefix)]
 
     def do(self):
         logging.debug('List Task')
-        installed = os.listdir(self.prefix)
         msg = 'The following programs are installed:'
-        for prog in installed:
-            msg += '\n  - ' + prog
-
+        msg += ''.join(['\n-  ' + str(prog) for prog in self.installed()])
         print msg
-
         return msg
