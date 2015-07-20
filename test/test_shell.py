@@ -86,26 +86,6 @@ class TestHg(object):
         self.repo.checkout()
         assert self.repo.hash == '14:d390b5e27191'
 
-class TestVCS(object):
-    def setup(self):
-        self.test_dir = './temp'
-
-    def teardown(self):
-        try:
-            shutil.rmtree(self.test_dir)
-        except OSError:
-            pass
-
-    @pytest.mark.skipif('os.path.expanduser("~") != "/home/travis"', reason='Long Test')
-    def test_svn(self):
-        svn_url = 'http://svn.apache.org/repos/asf/spamassassin/trunk'
-        get_svn(url=svn_url, target=self.test_dir)
-        assert os.path.exists(os.path.join(self.test_dir, '.svn'))
-
-        cmd = Command('svn status', self.test_dir)
-        cmd.wait()
-        assert cmd.rcode == 0
-
 class TestCommand(object):
     def test_simple_command(self):
         cmd = Command('echo "Hello"')

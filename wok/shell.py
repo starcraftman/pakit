@@ -217,11 +217,6 @@ class Hg(VersionRepo):
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
-# TODO: Convert svn to above format.
-def get_svn(**kwargs):
-    cmd = Command('svn checkout {url} {target}'.format(**kwargs))
-    cmd.wait()
-
 @atexit.register
 def cmd_cleanup():
     for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
