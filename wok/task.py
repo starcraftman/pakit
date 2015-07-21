@@ -11,7 +11,7 @@ from wok.recipe import RecipeDB
 def walk_and_link(src, dst):
     """ After installing, link a program to dst. """
     for dirpath, _, filenames in os.walk(src, followlinks=True):
-        link_dst = os.path.join(dst, dirpath.replace(src + '/', ''))
+        link_dst = dirpath.replace(src, dst)
         try:
             os.makedirs(link_dst)
         except OSError:
@@ -23,14 +23,14 @@ def walk_and_link(src, dst):
                 dfile = os.path.join(link_dst, fname)
                 os.symlink(sfile, dfile)
             except OSError:
-                logging.error('Could not symlink {0} -> {1}'.format(sfile,
-                        dfile))
+                logging.error('Could not symlink {0} -> {1}'.format(
+                    sfile, dfile))
 
 def walk_and_unlink(src, dst):
     """ Before removing program, take care of links. """
     for dirpath, _, filenames in os.walk(src,
             topdown=False, followlinks=True):
-        link_dst = os.path.join(dst, dirpath.replace(src + '/', ''))
+        link_dst = dirpath.replace(src, dst)
         for fname in filenames:
             os.remove(os.path.join(link_dst, fname))
 
