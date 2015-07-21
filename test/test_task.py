@@ -14,7 +14,7 @@ from wok.task import *
 def setup_module(module):
     config = Config()
     Task.set_config(config)
-    for path in config.paths.values():
+    for path in config.get('paths').values():
         try:
             shutil.rmtree(path)
             os.mkdir(path)

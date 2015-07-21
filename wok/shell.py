@@ -19,7 +19,7 @@ class VersionRepo(object):
         uri: The url of the repository.
 
         Optional Kwargs:
-        target:     A path on local disk where it will be cloned. Usually set by wok.
+        target:     A path on local disk where it will be cloned.
         branch:     A branch to checkout during clone.
         tag:        A tag to checkout during clone.
     """
@@ -46,12 +46,12 @@ class VersionRepo(object):
 
     def __str__(self):
         if self.__on_branch:
-            tag = 'branch: ' + 'DEFAULT' if self.tag is None else self.tag
+            tag = 'branch: ' + 'default' if self.tag is None else self.tag
         else:
             tag = 'tag: ' + self.tag
-        return '{name}: {uri} @ {target}\n    {tag}'.format(
+        return '{name}: {tag}, uri: {uri}'.format(
                 name=self.__class__.__name__,
-                uri=self.uri, target=self.target, tag=tag)
+                uri=self.uri, tag=tag)
 
     @property
     def branch(self):

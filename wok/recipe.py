@@ -112,7 +112,7 @@ class Recipe(object):
                 )
 
     def set_config(self, config):
-        self.paths = config.paths
+        self.paths = config.get('paths')
         if self.unstable is not None:
             self.unstable.target = self.source_dir()
         if self.stable is not None:

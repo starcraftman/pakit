@@ -62,7 +62,7 @@ class Task(object):
         cls.__config = new_config
 
     def __path(self, name):
-        return self.__class__.__config.paths.get(name)
+        return self.__class__.__config.get('paths.' + name)
 
     @property
     def link(self):

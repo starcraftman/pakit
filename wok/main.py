@@ -74,7 +74,7 @@ def main():
     if args.create_conf:
         config.write()
 
-    dir_check(config.paths)
+    dir_check(config.get('paths'))
     Task.set_config(config)
     RecipeDB(config)
 

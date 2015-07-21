@@ -31,12 +31,6 @@ class Config(object):
         return 'Config File: {fname}\nContents: \n{jso}'.format(
                 fname=self.filename, jso=pretty_js)
 
-    def __getattr__(self, name):
-        return self.__conf.get(name, None)
-
-    def __getitem__(self, name):
-        return self.__conf.get(name, None)
-
     @property
     def filename(self):
         """ The filename of the yaml config. """
@@ -61,6 +55,13 @@ class Config(object):
     def reset(self):
         """ Reset to default template. """
         self.__conf = copy.deepcopy(TEMPLATE)
+
+    def get(self, name):
+        obj = self.__conf
+        leaf = name.split('.')[-1]
+        for word in name.split('.')[0:-1]:
+            obj = obj.get(word, None)
+        return obj[leaf]
 
     def set(self, name, val):
         """ Modify underlying config, will create nodes if needed.
