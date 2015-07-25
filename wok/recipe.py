@@ -114,16 +114,19 @@ class Recipe(object):
     def set_config(self, config):
         self.paths = config.get('paths')
         if self.unstable is not None:
-            self.unstable.target = self.source_dir()
+            self.unstable.target = self.source_dir
         if self.stable is not None:
-            self.stable.target = self.source_dir()
+            self.stable.target = self.source_dir
 
+    @property
     def install_dir(self):
         return os.path.join(self.paths.get('prefix'), self.name())
 
+    @property
     def link_dir(self):
         return self.paths.get('link')
 
+    @property
     def source_dir(self):
         return os.path.join(self.paths.get('source'), self.name())
 
@@ -133,14 +136,14 @@ class Recipe(object):
     def cmd(self, cmd_str, cmd_dir=None):
         # FIXME: Temporary hack, need to refactor cmd function.
         if cmd_dir is None:
-            if os.path.exists(self.source_dir()):
-                cmd_dir = self.source_dir()
+            if os.path.exists(self.source_dir):
+                cmd_dir = self.source_dir
             else:
-                cmd_dir = os.path.dirname(self.link_dir())
+                cmd_dir = os.path.dirname(self.link_dir)
 
         # TODO: Later, pickup opts from config & extend with prefix.
-        opts = {'link': self.link_dir(), 'prefix': self.install_dir(),
-                'source': self.source_dir()}
+        opts = {'link': self.link_dir, 'prefix': self.install_dir,
+                'source': self.source_dir}
         cmd_str = cmd_str.format(**opts)
         cmd = Command(cmd_str, cmd_dir)
         cmd.wait()

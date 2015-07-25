@@ -93,7 +93,7 @@ class VersionRepo(object):
 
     @abstractproperty
     def hash(self):
-        """ Return the hash of the current commit. """
+        """ Return the current hash of the remote repo. """
         pass
 
     @abstractproperty
@@ -121,7 +121,7 @@ class Git(VersionRepo):
 
     @property
     def hash(self):
-        """ Get the commit hash of the repo. """
+        """ Return the current hash of the remote repo. """
         def __cmd():
             cmd = Command('git log -1 ', self.target)
             cmd.wait()
@@ -170,7 +170,7 @@ class Hg(VersionRepo):
 
     @property
     def hash(self):
-        """ Return the commit hash of the repo state. """
+        """ Return the current hash of the remote repo. """
         def __cmd():
             cmd = Command('hg parents', self.target)
             cmd.wait()

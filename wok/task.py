@@ -96,7 +96,7 @@ class InstallTask(Task):
         logging.debug('Installing %s', self.recipe)
         with self.recipe.unstable:
             self.recipe.build()
-            walk_and_link(self.recipe.install_dir(), self.recipe.link_dir())
+            walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             sucess = self.recipe.verify()
         return sucess
 
@@ -106,8 +106,8 @@ class RemoveTask(Task):
 
     def do(self):
         logging.debug('Removing %s', self.recipe)
-        walk_and_unlink(self.recipe.install_dir(), self.recipe.link_dir())
-        shutil.rmtree(self.recipe.install_dir())
+        walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
+        shutil.rmtree(self.recipe.install_dir)
 
 class UpdateTask(Task):
     """ Update a program, don't do it unless changes made. """
