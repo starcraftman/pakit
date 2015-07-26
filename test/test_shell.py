@@ -55,6 +55,19 @@ class TestGit(object):
         self.repo.checkout()
         assert self.repo.hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
+    def test_str(self):
+        uri = 'https://github.com/user/repo'
+        tag = 'default'
+        repo_tag = Git(uri, tag=tag)
+        repo_branch = Git(uri, branch=tag)
+
+        print()
+        print(str(repo_tag))
+        print(str(repo_branch))
+
+        assert str(repo_branch) == 'Git: branch: {0}, uri: {1}'.format(tag, uri)
+        assert str(repo_tag) == 'Git: tag: {0}, uri: {1}'.format(tag, uri)
+
 class TestHg(object):
     def setup(self):
         self.test_dir = './temp'

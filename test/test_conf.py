@@ -36,3 +36,22 @@ class TestConfig(object):
         self.config.read()
         assert self.config.get('paths.install') == 22
 
+    def test_str(self):
+        print()
+        print(str(self.config))
+        expect = [
+                'Config File: {0}'.format(self.config.filename),
+                'Contents: ',
+                '{',
+                '  "log": {',
+                '    "enabled": true, ',
+                '    "file": "/tmp/wok/main.log"',
+                '  }, ',
+                '  "paths": {',
+                '    "link": "/tmp/wok/links", ',
+                '    "prefix": "/tmp/wok/builds", ',
+                '    "source": "/tmp/wok/src"',
+                '  }',
+                '}'
+        ]
+        assert str(self.config).split('\n') == expect
