@@ -12,9 +12,9 @@ class TestRecipeDB(object):
         self.config = Config()
         self.rdb = RecipeDB(self.config)
 
-    def test_available(self):
+    def test_names(self):
         for prog in ['ag', 'vim']:
-            assert prog in self.rdb.available()
+            assert prog in self.rdb.names()
 
     def test_has(self):
         assert self.rdb.has('ag')
@@ -28,7 +28,3 @@ class TestRecipeDB(object):
     def test_get_not_found(self):
         with pytest.raises(RecipeNotFound):
             self.rdb.get('xyzxyz')
-
-    def test_search(self):
-        assert self.rdb.search('vm') == ['vim']
-        assert self.rdb.search('zzzzyyy') == []

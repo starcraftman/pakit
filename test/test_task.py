@@ -23,7 +23,10 @@ def setup_module(module):
 
 def teardown_module(module):
     setup_module(module)
-    os.rmdir('/tmp/woklink')
+    try:
+        os.rmdir('/tmp/woklink')
+    except OSError:
+        pass
 
 class TestLinking(object):
     def setup(self):
@@ -85,17 +88,20 @@ class TestTasks(object):
         expect += '\n-  ag: Grep like tool optimized for speed'
         assert task.do() == expect
 
+    def test_search_names(self):
+        results = SearchTask('vm', RecipeDB().names()).do()
+        assert results == ['vim']
 
-    @pytest.mark.xfail
-    def test_search(self):
-        pass
+    def test_search_desc(self):
+        results = SearchTask('grep', RecipeDB().names_and_desc()).do()
+        assert results == ['ag: Grep like tool optimized for speed']
 
     @pytest.mark.xfail
     def test_update(self):
         pass
 
     def test_remove(self):
-        task  = RemoveTask('ag')
+        task = RemoveTask('ag')
         assert os.path.exists(os.path.join(task.prefix, 'ag'))
 
         task.do()

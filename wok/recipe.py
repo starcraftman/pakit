@@ -39,9 +39,6 @@ class RecipeDB(object):
             obj = self.__recipe_obj(mod, cls)
             self.__db.update({cls: obj})
 
-    def available(self):
-        return self.__db.keys()
-
     def has(self, name):
         return self.__db.has_key(name)
 
@@ -50,6 +47,14 @@ class RecipeDB(object):
         if obj is None:
             raise RecipeNotFound('Database missing entry: ' + name)
         return obj
+
+    def names(self):
+        """ Names of recipes available. """
+        return self.__db.keys()
+
+    def names_and_desc(self):
+        """ Names and descriptions available. """
+        return [str(recipe) for recipe in self.__db.values()]
 
     def __default_formulas(self):
         """ Populate the default formulas. """
@@ -67,26 +72,6 @@ class RecipeDB(object):
         obj = cls()
         obj.set_config(self.__config)
         return obj
-
-    def search(self, sequence):
-        """ Search all available for matches to subsequence. """
-        matched = []
-        for name in self.available():
-            if self.__seq_match(name, sequence):
-                matched.append(name)
-
-        return matched
-
-    def __seq_match(self, word, sequence):
-        """ Subsequence matcher. """
-        seq = list(sequence)
-        for char in word:
-            if char == seq[0]:
-                seq.remove(seq[0])
-            if len(seq) == 0:
-                return True
-
-        return False
 
 class Recipe(object):
     """ A schema to build some binary. """

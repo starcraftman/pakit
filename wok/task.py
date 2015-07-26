@@ -1,5 +1,5 @@
 """ All logic to manage the installation of a program. """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from abc import ABCMeta, abstractmethod
 
 import logging
@@ -40,18 +40,13 @@ def walk_and_unlink(src, dst):
             pass
 
 class Task(object):
-    """ Represents a task for a recipe. """
+    """ Universal task interface. """
     __metaclass__ = ABCMeta
     __config = None
 
-    def __init__(self, recipe_name=None):
-        super(Task, self).__init__()
-        if recipe_name is not None:
-            self.__recipe = RecipeDB().get(recipe_name)
-
     def __str__(self):
-        return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
-                recipe=self.recipe)
+        return '{cls}:\n{config}'.format(cls=self.__class__.__name__,
+                config=str(Task.__config))
 
     @classmethod
     def config(cls):
@@ -76,15 +71,26 @@ class Task(object):
     def source(self):
         return self.__path('source')
 
-    @property
-    def recipe(self):
-        return self.__recipe
-
     @abstractmethod
     def do(self):
         pass
 
-class InstallTask(Task):
+class RecipeTask(Task):
+    """ Represents a task for a recipe. """
+    def __init__(self, recipe_name):
+        super(RecipeTask, self).__init__()
+        self.__recipe = RecipeDB().get(recipe_name)
+
+    def __str__(self):
+        return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
+                recipe=self.recipe)
+
+    @property
+    def recipe(self):
+        return self.__recipe
+
+class InstallTask(RecipeTask):
+    """ Install a recipe. """
     def __init__(self, recipe_name):
         super(InstallTask, self).__init__(recipe_name)
 
@@ -100,7 +106,8 @@ class InstallTask(Task):
             sucess = self.recipe.verify()
         return sucess
 
-class RemoveTask(Task):
+class RemoveTask(RecipeTask):
+    """ Remove a recipe. """
     def __init__(self, recipe_name):
         super(RemoveTask, self).__init__(recipe_name)
 
@@ -109,7 +116,7 @@ class RemoveTask(Task):
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         shutil.rmtree(self.recipe.install_dir)
 
-class UpdateTask(Task):
+class UpdateTask(RecipeTask):
     """ Update a program, don't do it unless changes made. """
     def __init__(self, recipe_name):
         super(UpdateTask, self).__init__(recipe_name)
@@ -130,5 +137,32 @@ class ListInstalled(Task):
         logging.debug('List Task')
         msg = 'The following programs are installed:'
         msg += ''.join(['\n-  ' + str(prog) for prog in self.installed()])
-        print msg
+        print(msg)
         return msg
+
+def subseq_match(word, sequence):
+    """ Subsequence matcher, not case senstive. """
+    seq = list(sequence)
+    for char in word.lower():
+        if char == seq[0]:
+            seq.remove(seq[0])
+        if len(seq) == 0:
+            return True
+
+    return False
+
+class SearchTask(Task):
+    """ Search logic, returns list matching sequence. """
+    def __init__(self, sequence, words):
+        super(SearchTask, self).__init__()
+        self.sequence = sequence
+        self.words = words
+
+    def do(self):
+        matched = []
+        for word in self.words:
+            if subseq_match(word, self.sequence):
+                matched.append(word)
+
+        print('\n'.join(matched))
+        return matched
