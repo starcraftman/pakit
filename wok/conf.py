@@ -8,7 +8,7 @@ import os
 import time
 import yaml
 
-# The default file
+# The default global config
 TEMPLATE = {
     'paths': {
         'prefix': '/tmp/wok/builds',
@@ -120,9 +120,10 @@ class InstalledConfig(YamlMixin, object):
         self.__filename = new_filename
 
     def get(self, prog):
-        return self.__conf.get(prog)
+        """ Return the associated entry or None. """
+        return self.__conf.get(prog, None)
 
-    def set(self, prog, hash):
+    def add(self, prog, hash):
         """ Call with program name & opts to put into yaml config. """
         entry = {}
         ltime = time.time()
@@ -131,6 +132,10 @@ class InstalledConfig(YamlMixin, object):
         entry['date'] = time.strftime(date_fmt, time.localtime(ltime))
         entry['hash'] = hash
         self.__conf[prog] = entry
+
+    def remove(self, prog):
+        """ Remove an entry. """
+        del self.__conf[prog]
 
     def read(self):
         self.__conf = self._read_from(self.filename)

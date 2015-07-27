@@ -58,23 +58,25 @@ class TestConfig(object):
 
 class TestInstalledConfig(object):
     def setup(self):
-        self.config = InstalledConfig('./.wok.in.yaml')
+        self.fname = './wok.in.yaml'
+        self.config = InstalledConfig(self.fname)
 
     def teardown(self):
         try:
-            os.remove(self.config.filename)
+            os.remove(self.fname)
         except OSError:
             pass
 
     def test_write(self):
-        self.config.set('ag', 'hello')
+        self.config.add('ag', 'hello')
         self.config.write()
         assert os.path.exists(self.config.filename)
 
     def test_read(self):
-        self.config.set('ag', 'hello')
+        self.config.add('ag', 'hello')
         self.config.write()
-        self.config = InstalledConfig('./.wok.in.yaml')
+        self.config = InstalledConfig(self.fname)
         self.config.read()
         entry = self.config.get('ag')
+        assert entry is not None
         assert entry['hash'] == 'hello'

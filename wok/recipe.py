@@ -30,6 +30,7 @@ class RecipeDB(object):
 
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
+        # TODO: Iterate all classes in file, only index those subclassing Recipe
         new_recs = glob.glob(os.path.join(path, '*.py'))
         new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
         new_recs.remove('__init__')
