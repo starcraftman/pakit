@@ -5,6 +5,7 @@ import copy
 import json
 import logging
 import os
+import time
 import yaml
 
 # The default file
@@ -20,7 +21,29 @@ TEMPLATE = {
     },
 }
 
-class Config(object):
+class YamlMixin(object):
+    """ Provides YAML file interface for read/write configs. """
+    def _read_from(self, filename):
+        """ Loads the config file and returns the dict. """
+        try:
+            with open(filename) as fin:
+                conf = yaml.load(fin)
+
+            pretty_js = json.dumps(conf, sort_keys=True, indent=2)
+            msg = 'Config File: {fname}\nContents: \n{jso}'.format(
+                    fname=filename, jso=pretty_js)
+            logging.debug(msg)
+            return conf
+        except IOError as exc:
+            logging.error('Failed to load user config. %s', exc)
+
+    def _write_to(self, filename, obj):
+        """ Write dictionary to a file on disk. """
+        with open(filename, 'w') as fout:
+            yaml.dump(obj, fout, default_flow_style=False)
+            logging.debug('Config written to: %s', filename)
+
+class Config(YamlMixin, object):
     """ All logic to manage configuration parsing. """
     def __init__(self, filename=os.path.expanduser('~/.wok.yaml')):
         self.__conf = copy.deepcopy(TEMPLATE)
@@ -33,28 +56,14 @@ class Config(object):
 
     @property
     def filename(self):
-        """ The filename of the yaml config. """
+        """ The filename of the config. """
         return self.__filename
 
     @filename.setter
     def filename(self, new_filename):
         if not os.path.exists(new_filename):
             logging.error('File not found: {0}'.format(new_filename))
-
         self.__filename = new_filename
-
-    def read(self):
-        """ Load associated config file. """
-        try:
-            with open(self.__filename) as fin:
-                self.__conf = yaml.load(fin)
-            logging.debug('Config Loaded: %s', self)
-        except IOError as exc:
-            logging.error('Failed to load user config. %s', exc)
-
-    def reset(self):
-        """ Reset to default template. """
-        self.__conf = copy.deepcopy(TEMPLATE)
 
     def get(self, name):
         obj = self.__conf
@@ -62,6 +71,10 @@ class Config(object):
         for word in name.split('.')[0:-1]:
             obj = obj.get(word, None)
         return obj[leaf]
+
+    def reset(self):
+        """ Reset to default template. """
+        self.__conf = copy.deepcopy(TEMPLATE)
 
     def set(self, name, val):
         """ Modify underlying config, will create nodes if needed.
@@ -78,8 +91,49 @@ class Config(object):
             obj = new_obj
         obj[leaf] = val
 
+    def read(self):
+        self.__conf = self._read_from(self.filename)
+
     def write(self):
-        """ Allows to write the values to a file. """
-        with open(self.__filename, 'w') as fout:
-            yaml.dump(self.__conf, fout, default_flow_style=False)
-            logging.debug('Config written to: %s', self.__filename)
+        self._write_to(self.filename, self.__conf)
+
+class InstalledConfig(YamlMixin, object):
+    """ Stores all information on what IS actually installed. """
+    def __init__(self, filename=os.path.expanduser('~/.wok.in.yaml')):
+        self.__conf = {}
+        self.__filename = filename
+
+    def __str__(self):
+        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        return 'Config File: {fname}\nContents: \n{jso}'.format(
+                fname=self.__filename, jso=pretty_js)
+
+    @property
+    def filename(self):
+        """ The filename of the config. """
+        return self.__filename
+
+    @filename.setter
+    def filename(self, new_filename):
+        if not os.path.exists(new_filename):
+            logging.error('File not found: {0}'.format(new_filename))
+        self.__filename = new_filename
+
+    def get(self, prog):
+        return self.__conf.get(prog)
+
+    def set(self, prog, hash):
+        """ Call with program name & opts to put into yaml config. """
+        entry = {}
+        ltime = time.time()
+        entry['timestamp'] = ltime
+        date_fmt = '%H:%M:%S %d/%m/%y'
+        entry['date'] = time.strftime(date_fmt, time.localtime(ltime))
+        entry['hash'] = hash
+        self.__conf[prog] = entry
+
+    def read(self):
+        self.__conf = self._read_from(self.filename)
+
+    def write(self):
+        self._write_to(self.filename, self.__conf)

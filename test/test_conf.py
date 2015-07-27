@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import os
 
-from wok.conf import Config
+from wok.conf import Config, InstalledConfig
 
 class TestConfig(object):
     """ Test the operation of Config class. """
@@ -55,3 +55,26 @@ class TestConfig(object):
                 '}'
         ]
         assert str(self.config).split('\n') == expect
+
+class TestInstalledConfig(object):
+    def setup(self):
+        self.config = InstalledConfig('./.wok.in.yaml')
+
+    def teardown(self):
+        try:
+            os.remove(self.config.filename)
+        except OSError:
+            pass
+
+    def test_write(self):
+        self.config.set('ag', 'hello')
+        self.config.write()
+        assert os.path.exists(self.config.filename)
+
+    def test_read(self):
+        self.config.set('ag', 'hello')
+        self.config.write()
+        self.config = InstalledConfig('./.wok.in.yaml')
+        self.config.read()
+        entry = self.config.get('ag')
+        assert entry['hash'] == 'hello'

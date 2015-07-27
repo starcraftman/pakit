@@ -129,14 +129,11 @@ class ListInstalled(Task):
     def __init__(self):
         super(ListInstalled, self).__init__()
 
-    def installed(self):
-        """ Returns all recipes currently installed. """
-        return [RecipeDB().get(prog) for prog in os.listdir(self.prefix)]
-
     def do(self):
         logging.debug('List Task')
+        installed = [RecipeDB().get(prog) for prog in os.listdir(self.prefix)]
         msg = 'The following programs are installed:'
-        msg += ''.join(['\n-  ' + str(prog) for prog in self.installed()])
+        msg += ''.join(['\n-  ' + str(prog) for prog in installed])
         print(msg)
         return msg
 
@@ -148,8 +145,11 @@ def subseq_match(word, sequence):
             seq.remove(seq[0])
         if len(seq) == 0:
             return True
-
     return False
+
+def substring_match(word, sequence):
+    """ Substring matcher, matches exact substring sequence. """
+    return word.lower().find(sequence.lower()) != -1
 
 class SearchTask(Task):
     """ Search logic, returns list matching sequence. """
@@ -161,7 +161,7 @@ class SearchTask(Task):
     def do(self):
         matched = []
         for word in self.words:
-            if subseq_match(word, self.sequence):
+            if substring_match(word, self.sequence):
                 matched.append(word)
 
         print('\n'.join(matched))

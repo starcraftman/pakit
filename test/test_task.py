@@ -89,7 +89,7 @@ class TestTasks(object):
         assert task.do() == expect
 
     def test_search_names(self):
-        results = SearchTask('vm', RecipeDB().names()).do()
+        results = SearchTask('vim', RecipeDB().names()).do()
         assert results == ['vim']
 
     def test_search_desc(self):
