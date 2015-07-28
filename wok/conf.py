@@ -125,13 +125,12 @@ class InstalledConfig(YamlMixin, object):
 
     def add(self, prog, hash):
         """ Call with program name & opts to put into yaml config. """
-        entry = {}
-        ltime = time.time()
-        entry['timestamp'] = ltime
-        date_fmt = '%H:%M:%S %d/%m/%y'
-        entry['date'] = time.strftime(date_fmt, time.localtime(ltime))
-        entry['hash'] = hash
-        self.__conf[prog] = entry
+        time_s = time.time()
+        self.__conf[prog] = {
+            'date': time.strftime('%H:%M:%S %d/%m/%y', time.localtime(time_s)),
+            'hash': hash,
+            'timestamp': time_s,
+        }
 
     def remove(self, prog):
         """ Remove an entry. """

@@ -67,6 +67,23 @@ class TestInstalledConfig(object):
         except OSError:
             pass
 
+    def test_add(self):
+        self.config.add('ag', 'hello')
+        ag = self.config.get('ag')
+        assert ag['hash'] == 'hello'
+
+    def test_get(self):
+        self.config.add('ag', 'hello')
+        assert self.config.get('ag') is not None
+        assert self.config.get('ag')['hash'] == 'hello'
+        self.config.remove('ag')
+        assert self.config.get('ag') is None
+
+    def test_remove(self):
+        self.config.add('ag', 'hello')
+        self.config.remove('ag')
+        assert self.config.get('ag') is None
+
     def test_write(self):
         self.config.add('ag', 'hello')
         self.config.write()
