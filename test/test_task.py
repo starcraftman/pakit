@@ -81,9 +81,9 @@ class TestTasks(object):
 
     def test_list(self):
         task = ListInstalled()
-        expect = 'The following programs are installed:'
-        expect += '\n-  ag: Grep like tool optimized for speed'
-        assert task.do() == expect
+        out = task.do().split('\n')
+        assert len(out) == 2
+        assert out[-1].find('-  ag: date:') == 0
 
     def test_search_names(self):
         results = SearchTask('vim', RecipeDB().names()).do()
