@@ -45,9 +45,11 @@ class YamlMixin(object):
 
 class Config(YamlMixin, object):
     """ All logic to manage configuration parsing. """
-    def __init__(self, filename=os.path.expanduser('~/.wok.yaml')):
+    def __init__(self, filename):
         self.__conf = copy.deepcopy(TEMPLATE)
         self.__filename = filename
+        if os.path.exists(self.filename):
+            self.read()
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
@@ -97,11 +99,13 @@ class Config(YamlMixin, object):
     def write(self):
         self._write_to(self.filename, self.__conf)
 
-class InstalledConfig(YamlMixin, object):
+class InstallDB(YamlMixin, object):
     """ Stores all information on what IS actually installed. """
-    def __init__(self, filename=os.path.expanduser('~/.wok.in.yaml')):
+    def __init__(self, filename):
         self.__conf = {}
         self.__filename = filename
+        if os.path.exists(self.filename):
+            self.read()
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)

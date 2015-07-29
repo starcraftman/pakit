@@ -7,39 +7,35 @@ import pytest
 import shutil
 
 from wok.conf import Config
+from wok.main import global_init
 from wok.recipe import RecipeDB
 from wok.shell import Command, CmdFailed
 from wok.task import *
 
-def setup_module(module):
-    config = Config()
-    Task.set_config(config)
-    for path in config.get('paths').values():
-        try:
-            shutil.rmtree(path)
-            os.mkdir(path)
-        except OSError:
-            pass
-
 def teardown_module(module):
-    setup_module(module)
     try:
-        os.rmdir('/tmp/woklink')
-    except OSError:
-        pass
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config = global_init(config_file)
+        tmp_dir = os.path.dirname(config.get('paths.prefix'))
+        cmd = Command('rm -rf ' + tmp_dir)
+        cmd.wait()
+    except CmdFailed:
+        logging.error('Could not clean ' + tmp_dir)
 
 class TestLinking(object):
     def setup(self):
-        self.src = '/tmp/woklink/src'
-        self.dst = '/tmp/woklink/dst'
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config = global_init(config_file)
+        self.src = config.get('paths.prefix')
+        self.dst = config.get('paths.link')
         self.teardown()
 
-        subdir = os.path.join(self.src, 'subdir')
-        os.makedirs(subdir)
+        self.subdir = os.path.join(self.src, 'subdir')
+        os.makedirs(self.subdir)
         os.makedirs(self.dst)
 
         self.fnames = [os.path.join(self.src, 'file' + str(num)) for num in range(0, 6)]
-        self.fnames += [os.path.join(subdir, 'file' + str(num)) for num in range(0, 4)]
+        self.fnames += [os.path.join(self.subdir, 'file' + str(num)) for num in range(0, 4)]
         self.dst_fnames = [fname.replace(self.src, self.dst) for fname in self.fnames]
         for fname in self.fnames:
             with open(fname, 'wb') as fout:
@@ -47,35 +43,31 @@ class TestLinking(object):
 
     def teardown(self):
         try:
-            cmd = Command('rm -rf ' + self.src)
+            cmd = Command('rm -rf ' + os.path.dirname(self.src))
             cmd.wait()
         except CmdFailed:
             logging.error('Could not clean ' + self.src)
-        try:
-            cmd = Command('rm -rf ' + self.dst)
-            cmd.wait()
-        except CmdFailed:
-            logging.error('Could not clean ' + self.dst)
 
     def test_walk_and_link(self):
         walk_and_link(self.src, self.dst)
         for fname in self.dst_fnames:
             assert os.path.islink(fname)
-            assert os.readlink(fname) == fname.replace('dst', 'src')
+            assert os.readlink(fname) == fname.replace(self.dst, self.src)
 
     def test_walk_and_unlink(self):
         walk_and_link(self.src, self.dst)
         walk_and_unlink(self.src, self.dst)
         for fname in self.dst_fnames:
             assert not os.path.exists(fname)
-        assert not os.path.exists(os.path.join(self.dst, 'subdir'))
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
         for fname in self.fnames:
             assert os.path.exists(fname)
 
 class TestTasks(object):
     def setup(self):
-        self.config = Config()
-        self.rdb = RecipeDB(self.config)
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        self.config = global_init(config_file)
+        self.rdb = RecipeDB()
 
     def test_install(self):
         task = InstallTask('ag')

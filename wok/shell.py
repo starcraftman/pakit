@@ -50,8 +50,7 @@ class VersionRepo(object):
         else:
             tag = 'tag: ' + self.tag
         return '{name}: {tag}, uri: {uri}'.format(
-                name=self.__class__.__name__,
-                uri=self.uri, tag=tag)
+                name=self.__class__.__name__, uri=self.uri, tag=tag)
 
     @property
     def branch(self):

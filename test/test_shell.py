@@ -6,10 +6,12 @@ import pytest
 import shutil
 import time
 
+from wok.main import global_init
 from wok.shell import *
 
 class TestGit(object):
     def setup(self):
+        self.config = global_init('./wok.yaml')
         self.test_dir = './temp'
         git_url = 'https://github.com/ggreer/the_silver_searcher'
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
@@ -70,6 +72,7 @@ class TestGit(object):
 
 class TestHg(object):
     def setup(self):
+        self.config = global_init('./wok.yaml')
         self.test_dir = './temp'
         hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')

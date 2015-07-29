@@ -1,4 +1,4 @@
-from wok import Recipe, Git
+from wok import *
 
 class Vim(Recipe):
     def __init__(self):

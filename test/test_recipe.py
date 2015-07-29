@@ -4,13 +4,15 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
-from wok.recipe import *
 from wok.conf import *
+from wok.main import global_init
+from wok.recipe import *
 
 class TestRecipeDB(object):
     def setup(self):
-        self.config = Config()
-        self.rdb = RecipeDB(self.config)
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        self.config = global_init(config_file)
+        self.rdb = RecipeDB()
 
     def test_names(self):
         for prog in ['ag', 'vim']:
@@ -31,10 +33,9 @@ class TestRecipeDB(object):
 
 class TestRecipe(object):
     def setup(self):
-        self.recipe = RecipeDB(Config()).get('ag')
-
-    def teardown(self):
-        pass
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        self.config = global_init(config_file)
+        self.recipe = RecipeDB().get('ag')
 
     def test_str(self):
         print()

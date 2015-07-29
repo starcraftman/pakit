@@ -3,12 +3,13 @@ from __future__ import absolute_import, print_function
 
 import argparse
 import logging
+import logging.handlers
 import os
 import shutil
 import sys
 
 from wok import __version__
-from wok.conf import Config
+from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
 from wok.task import *
 
@@ -27,13 +28,51 @@ def parse_tasks(args):
 
     return tasks
 
+def global_init(wok_file):
+    """ Do setup of the global environment.
 
-def dir_check(paths):
-    for dirname in [paths.get('prefix'), paths.get('link'), paths.get('source')]:
+        Returns loaded config.
+    """
+    config = Config(wok_file)
+    init_logging(config.get('log.file'))
+    logging.debug('Wok Config: %s', config)
+
+    for dirname in config.get('paths').values():
         try:
             os.makedirs(dirname)
         except OSError:
             pass
+
+    Task.set_config(config)
+    RecipeDB(config)
+    #installed = InstallDB(os.path.dirname(config.get('paths.prefix')))
+
+    return config
+
+def init_logging(log_file):
+    """ Setup project wide file logging. """
+    try:
+        os.makedirs(os.path.dirname(log_file))
+    except OSError:
+        pass
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
+            '%(filename)s %(message)s'
+    my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
+
+    max_size = 1024 ** 2
+    rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
+            maxBytes=max_size, backupCount=4)
+    rot.setLevel(logging.DEBUG)
+    rot.setFormatter(my_fmt)
+    root.addHandler(rot)
+
+    stream = logging.StreamHandler()
+    stream.setLevel(logging.ERROR)
+    stream.setFormatter(my_fmt)
+    root.addHandler(stream)
 
 # TODO: Path modification during operation by os.environ
 def main():
@@ -65,18 +104,11 @@ def main():
         sys.exit(1)
 
     args = parser.parse_args()
+    config = global_init(args.conf)
     logging.debug('CLI: %s', args)
-
-    config = Config(args.conf)
-    config.read()
-    logging.debug('Wok Config: %s', config)
 
     if args.create_conf:
         config.write()
-
-    dir_check(config.get('paths'))
-    Task.set_config(config)
-    RecipeDB(config)
 
     try:
         tasks = parse_tasks(args)

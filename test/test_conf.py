@@ -3,7 +3,8 @@ from __future__ import absolute_import
 
 import os
 
-from wok.conf import Config, InstalledConfig
+from wok.conf import Config, InstallDB
+from wok.main import global_init
 
 class TestConfig(object):
     """ Test the operation of Config class. """
@@ -59,7 +60,7 @@ class TestConfig(object):
 class TestInstalledConfig(object):
     def setup(self):
         self.fname = './wok.in.yaml'
-        self.config = InstalledConfig(self.fname)
+        self.config = InstallDB(self.fname)
 
     def teardown(self):
         try:
@@ -92,7 +93,7 @@ class TestInstalledConfig(object):
     def test_read(self):
         self.config.add('ag', 'hello')
         self.config.write()
-        self.config = InstalledConfig(self.fname)
+        self.config = InstallDB(self.fname)
         self.config.read()
         entry = self.config.get('ag')
         assert entry is not None
