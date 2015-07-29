@@ -49,8 +49,7 @@ def global_init(wok_file):
     wok.shell.TMP_DIR = os.path.dirname(prefix)
     wok.task.Task.set_config(config)
     RecipeDB(config)
-    wok.task.IDB = InstallDB(os.path.join(os.path.dirname(prefix),
-            'installed.yaml'))
+    wok.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     return config
 
