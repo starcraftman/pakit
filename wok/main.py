@@ -45,12 +45,12 @@ def global_init(wok_file):
         except OSError:
             pass
 
-    wok.shell.TMP_DIR = os.path.dirname(config.get('paths.prefix'))
+    prefix = config.get('paths.prefix')
+    wok.shell.TMP_DIR = os.path.dirname(prefix)
     wok.task.Task.set_config(config)
     RecipeDB(config)
-    i_file = os.path.join(os.path.dirname(config.get('paths.prefix')),
-            'wok_i.yaml')
-    wok.task.IDB = InstallDB(i_file)
+    wok.task.IDB = InstallDB(os.path.join(os.path.dirname(prefix),
+            'installed.yaml'))
 
     return config
 
