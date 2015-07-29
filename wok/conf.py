@@ -112,6 +112,10 @@ class InstallDB(YamlMixin, object):
         return 'Config File: {fname}\nContents: \n{jso}'.format(
                 fname=self.__filename, jso=pretty_js)
 
+    def __iter__(self):
+        for key in self.__conf:
+            yield (key, copy.deepcopy(self.__conf[key]))
+
     @property
     def filename(self):
         """ The filename of the config. """
@@ -135,10 +139,12 @@ class InstallDB(YamlMixin, object):
             'hash': hash,
             'timestamp': time_s,
         }
+        self.write()
 
     def remove(self, prog):
         """ Remove an entry. """
         del self.__conf[prog]
+        self.write()
 
     def read(self):
         self.__conf = self._read_from(self.filename)
