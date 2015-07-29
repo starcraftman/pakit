@@ -59,10 +59,13 @@ def init_logging(log_file):
         pass
 
     root = logging.getLogger()
-    root.setLevel(logging.WARNING)
+    root.setLevel(logging.DEBUG)
     log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
             '%(filename)s %(message)s'
     my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
+
+    while len(root.handlers) != 0:
+        root.removeHandler(root.handlers[0])
 
     max_size = 1024 ** 2
     rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
