@@ -223,6 +223,7 @@ def cmd_cleanup():
             os.remove(filename)
         except OSError:
             logging.error('Could not delete file %s.', filename)
+            raise
 
 class CmdFailed(Exception):
     """ Command did not return sucessfully. """
@@ -257,8 +258,9 @@ class Command(object):
             if self.alive:
                 self.terminate()
             self._stdout.close()
-        except (AttributeError, IOError):
-            pass
+        except (AttributeError, IOError) as exc:
+            logging.error(exc)
+            raise
 
     def __str__(self):
         return 'Command: {0}, {1}'.format(self._cmd, self._cmd_dir)
