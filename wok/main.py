@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function
 
 import argparse
+import atexit
 import logging
 import logging.handlers
 import os
@@ -11,8 +12,9 @@ import sys
 from wok import __version__
 from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
-from wok.task import *
+from wok.task import InstallTask, RemoveTask, UpdateTask, ListInstalled, SearchTask
 import wok.shell
+import wok.task
 
 def parse_tasks(args):
     """ Take program arguments and make a task list. """
@@ -45,9 +47,12 @@ def global_init(wok_file):
             pass
 
     wok.shell.TMP_DIR = os.path.dirname(config.get('paths.prefix'))
-    Task.set_config(config)
+    wok.task.Task.set_config(config)
     RecipeDB(config)
-    #installed = InstallDB(os.path.dirname(config.get('paths.prefix')))
+    i_file = os.path.join(os.path.dirname(config.get('paths.prefix')),
+            'wok_i.yaml')
+    wok.task.IDB = InstallDB(i_file)
+    atexit.register(wok.task.IDB.write)
 
     return config
 

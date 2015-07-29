@@ -25,7 +25,7 @@ class TestRecipeDB(object):
     def test_get_found(self):
         obj = self.rdb.get('ag')
         assert isinstance(obj, Recipe)
-        assert obj.name() == 'ag'
+        assert obj.name == 'ag'
 
     def test_get_not_found(self):
         with pytest.raises(RecipeNotFound):

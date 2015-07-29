@@ -8,6 +8,8 @@ import shutil
 
 from wok.recipe import RecipeDB
 
+IDB = None
+
 def walk_and_link(src, dst):
     """ After installing, link a program to dst. """
     for dirpath, _, filenames in os.walk(src, followlinks=True):
@@ -103,8 +105,8 @@ class InstallTask(RecipeTask):
         with self.recipe.unstable:
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
-            sucess = self.recipe.verify()
-        return sucess
+            self.recipe.verify()
+            IDB.add(self.recipe.name, self.recipe.unstable.hash)
 
 class RemoveTask(RecipeTask):
     """ Remove a recipe. """
@@ -115,6 +117,7 @@ class RemoveTask(RecipeTask):
         logging.debug('Removing %s', self.recipe)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         shutil.rmtree(self.recipe.install_dir)
+        IDB.remove(self.recipe.name)
 
 class UpdateTask(RecipeTask):
     """ Update a program, don't do it unless changes made. """

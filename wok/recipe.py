@@ -88,7 +88,7 @@ class Recipe(object):
 
     def __str__(self):
         """ Short description. """
-        return self.name() + ': ' + self.desc
+        return self.name + ': ' + self.desc
 
     def info(self):
         """ Long description. """
@@ -106,7 +106,7 @@ class Recipe(object):
 
     @property
     def install_dir(self):
-        return os.path.join(self.paths.get('prefix'), self.name())
+        return os.path.join(self.paths.get('prefix'), self.name)
 
     @property
     def link_dir(self):
@@ -114,8 +114,9 @@ class Recipe(object):
 
     @property
     def source_dir(self):
-        return os.path.join(self.paths.get('source'), self.name())
+        return os.path.join(self.paths.get('source'), self.name)
 
+    @property
     def name(self):
         return self.__class__.__name__.lower()
 
