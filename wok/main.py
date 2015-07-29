@@ -12,6 +12,7 @@ from wok import __version__
 from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
 from wok.task import *
+import wok.shell
 
 def parse_tasks(args):
     """ Take program arguments and make a task list. """
@@ -43,6 +44,7 @@ def global_init(wok_file):
         except OSError:
             pass
 
+    wok.shell.TMP_DIR = os.path.dirname(config.get('paths.prefix'))
     Task.set_config(config)
     RecipeDB(config)
     #installed = InstallDB(os.path.dirname(config.get('paths.prefix')))
