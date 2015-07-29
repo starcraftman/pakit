@@ -102,6 +102,7 @@ class InstallTask(RecipeTask):
     def install(self):
         """ Separate function to subclass for update task. """
         logging.debug('Installing %s', self.recipe)
+
         with self.recipe.unstable:
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
@@ -115,6 +116,11 @@ class RemoveTask(RecipeTask):
 
     def do(self):
         logging.debug('Removing %s', self.recipe)
+
+        if IDB.get(self.recipe.name) is None:
+            logging.error('Cannot remove: ' + self.recipe.name)
+            return
+
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         shutil.rmtree(self.recipe.install_dir)
         IDB.remove(self.recipe.name)

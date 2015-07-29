@@ -11,6 +11,7 @@ from wok.main import global_init
 from wok.recipe import RecipeDB
 from wok.shell import Command, CmdFailed
 from wok.task import *
+import wok.task
 
 def teardown_module(module):
     try:
@@ -64,10 +65,14 @@ class TestLinking(object):
             assert os.path.exists(fname)
 
 class TestTasks(object):
+    """ These depend on order, so no cleanup in between. """
     def setup(self):
         config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
         self.config = global_init(config_file)
         self.rdb = RecipeDB()
+
+    def teardown(self):
+        wok.task.IDB.write()
 
     def test_install(self):
         task = InstallTask('ag')
@@ -95,9 +100,9 @@ class TestTasks(object):
     def test_remove(self):
         task = RemoveTask('ag')
         assert os.path.exists(os.path.join(task.prefix, 'ag'))
+        assert wok.task.IDB.get('ag') is not None
 
         task.do()
-
         assert os.path.exists(task.prefix)
         assert len(glob.glob(os.path.join(
                 task.prefix, '*'))) == 0

@@ -2,11 +2,9 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-import atexit
 import logging
 import logging.handlers
 import os
-import shutil
 import sys
 
 from wok import __version__
@@ -52,7 +50,6 @@ def global_init(wok_file):
     i_file = os.path.join(os.path.dirname(config.get('paths.prefix')),
             'wok_i.yaml')
     wok.task.IDB = InstallDB(i_file)
-    atexit.register(wok.task.IDB.write)
 
     return config
 
