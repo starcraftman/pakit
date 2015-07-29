@@ -82,8 +82,8 @@ class TestTasks(object):
     def test_list(self):
         task = ListInstalled()
         out = task.do().split('\n')
-        assert len(out) == 2
-        assert out[-1].find('-  ag: date:') == 0
+        assert len(out) == 3
+        assert out[-1].find('-  ag') == 0
 
     def test_search_names(self):
         results = SearchTask('vim', RecipeDB().names()).do()

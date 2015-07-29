@@ -140,10 +140,11 @@ class ListInstalled(Task):
 
     def do(self):
         logging.debug('List Task')
-        installed = ['{prog}: date: {date}, hash: {hash}'.format(
+        installed = ['{prog:10} | {date} | {hash}'.format(
             prog=prog, **entry) for prog, entry in IDB]
-        msg = 'Installed Programs:'
-        msg += ''.join(['\n-  ' + str(prog) for prog in installed])
+        msg = 'Installed:'
+        msg += '\nProgram       | Date              | Hash or Version'
+        msg += ''.join(['\n-  ' + prog for prog in installed])
         print(msg)
         return msg
 
