@@ -56,13 +56,6 @@ class Config(YamlMixin, object):
         return 'Config File: {fname}\nContents: \n{jso}'.format(
                 fname=self.filename, jso=pretty_js)
 
-    def __del__(self):
-        """ Guarantee flush on deletion. """
-        try:
-            self.write()
-        except IOError as exc:
-            pass
-
     @property
     def filename(self):
         """ The filename of the config. """
@@ -118,13 +111,6 @@ class InstallDB(YamlMixin, object):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
         return 'Config File: {fname}\nContents: \n{jso}'.format(
                 fname=self.__filename, jso=pretty_js)
-
-    def __del__(self):
-        """ Guarantee flush on deletion. """
-        try:
-            self.write()
-        except IOError as exc:
-            pass
 
     @property
     def filename(self):

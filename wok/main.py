@@ -6,6 +6,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import traceback
 
 from wok import __version__
 from wok.conf import Config, InstallDB
@@ -128,6 +129,7 @@ def main():
             task.do()
     except Exception as exc:
         logging.error(exc)
+        logging.error(traceback.format_exc())
 
 if __name__ == '__main__':
     main()

@@ -108,6 +108,7 @@ class InstallTask(RecipeTask):
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             self.recipe.verify()
             IDB.add(self.recipe.name, self.recipe.unstable.hash)
+            IDB.write()
 
 class RemoveTask(RecipeTask):
     """ Remove a recipe. """
@@ -124,6 +125,7 @@ class RemoveTask(RecipeTask):
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         shutil.rmtree(self.recipe.install_dir)
         IDB.remove(self.recipe.name)
+        IDB.write()
 
 class UpdateTask(RecipeTask):
     """ Update a program, don't do it unless changes made. """
