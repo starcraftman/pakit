@@ -15,8 +15,7 @@ def walk_and_link(src, dst):
         try:
             os.makedirs(link_dst)
         except OSError:
-            logging.error('Could not make dir: ' + link_dst)
-            raise
+            pass
 
         for fname in filenames:
             try:
@@ -38,7 +37,7 @@ def walk_and_unlink(src, dst):
         try:
             os.rmdir(link_dst)
         except OSError:
-            pass # Ok to fail, indicates other files left inside
+            pass
 
 class Task(object):
     """ Universal task interface. """

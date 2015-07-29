@@ -42,8 +42,7 @@ def global_init(wok_file):
         try:
             os.makedirs(dirname)
         except OSError:
-            logging.error('Could not make dir: ' + dirname)
-            raise
+            pass
 
     wok.shell.TMP_DIR = os.path.dirname(config.get('paths.prefix'))
     Task.set_config(config)
@@ -57,8 +56,7 @@ def init_logging(log_file):
     try:
         os.makedirs(os.path.dirname(log_file))
     except OSError:
-        logging.error('Could not make log dir: ' + os.path.dirname(log_file))
-        raise
+        pass
 
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
