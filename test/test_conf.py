@@ -42,7 +42,7 @@ class TestConfig(object):
         print(str(self.config))
         expect = [
                 'Config File: {0}'.format(self.config.filename),
-                'Contents: ',
+                'Contents:',
                 '{',
                 '  "log": {',
                 '    "enabled": true, ',
