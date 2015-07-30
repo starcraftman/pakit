@@ -157,7 +157,7 @@ class ListInstalled(Task):
 
 def subseq_match(word, sequence):
     """ Subsequence matcher, not case senstive. """
-    seq = list(sequence)
+    seq = list(sequence.lower())
     for char in word.lower():
         if char == seq[0]:
             seq.remove(seq[0])

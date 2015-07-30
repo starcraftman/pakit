@@ -23,6 +23,18 @@ def teardown_module(module):
     except CmdFailed:
         logging.error('Could not clean ' + tmp_dir)
 
+def test_subseq_match():
+    haystack = 'Hello World!'
+    assert subseq_match(haystack, 'hwor')
+    assert subseq_match(haystack, 'HeWd')
+    assert not subseq_match(haystack, 'Good')
+
+def test_substring_match():
+    haystack = 'Hello World!'
+    assert substring_match(haystack, 'hello')
+    assert substring_match(haystack, 'Hello')
+    assert not substring_match(haystack, 'HelloW')
+
 class TestLinking(object):
     def setup(self):
         config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
