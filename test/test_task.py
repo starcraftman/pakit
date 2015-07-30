@@ -9,7 +9,7 @@ import shutil
 from wok.conf import Config
 from wok.main import global_init
 from wok.recipe import RecipeDB
-from wok.shell import Command, CmdFailed
+from wok.shell import Command, CmdFailed, Git
 from wok.task import *
 import wok.task
 
@@ -105,10 +105,6 @@ class TestTasks(object):
         results = SearchTask('grep', RecipeDB().names_and_desc()).do()
         assert results == ['ag: Grep like tool optimized for speed']
 
-    @pytest.mark.xfail
-    def test_update(self):
-        pass
-
     def test_remove(self):
         task = RemoveTask('ag')
         assert os.path.exists(os.path.join(task.prefix, 'ag'))
@@ -121,3 +117,19 @@ class TestTasks(object):
         assert not os.path.exists(task.link)
         assert len(glob.glob(os.path.join(
                 task.link, '*'))) == 0
+
+    def test_update(self):
+        """ Builds stable, then updates because unstable is newer. """
+        recipe = self.rdb.get('ag')
+
+        # Manually install stable version for now
+        with recipe.stable:
+            recipe.build()
+            walk_and_link(recipe.install_dir, recipe.link_dir)
+            recipe.verify()
+            wok.task.IDB.add(recipe.name, recipe.unstable.hash)
+            assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.hash
+
+        UpdateTask('ag').do()
+        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.hash
+        del recipe

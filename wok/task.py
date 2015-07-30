@@ -97,11 +97,7 @@ class InstallTask(RecipeTask):
         super(InstallTask, self).__init__(recipe_name)
 
     def do(self):
-        self.install()
-
-    def install(self):
-        """ Separate function to subclass for update task. """
-        logging.debug('Installing %s', self.recipe)
+        logging.debug('Installing: %s', self.recipe.name)
 
         if IDB.get(self.recipe.name) is not None:
             logging.error('Already Installed: ' + self.recipe.name)
@@ -119,7 +115,7 @@ class RemoveTask(RecipeTask):
         super(RemoveTask, self).__init__(recipe_name)
 
     def do(self):
-        logging.debug('Removing %s', self.recipe)
+        logging.debug('Removing: %s', self.recipe.name)
 
         if IDB.get(self.recipe.name) is None:
             logging.error('Not Installed: ' + self.recipe.name)
@@ -135,7 +131,12 @@ class UpdateTask(RecipeTask):
         super(UpdateTask, self).__init__(recipe_name)
 
     def do(self):
-        logging.debug('Updating %s', self.recipe)
+        logging.debug('Updating: %s', self.recipe.name)
+
+        if IDB.get(self.recipe.name)['hash'] == self.recipe.unstable.hash:
+            return
+        RemoveTask(self.recipe.name).do()
+        InstallTask(self.recipe.name).do()
 
 class ListInstalled(Task):
     """ List all installed programs. """

@@ -24,7 +24,7 @@ def parse_tasks(args):
     if args.remove is not None:
         tasks.extend([RemoveTask(prog) for prog in args.remove])
     if args.update is True:
-        pass
+        tasks.extend([UpdateTask(prog) for prog, _ in wok.task.IDB])
     if args.list is True:
         tasks.append(ListInstalled())
 

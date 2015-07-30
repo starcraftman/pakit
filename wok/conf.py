@@ -30,7 +30,7 @@ class YamlMixin(object):
                 conf = yaml.load(fin)
 
             pretty_js = json.dumps(conf, sort_keys=True, indent=2)
-            msg = 'Config File: {fname}\nContents: \n{jso}'.format(
+            msg = 'Config File: {fname}\nContents:\n{jso}'.format(
                     fname=filename, jso=pretty_js)
             logging.debug(msg)
             return conf
@@ -53,7 +53,7 @@ class Config(YamlMixin, object):
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
-        return 'Config File: {fname}\nContents: \n{jso}'.format(
+        return 'Config File: {fname}\nContents:\n{jso}'.format(
                 fname=self.filename, jso=pretty_js)
 
     @property
@@ -109,7 +109,7 @@ class InstallDB(YamlMixin, object):
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
-        return 'Config File: {fname}\nContents: \n{jso}'.format(
+        return 'Config File: {fname}\nContents:\n{jso}'.format(
                 fname=self.__filename, jso=pretty_js)
 
     def __iter__(self):
