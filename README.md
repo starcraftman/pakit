@@ -16,7 +16,7 @@ Just a rough guess of what I should be implementing when.
 - [x] Support Git & Hg repositories.
 - [x] Simple config from `.wok.yml`.
 - [ ] Upgrade logic.
-- [ ] Pick a license.
+- [x] Pick a license.
 
 ### 0.2
 - [ ] Add archive support, supports download, hashing & extracting.
