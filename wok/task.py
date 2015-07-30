@@ -140,8 +140,15 @@ class ListInstalled(Task):
 
     def do(self):
         logging.debug('List Task')
-        installed = ['{prog:10} | {date} | {hash}'.format(
-            prog=prog, **entry) for prog, entry in IDB]
+
+        longest = ''
+        for prog, _ in IDB:
+            if len(prog) > longest:
+                longest = prog
+        longest = str(len(longest) + 1)
+
+        fmt = '{prog:' + longest + '} | {date} | {hash}'
+        installed = [fmt.format(prog=prog, **entry) for prog, entry in IDB]
         msg = 'Installed:'
         msg += '\nProgram       | Date              | Hash or Version'
         msg += ''.join(['\n-  ' + prog for prog in installed])
