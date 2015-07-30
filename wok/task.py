@@ -103,6 +103,10 @@ class InstallTask(RecipeTask):
         """ Separate function to subclass for update task. """
         logging.debug('Installing %s', self.recipe)
 
+        if IDB.get(self.recipe.name) is not None:
+            logging.error('Already Installed: ' + self.recipe.name)
+            return
+
         with self.recipe.unstable:
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
@@ -118,7 +122,7 @@ class RemoveTask(RecipeTask):
         logging.debug('Removing %s', self.recipe)
 
         if IDB.get(self.recipe.name) is None:
-            logging.error('Cannot remove: ' + self.recipe.name)
+            logging.error('Not Installed: ' + self.recipe.name)
             return
 
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
