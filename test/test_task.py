@@ -105,7 +105,7 @@ class TestTasks(object):
         task.do()
         assert os.path.exists(task.prefix)
         assert len(glob.glob(os.path.join(
-                task.prefix, '*'))) == 0
+                task.prefix, '*'))) == 1
         assert not os.path.exists(task.link)
         assert len(glob.glob(os.path.join(
-                task.prefix, '*'))) == 0
+                task.link, '*'))) == 0
