@@ -235,7 +235,7 @@ class Command(object):
     """
     def __init__(self, cmd, cmd_dir=None):
         super(Command, self).__init__()
-        if type(cmd) is type([]):
+        if isinstance(cmd, list):
             self._cmd = cmd
         else:
             self._cmd = shlex.split(cmd)

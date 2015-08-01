@@ -41,7 +41,7 @@ class RecipeDB(object):
             self.__db.update({cls: obj})
 
     def has(self, name):
-        return self.__db.has_key(name)
+        return name in self.__db
 
     def get(self, name):
         obj = self.__db.get(name)
