@@ -10,6 +10,7 @@ from wok.recipe import RecipeDB
 
 IDB = None
 
+
 def walk_and_link(src, dst):
     """ After installing, link a program to dst. """
     for dirpath, _, filenames in os.walk(src, followlinks=True):
@@ -28,10 +29,10 @@ def walk_and_link(src, dst):
                 logging.error('Could not symlink {0} -> {1}'.format(
                     sfile, dfile))
 
+
 def walk_and_unlink(src, dst):
     """ Before removing program, take care of links. """
-    for dirpath, _, filenames in os.walk(src,
-            topdown=False, followlinks=True):
+    for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
         link_dst = dirpath.replace(src, dst)
         for fname in filenames:
             os.remove(os.path.join(link_dst, fname))
@@ -41,6 +42,7 @@ def walk_and_unlink(src, dst):
         except OSError:
             pass
 
+
 class Task(object):
     """ Universal task interface. """
     __metaclass__ = ABCMeta
@@ -48,7 +50,7 @@ class Task(object):
 
     def __str__(self):
         return '{cls}:\n{config}'.format(cls=self.__class__.__name__,
-                config=str(Task.__config))
+                                         config=str(Task.__config))
 
     @classmethod
     def config(cls):
@@ -77,6 +79,7 @@ class Task(object):
     def do(self):
         pass
 
+
 class RecipeTask(Task):
     """ Represents a task for a recipe. """
     def __init__(self, recipe_name):
@@ -85,11 +88,12 @@ class RecipeTask(Task):
 
     def __str__(self):
         return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
-                recipe=self.recipe)
+                                        recipe=self.recipe)
 
     @property
     def recipe(self):
         return self.__recipe
+
 
 class InstallTask(RecipeTask):
     """ Install a recipe. """
@@ -109,6 +113,7 @@ class InstallTask(RecipeTask):
             self.recipe.verify()
             IDB.add(self.recipe.name, self.recipe.unstable.hash)
 
+
 class RemoveTask(RecipeTask):
     """ Remove a recipe. """
     def __init__(self, recipe_name):
@@ -125,6 +130,7 @@ class RemoveTask(RecipeTask):
         shutil.rmtree(self.recipe.install_dir)
         IDB.remove(self.recipe.name)
 
+
 class UpdateTask(RecipeTask):
     """ Update a program, don't do it unless changes made. """
     def __init__(self, recipe_name):
@@ -137,6 +143,7 @@ class UpdateTask(RecipeTask):
             return
         RemoveTask(self.recipe.name).do()
         InstallTask(self.recipe.name).do()
+
 
 class ListInstalled(Task):
     """ List all installed programs. """
@@ -160,6 +167,7 @@ class ListInstalled(Task):
         print(msg)
         return msg
 
+
 def subseq_match(word, sequence):
     """ Subsequence matcher, not case senstive. """
     seq = list(sequence.lower())
@@ -170,9 +178,11 @@ def subseq_match(word, sequence):
             return True
     return False
 
+
 def substring_match(word, sequence):
     """ Substring matcher, matches exact substring sequence. """
     return word.lower().find(sequence.lower()) != -1
+
 
 class SearchTask(Task):
     """ Search logic, returns list matching sequence. """

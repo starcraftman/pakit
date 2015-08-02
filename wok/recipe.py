@@ -5,10 +5,12 @@ from abc import ABCMeta, abstractmethod
 import glob
 import os
 
-from wok.shell import Command, Git
+from wok.shell import Command
+
 
 class RecipeNotFound(Exception):
     pass
+
 
 class RecipeDB(object):
     """ Simple object database, allows queries and can search paths. """
@@ -30,7 +32,7 @@ class RecipeDB(object):
 
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
-        # TODO: Iterate all classes in file, only index those subclassing Recipe
+        # TODO: Iterate all classes in file, only index subclassing Recipe
         new_recs = glob.glob(os.path.join(path, '*.py'))
         new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
         new_recs.remove('__init__')
@@ -74,6 +76,7 @@ class RecipeDB(object):
         obj.set_config(self.__config)
         return obj
 
+
 class Recipe(object):
     """ A schema to build some binary. """
     __metaclass__ = ABCMeta
@@ -92,10 +95,12 @@ class Recipe(object):
 
     def info(self):
         """ Long description. """
-        return '{desc}{nl}{home}{nl}Stable Build:{nl}  {stable}{nl}Unstable Build:{nl}  {unstable}'.format(
-                desc=str(self), nl='\n  ', home='Homepage: ' + self.homepage,
-                stable=str(self.stable), unstable=str(self.unstable)
-                )
+        fmt = '{desc}{nl}{home}{nl}Stable'
+        fmt += ' Build:{nl}  {stable}{nl}Unstable Build:{nl}  {unstable}'
+        return fmt.format(
+            desc=str(self), nl='\n  ', home='Homepage: ' + self.homepage,
+            stable=str(self.stable), unstable=str(self.unstable)
+        )
 
     def set_config(self, config):
         self.paths = config.get('paths')

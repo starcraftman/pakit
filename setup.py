@@ -10,13 +10,17 @@ import glob
 import shlex
 import subprocess
 
+
 class CleanCommand(Command):
     """ Equivalent of make clean. """
     user_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
         eggs = glob.glob('*.egg-info')
         cmd = 'rm -vrf ./build ./dist ' + ' '.join(eggs)

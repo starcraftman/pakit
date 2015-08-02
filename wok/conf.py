@@ -21,6 +21,7 @@ TEMPLATE = {
     },
 }
 
+
 class YamlMixin(object):
     """ Provides YAML file interface for read/write configs. """
     def _read_from(self, filename):
@@ -31,7 +32,7 @@ class YamlMixin(object):
 
             pretty_js = json.dumps(conf, sort_keys=True, indent=2)
             msg = 'Config File: {fname}\nContents:\n{jso}'.format(
-                    fname=filename, jso=pretty_js)
+                fname=filename, jso=pretty_js)
             logging.debug(msg)
             return conf
         except IOError as exc:
@@ -42,6 +43,7 @@ class YamlMixin(object):
         with open(filename, 'w') as fout:
             yaml.dump(obj, fout, default_flow_style=False)
             logging.debug('Config written to: %s', filename)
+
 
 class Config(YamlMixin, object):
     """ All logic to manage configuration parsing. """
@@ -54,7 +56,7 @@ class Config(YamlMixin, object):
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
         return 'Config File: {fname}\nContents:\n{jso}'.format(
-                fname=self.filename, jso=pretty_js)
+            fname=self.filename, jso=pretty_js)
 
     @property
     def filename(self):
@@ -99,6 +101,7 @@ class Config(YamlMixin, object):
     def write(self):
         self._write_to(self.filename, self.__conf)
 
+
 class InstallDB(YamlMixin, object):
     """ Stores all information on what IS actually installed. """
     def __init__(self, filename):
@@ -110,7 +113,7 @@ class InstallDB(YamlMixin, object):
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
         return 'Config File: {fname}\nContents:\n{jso}'.format(
-                fname=self.__filename, jso=pretty_js)
+            fname=self.__filename, jso=pretty_js)
 
     def __iter__(self):
         for key in self.__conf:

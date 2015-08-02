@@ -13,6 +13,7 @@ import tempfile
 
 TMP_DIR = '/tmp/wok'
 
+
 class VersionRepo(object):
     """ Base class for all version control downloaders.
 
@@ -46,11 +47,12 @@ class VersionRepo(object):
 
     def __str__(self):
         if self.__on_branch:
-            tag = 'branch: {0}'.format('default' if self.tag is None else self.tag)
+            tag = 'default' if self.tag is None else self.tag
+            tag += 'branch: '
         else:
             tag = 'tag: ' + self.tag
         return '{name}: {tag}, uri: {uri}'.format(
-                name=self.__class__.__name__, uri=self.uri, tag=tag)
+            name=self.__class__.__name__, uri=self.uri, tag=tag)
 
     @property
     def branch(self):
@@ -102,7 +104,7 @@ class VersionRepo(object):
 
     @abstractmethod
     def checkout(self):
-        """ Updates the repository so that branch/tag changes are reflected. """
+        """ Equivalent to git checkout for vcs, updates ref. """
         pass
 
     @abstractmethod
@@ -112,6 +114,7 @@ class VersionRepo(object):
             target: Set target directory before downloading.
         """
         pass
+
 
 class Git(VersionRepo):
     """ Represents a git repository. """
@@ -159,8 +162,9 @@ class Git(VersionRepo):
         tag = '' if self.tag is None else '-b ' + self.tag
 
         cmd = Command('git clone --recursive {tag} {uri} {target}'.format(
-                tag=tag, uri=self.uri, target=self.target))
+            tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
+
 
 class Hg(VersionRepo):
     """ Represents a mercurial repository. """
@@ -216,6 +220,7 @@ class Hg(VersionRepo):
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
+
 @atexit.register
 def cmd_cleanup():
     for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
@@ -225,9 +230,11 @@ def cmd_cleanup():
             logging.error('Could not delete file %s.', filename)
             raise
 
+
 class CmdFailed(Exception):
     """ Command did not return sucessfully. """
     pass
+
 
 class Command(object):
     """ Represent a command to be run on the system.
@@ -241,12 +248,14 @@ class Command(object):
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
         self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
-                delete=True, dir=TMP_DIR, prefix='cmd')
+                                                   delete=True,
+                                                   dir=TMP_DIR,
+                                                   prefix='cmd')
         logging.debug('CMD START: {0}'.format(self))
         self._proc = sub.Popen(
-                self._cmd, cwd=self._cmd_dir,
-                stdout=self._stdout, stderr=sub.STDOUT,
-                preexec_fn=os.setsid
+            self._cmd, cwd=self._cmd_dir,
+            stdout=self._stdout, stderr=sub.STDOUT,
+            preexec_fn=os.setsid
         )
 
     def __del__(self):
@@ -300,4 +309,3 @@ class Command(object):
         self._proc.wait()
         if self.rcode != 0:
             raise CmdFailed('\n'.join(self.output(10)))
-

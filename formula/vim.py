@@ -1,5 +1,6 @@
 from wok import *
 
+
 class Vim(Recipe):
     def __init__(self):
         super(Vim, self).__init__()
@@ -11,8 +12,8 @@ class Vim(Recipe):
 
     def build(self):
         self.cmd('./configure --prefix={prefix} --with-features=huge '
-                '--enable-cscope --enable-multibyte --enable-luainterp '
-                '--enable-pythoninterp')
+                 '--enable-cscope --enable-multibyte --enable-luainterp '
+                 '--enable-pythoninterp')
         self.cmd('make VIMRUNTIMEDIR={prefix}/share/vim/vim74')
         self.cmd('make install')
 

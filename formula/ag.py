@@ -1,5 +1,6 @@
 from wok import *
 
+
 class Ag(Recipe):
     def __init__(self):
         super(Ag, self).__init__()

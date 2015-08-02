@@ -11,9 +11,10 @@ import traceback
 from wok import __version__
 from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
-from wok.task import InstallTask, RemoveTask, UpdateTask, ListInstalled, SearchTask
+from wok.task import InstallTask, RemoveTask, UpdateTask, ListInstalled
 import wok.shell
 import wok.task
+
 
 def parse_tasks(args):
     """ Take program arguments and make a task list. """
@@ -29,6 +30,7 @@ def parse_tasks(args):
         tasks.append(ListInstalled())
 
     return tasks
+
 
 def global_init(wok_file):
     """ Do setup of the global environment.
@@ -53,6 +55,7 @@ def global_init(wok_file):
 
     return config
 
+
 def init_logging(log_file):
     """ Setup project wide file logging. """
     try:
@@ -63,7 +66,7 @@ def init_logging(log_file):
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
-            '%(filename)s %(message)s'
+              '%(filename)s %(message)s'
     my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
 
     while len(root.handlers) != 0:
@@ -71,7 +74,8 @@ def init_logging(log_file):
 
     max_size = 1024 ** 2
     rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
-            maxBytes=max_size, backupCount=4)
+                                               maxBytes=max_size,
+                                               backupCount=4)
     rot.setLevel(logging.DEBUG)
     rot.setFormatter(my_fmt)
     root.addHandler(rot)
@@ -80,6 +84,7 @@ def init_logging(log_file):
     stream.setLevel(logging.ERROR)
     stream.setFormatter(my_fmt)
     root.addHandler(stream)
+
 
 # TODO: Path modification during operation by os.environ
 def main():
@@ -90,19 +95,20 @@ def main():
                                      RawDescriptionHelpFormatter)
     parser.add_argument('-v', '--version', action='version',
                         version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
-    parser.add_argument('-c', '--conf', default=os.path.expanduser('~/.wok.yaml'),
+    parser.add_argument('-c', '--conf',
+                        default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='(over)write the conf at $HOME/.wok.yaml')
     mut1 = parser.add_mutually_exclusive_group()
     mut1.add_argument('-i', '--install', nargs='+',
-                        metavar='PROG', help='install specified program(s)')
+                      metavar='PROG', help='install specified program(s)')
     mut1.add_argument('-r', '--remove', nargs='+',
-                        metavar='PROG', help='remove specified program(s)')
+                      metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
-                        help='update installed programs')
+                      help='update installed programs')
     mut1.add_argument('-l', '--list', default=False, action='store_true',
-                        help='list installed programs')
+                      help='list installed programs')
 
     # Require at least one for now.
     if len(sys.argv) == 1:
@@ -129,6 +135,7 @@ def main():
     except Exception as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())
+
 
 if __name__ == '__main__':
     main()
