@@ -48,7 +48,7 @@ class VersionRepo(object):
     def __str__(self):
         if self.__on_branch:
             tag = 'default' if self.tag is None else self.tag
-            tag += 'branch: '
+            tag = 'branch: ' + tag
         else:
             tag = 'tag: ' + self.tag
         return '{name}: {tag}, uri: {uri}'.format(

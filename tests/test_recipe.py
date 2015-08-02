@@ -43,7 +43,7 @@ class TestRecipe(object):
 
         assert str(self.recipe) == 'ag: Grep like tool optimized for speed'
 
-    def test__info(self):
+    def test_info(self):
         print()
         print(self.recipe.info())
 
