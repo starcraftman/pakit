@@ -93,7 +93,7 @@ class VersionRepo(object):
         cmd.wait()
 
     @abstractproperty
-    def hash(self):
+    def repo_hash(self):
         """ Return the current hash of the remote repo. """
         pass
 
@@ -122,7 +122,7 @@ class Git(VersionRepo):
         super(Git, self).__init__(uri, **kwargs)
 
     @property
-    def hash(self):
+    def repo_hash(self):
         """ Return the current hash of the remote repo. """
         def __cmd():
             cmd = Command('git log -1 ', self.target)
@@ -131,11 +131,11 @@ class Git(VersionRepo):
 
         if not self.is_cloned:
             with self:
-                hash = __cmd()
+                repo_hash = __cmd()
         else:
-            hash = __cmd()
+            repo_hash = __cmd()
 
-        return hash.split()[-1]
+        return repo_hash.split()[-1]
 
     @property
     def is_cloned(self):
@@ -172,7 +172,7 @@ class Hg(VersionRepo):
         super(Hg, self).__init__(uri, **kwargs)
 
     @property
-    def hash(self):
+    def repo_hash(self):
         """ Return the current hash of the remote repo. """
         def __cmd():
             cmd = Command('hg parents', self.target)
@@ -181,11 +181,11 @@ class Hg(VersionRepo):
 
         if not self.is_cloned:
             with self:
-                hash = __cmd()
+                repo_hash = __cmd()
         else:
-            hash = __cmd()
+            repo_hash = __cmd()
 
-        return hash.split()[-1]
+        return repo_hash.split()[-1]
 
     @property
     def is_cloned(self):
