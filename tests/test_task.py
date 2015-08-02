@@ -127,9 +127,9 @@ class TestTasks(object):
             recipe.build()
             walk_and_link(recipe.install_dir, recipe.link_dir)
             recipe.verify()
-            wok.task.IDB.add(recipe.name, recipe.unstable.hash)
-            assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.hash
+            wok.task.IDB.add(recipe.name, recipe.unstable.cur_hash)
+            assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.cur_hash
 
         UpdateTask('ag').do()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.hash
+        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.cur_hash
         del recipe

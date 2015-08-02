@@ -134,12 +134,12 @@ class InstallDB(YamlMixin, object):
         """ Return the associated entry or None. """
         return self.__conf.get(prog, None)
 
-    def add(self, prog, repo_hash):
+    def add(self, prog, cur_hash):
         """ Call with program name & opts to put into yaml config. """
         time_s = time.time()
         self.__conf[prog] = {
             'date': time.strftime('%H:%M:%S %d/%m/%y', time.localtime(time_s)),
-            'hash': repo_hash,
+            'hash': cur_hash,
             'timestamp': time_s,
         }
         self.write()

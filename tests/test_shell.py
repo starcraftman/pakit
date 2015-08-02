@@ -25,7 +25,7 @@ class TestGit(object):
 
     def test_hash(self):
         self.repo.download()
-        assert self.repo.repo_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
+        assert self.repo.cur_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_clean(self):
         self.repo.download()
@@ -56,7 +56,7 @@ class TestGit(object):
         self.repo.download()
         self.repo.tag = '0.20.0'
         self.repo.checkout()
-        assert self.repo.hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
+        assert self.repo.cur_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
     def test_str(self):
         uri = 'https://github.com/user/repo'
@@ -87,7 +87,7 @@ class TestHg(object):
 
     def test_hash(self):
         self.repo.download()
-        assert self.repo.repo_hash == '80:a6ec48f03985'
+        assert self.repo.cur_hash == '80:a6ec48f03985'
 
     def test_download(self):
         self.repo.download()
@@ -102,7 +102,7 @@ class TestHg(object):
         self.repo.download()
         self.repo.tag = '0.1'
         self.repo.checkout()
-        assert self.repo.hash == '14:d390b5e27191'
+        assert self.repo.cur_hash == '14:d390b5e27191'
 
 class TestCommand(object):
     def test_simple_command(self):

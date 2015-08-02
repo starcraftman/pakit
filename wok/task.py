@@ -111,7 +111,7 @@ class InstallTask(RecipeTask):
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             self.recipe.verify()
-            IDB.add(self.recipe.name, self.recipe.unstable.hash)
+            IDB.add(self.recipe.name, self.recipe.unstable.cur_hash)
 
 
 class RemoveTask(RecipeTask):
@@ -139,7 +139,7 @@ class UpdateTask(RecipeTask):
     def do(self):
         logging.debug('Updating: %s', self.recipe.name)
 
-        if IDB.get(self.recipe.name)['hash'] == self.recipe.unstable.hash:
+        if IDB.get(self.recipe.name)['hash'] == self.recipe.unstable.cur_hash:
             return
         RemoveTask(self.recipe.name).do()
         InstallTask(self.recipe.name).do()
