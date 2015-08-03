@@ -45,22 +45,18 @@ def walk_and_unlink(src, dst):
 class Task(object):
     """ Universal task interface. """
     __metaclass__ = ABCMeta
-    __config = None
+    config = None
 
     def __str__(self):
         return '{cls}:\n{config}'.format(cls=self.__class__.__name__,
-                                         config=str(Task.__config))
-
-    @classmethod
-    def config(cls):
-        return cls.__config
+                                         config=str(Task.config))
 
     @classmethod
     def set_config(cls, new_config):
-        cls.__config = new_config
+        cls.config = new_config
 
     def __path(self, name):
-        return self.__class__.__config.get('paths.' + name)
+        return self.__class__.config.get('paths.' + name)
 
     @property
     def link(self):

@@ -21,9 +21,9 @@ class RecipeDB(object):
         if cls.__instance is None:
             cls.__instance = super(RecipeDB, cls).__new__(cls)
             cls.__instance.__db = {}
-        if config is not None:
-            cls.__instance.__config = config
-        cls.__instance.__default_formulas()
+            if config is not None:
+                cls.__instance.__config = config
+            cls.__instance.__default_formulas()
         return cls.__instance
 
     def __str__(self):
