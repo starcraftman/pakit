@@ -22,7 +22,7 @@ Just a rough guess of what I should be implementing when.
 - [ ] Upgrade logic.
 - [ ] User defined recipe locations via config.
 - [x] Pick a license.
-- [ ] Pip/Wheel upload.
+- [x] Pip/Wheel upload.
 
 ### 0.2
 - [ ] Add archive support, supports download, hashing & extracting.
