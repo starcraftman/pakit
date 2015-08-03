@@ -66,7 +66,7 @@ class Config(YamlMixin, object):
     @filename.setter
     def filename(self, new_filename):
         if not os.path.exists(new_filename):
-            logging.error('File not found: {0}'.format(new_filename))
+            logging.error('File not found: %s', new_filename)
         self.__filename = new_filename
 
     def get(self, name):
@@ -127,7 +127,7 @@ class InstallDB(YamlMixin, object):
     @filename.setter
     def filename(self, new_filename):
         if not os.path.exists(new_filename):
-            logging.error('File not found: {0}'.format(new_filename))
+            logging.error('File not found: %s', new_filename)
         self.__filename = new_filename
 
     def get(self, prog):

@@ -251,7 +251,7 @@ class Command(object):
                                                    delete=True,
                                                    dir=TMP_DIR,
                                                    prefix='cmd')
-        logging.debug('CMD START: {0}'.format(self))
+        logging.debug('CMD START: %s', self)
         self._proc = sub.Popen(
             self._cmd, cwd=self._cmd_dir,
             stdout=self._stdout, stderr=sub.STDOUT,

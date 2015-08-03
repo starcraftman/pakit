@@ -88,6 +88,7 @@ class Recipe(object):
         self.homepage = 'Project site'
         self.stable = None
         self.unstable = None
+        self.paths = None
 
     def __str__(self):
         """ Short description. """

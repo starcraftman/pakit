@@ -131,7 +131,7 @@ def main():
             sys.exit(1)
 
         for task in tasks:
-            task.do()
+            task.run()
     except Exception as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())

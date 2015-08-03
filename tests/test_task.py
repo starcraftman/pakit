@@ -88,21 +88,21 @@ class TestTasks(object):
 
     def test_install(self):
         task = InstallTask('ag')
-        task.do()
+        task.run()
         assert os.path.exists(os.path.join(task.prefix, 'ag', 'bin', 'ag'))
 
     def test_list(self):
         task = ListInstalled()
-        out = task.do().split('\n')
+        out = task.run().split('\n')
         assert len(out) == 3
         assert out[-1].find('-  ag') == 0
 
     def test_search_names(self):
-        results = SearchTask('vim', RecipeDB().names()).do()
+        results = SearchTask('vim', RecipeDB().names()).run()
         assert results == ['vim']
 
     def test_search_desc(self):
-        results = SearchTask('grep', RecipeDB().names_and_desc()).do()
+        results = SearchTask('grep', RecipeDB().names_and_desc()).run()
         assert results == ['ag: Grep like tool optimized for speed']
 
     def test_remove(self):
@@ -110,7 +110,7 @@ class TestTasks(object):
         assert os.path.exists(os.path.join(task.prefix, 'ag'))
         assert wok.task.IDB.get('ag') is not None
 
-        task.do()
+        task.run()
         assert os.path.exists(task.prefix)
         assert len(glob.glob(os.path.join(
                 task.prefix, '*'))) == 1
@@ -130,6 +130,6 @@ class TestTasks(object):
             wok.task.IDB.add(recipe.name, recipe.unstable.cur_hash)
             assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.cur_hash
 
-        UpdateTask('ag').do()
+        UpdateTask('ag').run()
         assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.cur_hash
         del recipe

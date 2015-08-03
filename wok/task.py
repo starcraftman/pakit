@@ -26,8 +26,7 @@ def walk_and_link(src, dst):
                 dfile = os.path.join(link_dst, fname)
                 os.symlink(sfile, dfile)
             except OSError:
-                logging.error('Could not symlink {0} -> {1}'.format(
-                    sfile, dfile))
+                logging.error('Could not symlink %s -> %s', sfile, dfile)
 
 
 def walk_and_unlink(src, dst):
@@ -76,7 +75,7 @@ class Task(object):
         return self.__path('source')
 
     @abstractmethod
-    def do(self):
+    def run(self):
         pass
 
 
@@ -100,7 +99,7 @@ class InstallTask(RecipeTask):
     def __init__(self, recipe_name):
         super(InstallTask, self).__init__(recipe_name)
 
-    def do(self):
+    def run(self):
         logging.debug('Installing: %s', self.recipe.name)
 
         if IDB.get(self.recipe.name) is not None:
@@ -119,7 +118,7 @@ class RemoveTask(RecipeTask):
     def __init__(self, recipe_name):
         super(RemoveTask, self).__init__(recipe_name)
 
-    def do(self):
+    def run(self):
         logging.debug('Removing: %s', self.recipe.name)
 
         if IDB.get(self.recipe.name) is None:
@@ -136,13 +135,13 @@ class UpdateTask(RecipeTask):
     def __init__(self, recipe_name):
         super(UpdateTask, self).__init__(recipe_name)
 
-    def do(self):
+    def run(self):
         logging.debug('Updating: %s', self.recipe.name)
 
         if IDB.get(self.recipe.name)['hash'] == self.recipe.unstable.cur_hash:
             return
-        RemoveTask(self.recipe.name).do()
-        InstallTask(self.recipe.name).do()
+        RemoveTask(self.recipe.name).run()
+        InstallTask(self.recipe.name).run()
 
 
 class ListInstalled(Task):
@@ -150,7 +149,7 @@ class ListInstalled(Task):
     def __init__(self):
         super(ListInstalled, self).__init__()
 
-    def do(self):
+    def run(self):
         logging.debug('List Task')
 
         longest = ''
@@ -191,7 +190,7 @@ class SearchTask(Task):
         self.sequence = sequence
         self.words = words
 
-    def do(self):
+    def run(self):
         matched = []
         for word in self.words:
             if substring_match(word, self.sequence):
