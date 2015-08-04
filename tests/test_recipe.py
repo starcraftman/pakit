@@ -53,7 +53,7 @@ class TestRecipe(object):
                 '  Stable Build:',
                 '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
                 '  Unstable Build:',
-                '    Git: branch: default, uri: https://github.com/ggreer/the_silver_searcher'
+                '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher'
         ]
 
         assert self.recipe.info().split('\n') == expect

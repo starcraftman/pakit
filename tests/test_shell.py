@@ -41,16 +41,10 @@ class TestGit(object):
         self.repo.download()
         assert self.repo.is_cloned
 
-    def test_target(self):
-        os.mkdir(self.test_dir)
-        with pytest.raises(IOError):
-            self.repo.target = self.test_dir
-
     def test_with_func(self):
         repo_git = os.path.join(self.repo.target, '.git')
         with self.repo:
             assert os.path.exists(repo_git)
-        assert not os.path.exists(repo_git)
 
     def test_checkout(self):
         self.repo.download()

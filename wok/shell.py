@@ -38,16 +38,18 @@ class VersionRepo(object):
             self.__on_branch = True
 
     def __enter__(self):
-        """ Guarantees that the repo is downloaded then cleaned. """
+        """ Guarantees that the repo is downloaded and on right commit. """
         if not self.is_cloned:
             self.download()
+        else:
+            self.checkout()
 
     def __exit__(self, typ, value, traceback):
-        self.clean()
+        pass
 
     def __str__(self):
         if self.__on_branch:
-            tag = 'default' if self.tag is None else self.tag
+            tag = 'HEAD' if self.tag is None else self.tag
             tag = 'branch: ' + tag
         else:
             tag = 'tag: ' + self.tag
@@ -81,10 +83,6 @@ class VersionRepo(object):
 
     @target.setter
     def target(self, new_target):
-        if os.path.exists(new_target):
-            msg = 'Target Already Exists: ' + new_target
-            logging.error(msg)
-            raise IOError(msg)
         self.__target = new_target
 
     def clean(self):
@@ -149,8 +147,9 @@ class Git(VersionRepo):
 
     def checkout(self):
         """ Updates the repository to the tag. """
-        cmd = Command('git checkout ' + self.tag, self.target)
-        cmd.wait()
+        if self.tag is not None:
+            cmd = Command('git checkout ' + self.tag, self.target)
+            cmd.wait()
 
     def download(self, target=None):
         """ Download the repo to target.
@@ -204,8 +203,9 @@ class Hg(VersionRepo):
 
     def checkout(self):
         """ Updates the repository to the tag. """
-        cmd = Command('hg update ' + self.tag, self.target)
-        cmd.wait()
+        if self.tag is not None:
+            cmd = Command('hg update ' + self.tag, self.target)
+            cmd.wait()
 
     def download(self, target=None):
         """ Download the repo to target.
