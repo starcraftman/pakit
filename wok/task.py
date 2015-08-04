@@ -154,9 +154,9 @@ class ListInstalled(Task):
 
         longest = ''
         for prog, _ in IDB:
-            if len(prog) > longest:
+            if len(prog) > len(longest):
                 longest = prog
-        longest = str(len(longest) + 1)
+        longest = str(len(longest))
 
         fmt = '{prog:' + longest + '} | {date} | {hash}'
         installed = [fmt.format(prog=prog, **entry) for prog, entry in IDB]
