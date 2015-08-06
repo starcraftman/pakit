@@ -24,6 +24,14 @@ class TestConfig(object):
     def test_get(self):
         assert self.config.get('paths.prefix') == '/tmp/wok/builds'
 
+    def test_get_opts(self):
+        """ Requires the testing wok.yaml. """
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config = Config(config_file)
+        opts = config.get_opts('ag')
+        assert opts.get('stable_build') is False
+        assert opts.get('prefix') == '/tmp/test_wok/builds'
+
     def test_set(self):
         self.config.set('paths.prefix', '/dev/null')
         assert self.config.get('paths.prefix') == '/dev/null'
@@ -45,7 +53,7 @@ class TestConfig(object):
                 'Contents:',
                 '{',
                 '  "defaults": {',
-                '    "prefer_stable": true',
+                '    "stable_build": true',
                 '  }, ',
                 '  "log": {',
                 '    "enabled": true, ',

@@ -1,5 +1,5 @@
 defaults:
-  prefer_stable: true
+  stable_build: true
 log:
   enabled: true
   file: /tmp/test_wok/main.log
@@ -7,3 +7,5 @@ paths:
   link: /tmp/test_wok/link
   prefix: /tmp/test_wok/builds
   source: /tmp/test_wok/src
+ag:
+  stable_build: false
