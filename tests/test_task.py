@@ -13,15 +13,15 @@ from wok.shell import Command, CmdFailed, Git
 from wok.task import *
 import wok.task
 
-def teardown_module(module):
-    try:
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
-        config = global_init(config_file)
-        tmp_dir = os.path.dirname(config.get('paths.prefix'))
-        cmd = Command('rm -rf ' + tmp_dir)
-        cmd.wait()
-    except CmdFailed:
-        logging.error('Could not clean ' + tmp_dir)
+# def teardown_module(module):
+    # try:
+        # config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        # config = global_init(config_file)
+        # tmp_dir = os.path.dirname(config.get('paths.prefix'))
+        # cmd = Command('rm -rf ' + tmp_dir)
+        # cmd.wait()
+    # except CmdFailed:
+        # logging.error('Could not clean ' + tmp_dir)
 
 def test_subseq_match():
     haystack = 'Hello World!'

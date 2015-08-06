@@ -88,7 +88,7 @@ class Recipe(object):
         self.homepage = 'Project site'
         self.stable = None
         self.unstable = None
-        self.paths = None
+        self.opts = None
 
     def __str__(self):
         """ Short description. """
@@ -96,15 +96,20 @@ class Recipe(object):
 
     def info(self):
         """ Long description. """
-        fmt = '{desc}{nl}{home}{nl}Stable'
-        fmt += ' Build:{nl}  {stable}{nl}Unstable Build:{nl}  {unstable}'
+        fmt = '{desc}{nl}{home}{nl}'
+        fmt += 'Stable Build:{nl}  {stable}{nl}'
+        fmt += 'Unstable Build:{nl}  {unstable}'
         return fmt.format(
             desc=str(self), nl='\n  ', home='Homepage: ' + self.homepage,
             stable=str(self.stable), unstable=str(self.unstable)
         )
 
     def set_config(self, config):
-        self.paths = config.get('paths')
+        self.opts = config.get_opts(self.name)
+        self.opts.update({
+            'prefix': os.path.join(self.opts.get('prefix'), self.name),
+            'source': os.path.join(self.opts.get('source'), self.name)
+        })
         if self.unstable is not None:
             self.unstable.target = self.source_dir
         if self.stable is not None:
@@ -112,15 +117,15 @@ class Recipe(object):
 
     @property
     def install_dir(self):
-        return os.path.join(self.paths.get('prefix'), self.name)
+        return self.opts.get('prefix')
 
     @property
     def link_dir(self):
-        return self.paths.get('link')
+        return self.opts.get('link')
 
     @property
     def source_dir(self):
-        return os.path.join(self.paths.get('source'), self.name)
+        return self.opts.get('source')
 
     @property
     def name(self):
@@ -135,9 +140,7 @@ class Recipe(object):
                 cmd_dir = os.path.dirname(self.link_dir)
 
         # TODO: Later, pickup opts from config & extend with prefix.
-        opts = {'link': self.link_dir, 'prefix': self.install_dir,
-                'source': self.source_dir}
-        cmd_str = cmd_str.format(**opts)
+        cmd_str = cmd_str.format(**self.opts)
         cmd = Command(cmd_str, cmd_dir)
         cmd.wait()
 

@@ -44,6 +44,9 @@ class TestConfig(object):
                 'Config File: {0}'.format(self.config.filename),
                 'Contents:',
                 '{',
+                '  "defaults": {',
+                '    "prefer_stable": true',
+                '  }, ',
                 '  "log": {',
                 '    "enabled": true, ',
                 '    "file": "/tmp/wok/main.log"',
@@ -53,7 +56,7 @@ class TestConfig(object):
                 '    "prefix": "/tmp/wok/builds", ',
                 '    "source": "/tmp/wok/src"',
                 '  }',
-                '}'
+                '}',
         ]
         assert str(self.config).split('\n') == expect
 
