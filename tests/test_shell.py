@@ -41,11 +41,6 @@ class TestGit(object):
         self.repo.download()
         assert self.repo.is_cloned
 
-    def test_with_func(self):
-        repo_git = os.path.join(self.repo.target, '.git')
-        with self.repo:
-            assert os.path.exists(repo_git)
-
     def test_checkout(self):
         self.repo.download()
         self.repo.tag = '0.20.0'

@@ -37,6 +37,11 @@ class TestRecipe(object):
         self.config = global_init(config_file)
         self.recipe = RecipeDB().get('ag')
 
+    def test_with_func(self):
+        with self.recipe:
+            assert os.path.exists(self.recipe.source_dir)
+            assert len(os.listdir(self.recipe.source_dir)) != 0
+
     def test_str(self):
         print()
         print(self.recipe)

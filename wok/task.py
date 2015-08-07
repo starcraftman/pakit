@@ -102,7 +102,7 @@ class InstallTask(RecipeTask):
             logging.error('Already Installed: ' + self.recipe.name)
             return
 
-        with self.recipe.unstable:
+        with self.recipe:
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             self.recipe.verify()

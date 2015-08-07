@@ -11,7 +11,7 @@ import yaml
 # The default global config
 TEMPLATE = {
     'defaults': {
-        'stable_build': True,
+        'build': 'stable',
     },
     'paths': {
         'prefix': '/tmp/wok/builds',

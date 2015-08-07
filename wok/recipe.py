@@ -90,17 +90,29 @@ class Recipe(object):
         self.unstable = None
         self.opts = None
 
+    def __enter__(self):
+        repo = getattr(self, self.opts.get('build'))
+        repo.make_available()
+
+    def __exit__(self, typ, value, traceback):
+        pass
+
     def __str__(self):
         """ Short description. """
         return self.name + ': ' + self.desc
 
     def info(self):
         """ Long description. """
-        fmt = '{desc}{nl}{home}{nl}'
-        fmt += 'Stable Build:{nl}  {stable}{nl}'
-        fmt += 'Unstable Build:{nl}  {unstable}'
+        fmt = ['{desc}',
+               '  Homepage: {home}',
+               '  Stable Build:',
+               '    {stable}',
+               '  Unstable Build:',
+               '    {unstable}',
+               ]
+        fmt = '\n'.join(fmt)
         return fmt.format(
-            desc=str(self), nl='\n  ', home='Homepage: ' + self.homepage,
+            desc=str(self), home=self.homepage,
             stable=str(self.stable), unstable=str(self.unstable)
         )
 
@@ -110,10 +122,8 @@ class Recipe(object):
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
             'source': os.path.join(self.opts.get('source'), self.name)
         })
-        if self.unstable is not None:
-            self.unstable.target = self.source_dir
-        if self.stable is not None:
-            self.stable.target = self.source_dir
+        self.unstable.target = self.source_dir
+        self.stable.target = self.source_dir
 
     @property
     def install_dir(self):

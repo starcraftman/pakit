@@ -37,15 +37,12 @@ class VersionRepo(object):
             self.__tag = kwargs.get('branch', None)
             self.__on_branch = True
 
-    def __enter__(self):
+    def make_available(self):
         """ Guarantees that the repo is downloaded and on right commit. """
         if not self.is_cloned:
             self.download()
         else:
             self.checkout()
-
-    def __exit__(self, typ, value, traceback):
-        pass
 
     def __str__(self):
         if self.__on_branch:
@@ -106,7 +103,7 @@ class VersionRepo(object):
         pass
 
     @abstractmethod
-    def download(self, target=None):
+    def download(self):
         """ Download the repo to with specified opts.
 
             target: Set target directory before downloading.
@@ -151,15 +148,12 @@ class Git(VersionRepo):
             cmd = Command('git checkout ' + self.tag, self.target)
             cmd.wait()
 
-    def download(self, target=None):
+    def download(self):
         """ Download the repo to target.
 
             target: Where the repository will be stored
         """
-        if target is not None:
-            self.target = target
         tag = '' if self.tag is None else '-b ' + self.tag
-
         cmd = Command('git clone --recursive {tag} {uri} {target}'.format(
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
@@ -207,15 +201,12 @@ class Hg(VersionRepo):
             cmd = Command('hg update ' + self.tag, self.target)
             cmd.wait()
 
-    def download(self, target=None):
+    def download(self):
         """ Download the repo to target.
 
             target: Where the repository will be stored
         """
-        if target is not None:
-            self.target = target
         tag = '' if self.tag is None else '-u ' + self.tag
-
         cmd = Command('hg clone {tag} {uri} {target}'.format(
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()

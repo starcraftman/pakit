@@ -13,15 +13,15 @@ from wok.shell import Command, CmdFailed, Git
 from wok.task import *
 import wok.task
 
-# def teardown_module(module):
-    # try:
-        # config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
-        # config = global_init(config_file)
-        # tmp_dir = os.path.dirname(config.get('paths.prefix'))
-        # cmd = Command('rm -rf ' + tmp_dir)
-        # cmd.wait()
-    # except CmdFailed:
-        # logging.error('Could not clean ' + tmp_dir)
+def teardown_module(module):
+    try:
+        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config = global_init(config_file)
+        tmp_dir = os.path.dirname(config.get('paths.prefix'))
+        cmd = Command('rm -rf ' + tmp_dir)
+        cmd.wait()
+    except CmdFailed:
+        logging.error('Could not clean ' + tmp_dir)
 
 def test_subseq_match():
     haystack = 'Hello World!'
@@ -123,13 +123,11 @@ class TestTasks(object):
         recipe = self.rdb.get('ag')
 
         # Manually install stable version for now
-        with recipe.stable:
-            recipe.build()
-            walk_and_link(recipe.install_dir, recipe.link_dir)
-            recipe.verify()
-            wok.task.IDB.add(recipe.name, recipe.unstable.cur_hash)
-            assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.cur_hash
+        recipe.opts['build'] = 'stable'
+        InstallTask('ag').run()
+        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.cur_hash
 
+        recipe.opts['build'] = 'unstable'
         UpdateTask('ag').run()
         assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.cur_hash
         del recipe

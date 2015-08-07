@@ -29,7 +29,7 @@ class TestConfig(object):
         config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
         config = Config(config_file)
         opts = config.get_opts('ag')
-        assert opts.get('stable_build') is False
+        assert opts.get('build') == 'unstable'
         assert opts.get('prefix') == '/tmp/test_wok/builds'
 
     def test_set(self):
@@ -53,7 +53,7 @@ class TestConfig(object):
                 'Contents:',
                 '{',
                 '  "defaults": {',
-                '    "stable_build": true',
+                '    "build": "stable"',
                 '  }, ',
                 '  "log": {',
                 '    "enabled": true, ',
