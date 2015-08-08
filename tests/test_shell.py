@@ -24,7 +24,6 @@ class TestGit(object):
             pass
 
     def test_hash(self):
-        self.repo.download()
         assert self.repo.cur_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_clean(self):
@@ -75,7 +74,6 @@ class TestHg(object):
             pass
 
     def test_hash(self):
-        self.repo.download()
         assert self.repo.cur_hash == '80:a6ec48f03985'
 
     def test_download(self):

@@ -86,13 +86,11 @@ class Recipe(object):
         self.desc = 'Short description for the recipe.'
         self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
-        self.stable = None
-        self.unstable = None
+        self.repos = {}
         self.opts = None
 
     def __enter__(self):
-        repo = getattr(self, self.opts.get('build'))
-        repo.make_available()
+        self.repo.make_available()
 
     def __exit__(self, typ, value, traceback):
         pass
@@ -103,18 +101,18 @@ class Recipe(object):
 
     def info(self):
         """ Long description. """
+        builds = []
+        for name, repo in sorted(self.repos.items()):
+            builds += ['  Repo "' + name + '":', '    ' + str(repo)]
         fmt = ['{desc}',
                '  Homepage: {home}',
-               '  Stable Build:',
-               '    {stable}',
-               '  Unstable Build:',
-               '    {unstable}',
+               '  Current Repo: "{cur_build}"',
                ]
+        fmt.extend(builds)
         fmt = '\n'.join(fmt)
-        return fmt.format(
-            desc=str(self), home=self.homepage,
-            stable=str(self.stable), unstable=str(self.unstable)
-        )
+        info = fmt.format(desc=str(self), home=self.homepage,
+                          cur_build=self.opts.get('build'))
+        return info.rstrip('\n')
 
     def set_config(self, config):
         self.opts = config.get_opts(self.name)
@@ -122,8 +120,8 @@ class Recipe(object):
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
             'source': os.path.join(self.opts.get('source'), self.name)
         })
-        self.unstable.target = self.source_dir
-        self.stable.target = self.source_dir
+        for repo in self.repos.values():
+            repo.target = self.source_dir
 
     @property
     def install_dir(self):
@@ -140,6 +138,21 @@ class Recipe(object):
     @property
     def name(self):
         return self.__class__.__name__.lower()
+
+    @property
+    def repo(self):
+        """ The configured repository to build from. """
+        return self.repos.get(self.build_name)
+
+    @repo.setter
+    def repo(self, new_repo):
+        if new_repo not in self.repos:
+            raise KeyError('Build repository not available.')
+        self.opts['build'] = new_repo
+
+    @property
+    def build_name(self):
+        return self.opts.get('build')
 
     def cmd(self, cmd_str, cmd_dir=None):
         # FIXME: Temporary hack, need to refactor cmd function.

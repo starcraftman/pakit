@@ -119,18 +119,11 @@ class Git(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        def __cmd():
-            cmd = Command('git log -1 ', self.target)
-            cmd.wait()
-            return cmd.output()[0]
-
-        if not self.is_cloned:
-            with self:
-                cur_hash = __cmd()
-        else:
-            cur_hash = __cmd()
-
-        return cur_hash.split()[-1]
+        self.make_available()
+        cmd = Command('git log -1 ', self.target)
+        cmd.wait()
+        hash_line = cmd.output()[0]
+        return hash_line.split()[-1]
 
     @property
     def is_cloned(self):
@@ -167,18 +160,11 @@ class Hg(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        def __cmd():
-            cmd = Command('hg parents', self.target)
-            cmd.wait()
-            return cmd.output()[0]
-
-        if not self.is_cloned:
-            with self:
-                cur_hash = __cmd()
-        else:
-            cur_hash = __cmd()
-
-        return cur_hash.split()[-1]
+        self.make_available()
+        cmd = Command('hg parents', self.target)
+        cmd.wait()
+        hash_line = cmd.output()[0]
+        return hash_line.split()[-1]
 
     @property
     def is_cloned(self):

@@ -5,6 +5,7 @@ import os
 
 from wok.conf import Config, InstallDB
 from wok.main import global_init
+from wok.recipe import RecipeDB
 
 class TestConfig(object):
     """ Test the operation of Config class. """
@@ -70,42 +71,46 @@ class TestConfig(object):
 
 class TestInstalledConfig(object):
     def setup(self):
+        global_init(os.path.join(os.path.dirname(__file__), 'wok.yaml'))
         self.fname = './wok.in.yaml'
         self.config = InstallDB(self.fname)
+        self.recipe = RecipeDB().get('ag')
+        self.recipe.repo = 'stable'
 
     def teardown(self):
         try:
             os.remove(self.fname)
         except OSError:
             pass
+        self.recipe.repo = 'unstable'
 
     def test_add(self):
-        self.config.add('ag', 'hello')
+        self.config.add(self.recipe)
         ag = self.config.get('ag')
-        assert ag['hash'] == 'hello'
+        assert ag['hash'] == self.recipe.repo.cur_hash
 
     def test_get(self):
-        self.config.add('ag', 'hello')
+        self.config.add(self.recipe)
         assert self.config.get('ag') is not None
-        assert self.config.get('ag')['hash'] == 'hello'
+        assert self.config.get('ag')['hash'] == self.recipe.repo.cur_hash
         self.config.remove('ag')
         assert self.config.get('ag') is None
 
     def test_remove(self):
-        self.config.add('ag', 'hello')
+        self.config.add(self.recipe)
         self.config.remove('ag')
         assert self.config.get('ag') is None
 
     def test_write(self):
-        self.config.add('ag', 'hello')
+        self.config.add(self.recipe)
         self.config.write()
         assert os.path.exists(self.config.filename)
 
     def test_read(self):
-        self.config.add('ag', 'hello')
+        self.config.add(self.recipe)
         self.config.write()
         self.config = InstallDB(self.fname)
         self.config.read()
         entry = self.config.get('ag')
         assert entry is not None
-        assert entry['hash'] == 'hello'
+        assert entry['hash'] == self.recipe.repo.cur_hash

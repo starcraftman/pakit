@@ -7,8 +7,10 @@ class Vim(Recipe):
         self.desc = 'The classic mode based terminal editor'
         self.src = 'https://github.com/vim/vim'
         self.homepage = 'www.vim.org'
-        self.stable = Git(self.src)
-        self.unstable = Git(self.src)
+        self.repos = {
+            'stable': Git(self.src),
+            'unstable': Git(self.src),
+        }
 
     def build(self):
         self.cmd('./configure --prefix={prefix} --with-features=huge '

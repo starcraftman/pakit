@@ -41,6 +41,7 @@ class TestRecipe(object):
         with self.recipe:
             assert os.path.exists(self.recipe.source_dir)
             assert len(os.listdir(self.recipe.source_dir)) != 0
+            assert self.recipe.repo.cur_hash == self.recipe.repos.get('unstable').cur_hash
 
     def test_str(self):
         print()
@@ -55,9 +56,10 @@ class TestRecipe(object):
         expect = [
                 'ag: Grep like tool optimized for speed',
                 '  Homepage: https://github.com/ggreer/the_silver_searcher',
-                '  Stable Build:',
+                '  Current Repo: "unstable"',
+                '  Repo "stable":',
                 '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
-                '  Unstable Build:',
+                '  Repo "unstable":',
                 '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher'
         ]
 

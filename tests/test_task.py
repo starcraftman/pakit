@@ -123,11 +123,11 @@ class TestTasks(object):
         recipe = self.rdb.get('ag')
 
         # Manually install stable version for now
-        recipe.opts['build'] = 'stable'
+        recipe.repo = 'stable'
         InstallTask('ag').run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.stable.cur_hash
+        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
 
-        recipe.opts['build'] = 'unstable'
+        recipe.repo = 'unstable'
         UpdateTask('ag').run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.unstable.cur_hash
+        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
         del recipe
