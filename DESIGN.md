@@ -22,9 +22,8 @@ configuration variables of the build in his config file. Allows flexible recipes
 # Default options passed to all recipes self.opts, can be overwridden by specific opts.
 defaults:
   build: unstable
-# Paths of where to put things.
 paths:
-  # Where all builds will go
+  # Where all builds will go, each under /tmp/wok/builds/recipe.name folder
   prefix: /tmp/wok/builds
   # Where builds will link to, should go on your PATH
   link: /tmp/wok/links
