@@ -55,20 +55,8 @@ class Task(object):
     def set_config(cls, new_config):
         cls.config = new_config
 
-    def __path(self, name):
+    def path(self, name):
         return self.__class__.config.get('paths.' + name)
-
-    @property
-    def link(self):
-        return self.__path('link')
-
-    @property
-    def prefix(self):
-        return self.__path('prefix')
-
-    @property
-    def source(self):
-        return self.__path('source')
 
     @abstractmethod
     def run(self):
@@ -98,8 +86,10 @@ class InstallTask(RecipeTask):
     def run(self):
         logging.debug('Installing: %s', self.recipe.name)
 
-        if IDB.get(self.recipe.name) is not None:
-            logging.error('Already Installed: ' + self.recipe.name)
+        entry = IDB.get(self.recipe.name)
+        if entry is not None:
+            logging.error('\nInstalled: %s\n  Built On: %s\n  Hash: %s',
+                          self.recipe.name, entry['date'], entry['hash'])
             return
 
         with self.recipe:

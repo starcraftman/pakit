@@ -89,7 +89,7 @@ class TestTasks(object):
     def test_install(self):
         task = InstallTask('ag')
         task.run()
-        assert os.path.exists(os.path.join(task.prefix, 'ag', 'bin', 'ag'))
+        assert os.path.exists(os.path.join(task.path('prefix'), 'ag', 'bin', 'ag'))
 
     def test_list(self):
         task = ListInstalled()
@@ -107,16 +107,16 @@ class TestTasks(object):
 
     def test_remove(self):
         task = RemoveTask('ag')
-        assert os.path.exists(os.path.join(task.prefix, 'ag'))
+        assert os.path.exists(os.path.join(task.path('prefix'), 'ag'))
         assert wok.task.IDB.get('ag') is not None
 
         task.run()
-        assert os.path.exists(task.prefix)
+        assert os.path.exists(task.path('prefix'))
         assert len(glob.glob(os.path.join(
-                task.prefix, '*'))) == 1
-        assert not os.path.exists(task.link)
+                task.path('prefix'), '*'))) == 1
+        assert not os.path.exists(task.path('link'))
         assert len(glob.glob(os.path.join(
-                task.link, '*'))) == 0
+                task.path('link'), '*'))) == 0
 
     def test_update(self):
         """ Builds stable, then updates because unstable is newer. """
