@@ -101,16 +101,14 @@ class Recipe(object):
 
     def info(self):
         """ Long description. """
-        builds = []
-        for name, repo in sorted(self.repos.items()):
-            builds += ['  Repo "' + name + '":', '    ' + str(repo)]
         fmt = ['{desc}',
-               '  Homepage: {home}',
-               '  Current Repo: "{cur_build}"',
+               '{tab}Homepage: {home}',
+               '{tab}Current Repo: "{cur_build}"',
                ]
-        fmt.extend(builds)
+        for name, repo in sorted(self.repos.items()):
+            fmt += ['{tab}Repo "' + name + '":', '{tab}{tab}' + str(repo)]
         fmt = '\n'.join(fmt)
-        info = fmt.format(desc=str(self), home=self.homepage,
+        info = fmt.format(desc=str(self), home=self.homepage, tab='  ',
                           cur_build=self.opts.get('build'))
         return info.rstrip('\n')
 
