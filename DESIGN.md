@@ -1,3 +1,20 @@
+## Overview
+
+The idea is to have a plugin manager which builds from source according
+to configurations in a single YAML file. While working on vim-plug I
+figured I'd want something like that for dev machines.
+
+To be clear this is NOT a replacement for system package managers like
+apt, yast and so on. It is intended to be a supplementary package manager
+like homebrew or pip. You install bleeding edge packages with it and then
+put onto your PATH the paths.link location.
+
+What Wok Provides:
+* Package manager system to install/remove/update packages.
+* Later separately, a bunch of premade recipes, option for user made recipes.
+* Ability to write a simple YAML file controlling options & recipes.
+* Traceability by logging almost everything.
+
 ## Final Expected Behaviour
 
 * `wok --install tmux ag`       -- Install several programs
@@ -13,10 +30,7 @@ Short opts in order: -i -u -r -l -a -s -c -d
 
 ## Configuration
 
-File config by hidden YAML file at `~/.wok.yml`.
-
-The idea is a user can define a dict that overrides default
-configuration variables of the build in his config file. Allows flexible recipes.
+File config by a YAML file, default at `~/.wok.yml`.
 
 ```yaml
 # Default options passed to all recipes self.opts, can be overwridden by specific opts.
