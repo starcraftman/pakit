@@ -14,64 +14,69 @@ Short opts in order: -i -u -r -l -a -s -c -d
 ## Configuration
 
 File config by hidden YAML file at `~/.wok.yml`.
-Most are self-explanitory, except for opts.
+
 The idea is a user can define a dict that overrides default
 configuration variables of the build in his config file. Allows flexible recipes.
 
 ```yaml
-path:
-  install:  /tmp/wok/builds
-  link:     /tmp/linked
-  sources:  /tmp/wok/src
-logging:
-  on:       True
-  file:     /tmp/wok/main.log
-opts:
-  ag:
-    opt1:   --enable-mod1
-    opt2:   --enable-mod2
+# Default options passed to all recipes self.opts, can be overwridden by specific opts.
+defaults:
+  build: unstable
+# Paths of where to put things.
+paths:
+  # Where all builds will go
+  prefix: /tmp/wok/builds
+  # Where builds will link to, should go on your PATH
+  link: /tmp/wok/links
+  # Where source code will go
+  source: /tmp/wok/src
+log:
+  enabled: true
+  file: /tmp/wok/main.log
+# Example of specific options, for recipe in 'ag.py'
+# Note that here ag will be built with 'stable' repo instead of default.
+ag:
+  build: stable
+  # These two options will be available in build/verify funcs via self.opts.
+  option_1: hello
+  option_2: world
 ```
 
 ## Recipe Spec
 
 Work In Progress
 
-Probably going to be a python class.
-Should provide helpers to facilitate common tasks like download/extract archive.
-User has choice between stable release & source build.
+Below is an example, taken from formula/ag.py.
+Core logic implemented in wok/recipe.py
+Aim is to have very short easily written recipes.
+
+Parts of standard recipe:
+* desc: A short description.
+* homepage: Where the project is hosted.
+* repos: A dict of possible source downloaders.
+* build(): A function that builds the source selectable by config.
+* verify(): A function that returns true iff the build is good.
 
 Example:
 ```py
-from wok import Recipe
+from wok import *
 
 class Ag(Recipe):
-    def __init__(self, install_d):
+    def __init__(self):
         super(Ag, self).__init__()
-        self.desc = 'Grep like tool optimized for speed.'
+        self.desc = 'Grep like tool optimized for speed'
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
-
-    def release(self):
-        """ Download latest stable release. """
-        self.tap()
-
-    def tap(self):
-        """ Download the source from the tap. """
-        git(self.src)
+        self.repos = {
+            'stable': Git(self.src, tag='0.30.0'),
+            'unstable': Git(self.src),
+        }
 
     def build(self):
-        """ Commands to build & install program.
-            Executed inside the build environment.
-        """
-        cmd('./build.sh --prefix {prefix}')
-        cmd('make install')
+        self.cmd('./build.sh --prefix {prefix}')
+        self.cmd('make install')
 
     def verify(self):
-        """ Verify built program is working.
-            Do arbitrary actions to verify.
-
-            return: True only if program works.
-        """
-        lines = self.cmd('./bin/ag --version', False)
+        lines = self.cmd('{link}/bin/ag --version')
         return lines[0].find('ag version') != -1
 ```
