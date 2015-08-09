@@ -1,6 +1,6 @@
 # wok
 
-[![travis-ci](https://travis-ci.org/starcraftman/wok.svg?branch=master)](https://travis-ci.org/starcraftman/wok) [![Coverage Status](https://coveralls.io/repos/starcraftman/wok/badge.svg?branch=coverage&service=github)](https://coveralls.io/github/starcraftman/wok?branch=coverage) [![Join the chat at https://gitter.im/starcraftman/wok](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcraftman/wok?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![travis-ci](https://travis-ci.org/starcraftman/wok.svg?branch=master)](https://travis-ci.org/starcraftman/wok) [![Coverage Status](https://coveralls.io/repos/starcraftman/wok/badge.svg?branch=coverage&service=github)](https://coveralls.io/github/starcraftman/wok?branch=master) [![Join the chat at https://gitter.im/starcraftman/wok](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcraftman/wok?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Motivation
 Should be something like homebrew when done. Why? Why not.
