@@ -156,9 +156,9 @@ class InstallDB(YamlMixin, object):
         """ Call with program name & opts to put into yaml config. """
         time_s = time.time()
         self.__conf[recipe.name] = {
-            'build': recipe.build_name,
             'date': time.strftime('%H:%M:%S %d/%m/%y', time.localtime(time_s)),
             'hash': recipe.repo.cur_hash,
+            'repo': recipe.repo_name,
             'timestamp': time_s,
         }
         self.write()

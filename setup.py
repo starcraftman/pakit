@@ -6,9 +6,21 @@ from __future__ import absolute_import, print_function
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages, Command
+import fnmatch
 import glob
+import os
 import shlex
 import subprocess
+
+
+def rec_search(wildcard):
+    """ Search for matching files. """
+    matched = []
+    for dirpath, _, files in os.walk(os.getcwd()):
+        fn_files = [os.path.join(dirpath, fn_file) for fn_file
+                    in fnmatch.filter(files, wildcard)]
+        matched.extend(fn_files)
+    return matched
 
 
 class CleanCommand(Command):
@@ -22,10 +34,12 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        eggs = glob.glob('*.egg-info')
-        cmd = 'rm -vrf ./build ./dist ' + ' '.join(eggs)
+        pycs = ' '.join(rec_search('*.pyc'))
+        eggs = ' '.join(glob.glob('*.egg-info'))
+        cmd = 'rm -vrf .tox build dist {0} {1}'.format(eggs, pycs)
         print('Executing: ' + cmd)
-        subprocess.call(shlex.split(cmd))
+        if raw_input('OK? y/n  ').strip().lower()[0] == 'y':
+            subprocess.call(shlex.split(cmd))
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'

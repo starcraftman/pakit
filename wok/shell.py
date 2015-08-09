@@ -9,7 +9,7 @@ import os
 import shlex
 import signal
 import subprocess as sub
-import tempfile
+from tempfile import NamedTemporaryFile
 
 TMP_DIR = '/tmp/wok'
 
@@ -224,10 +224,8 @@ class Command(object):
         else:
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
-        self._stdout = tempfile.NamedTemporaryFile(mode='w+b',
-                                                   delete=True,
-                                                   dir=TMP_DIR,
-                                                   prefix='cmd')
+        self._stdout = NamedTemporaryFile(mode='w+b', delete=True,
+                                          dir=TMP_DIR, prefix='cmd')
         logging.debug('CMD START: %s', self)
         self._proc = sub.Popen(
             self._cmd, cwd=self._cmd_dir,

@@ -140,7 +140,7 @@ class Recipe(object):
     @property
     def repo(self):
         """ The configured repository to build from. """
-        return self.repos.get(self.build_name)
+        return self.repos.get(self.repo_name)
 
     @repo.setter
     def repo(self, new_repo):
@@ -149,7 +149,7 @@ class Recipe(object):
         self.opts['build'] = new_repo
 
     @property
-    def build_name(self):
+    def repo_name(self):
         return self.opts.get('build')
 
     def cmd(self, cmd_str, cmd_dir=None):
