@@ -86,9 +86,8 @@ def init_logging(log_file):
     root.addHandler(stream)
 
 
-# TODO: Path modification during operation by os.environ
-def main():
-    # TODO: Add choices kwarg for install/remove based on avail formula
+def args_parser():
+    """ The arguments parser, it is fairly large. """
     mesg = """    wok is a homebrew like installer"""
     parser = argparse.ArgumentParser(description=mesg,
                                      formatter_class=argparse.
@@ -110,6 +109,14 @@ def main():
     mut1.add_argument('-l', '--list', default=False, action='store_true',
                       help='list installed programs')
 
+    return parser
+
+
+# TODO: Path modification during operation by os.environ
+def main():
+    parser = args_parser()
+
+    # TODO: Add choices kwarg for install/remove based on avail formula
     # Require at least one for now.
     if len(sys.argv) == 1:
         parser.print_usage()

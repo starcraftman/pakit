@@ -73,6 +73,15 @@ class RecipeTask(Task):
         return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
                                         recipe=self.recipe)
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        if self.recipe is not other.recipe:
+            return False
+
+        return True
+
     @property
     def recipe(self):
         return self.__recipe
