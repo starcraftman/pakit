@@ -109,7 +109,7 @@ class Recipe(object):
             fmt += ['{tab}Repo "' + name + '":', '{tab}{tab}' + str(repo)]
         fmt = '\n'.join(fmt)
         info = fmt.format(desc=str(self), home=self.homepage, tab='  ',
-                          cur_build=self.opts.get('build'))
+                          cur_build=self.repo_name)
         return info.rstrip('\n')
 
     def set_config(self, config):
@@ -146,11 +146,11 @@ class Recipe(object):
     def repo(self, new_repo):
         if new_repo not in self.repos:
             raise KeyError('Build repository not available.')
-        self.opts['build'] = new_repo
+        self.opts['repo'] = new_repo
 
     @property
     def repo_name(self):
-        return self.opts.get('build')
+        return self.opts.get('repo')
 
     def cmd(self, cmd_str, cmd_dir=None):
         # FIXME: Temporary hack, need to refactor cmd function.

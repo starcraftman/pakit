@@ -26,6 +26,19 @@ class TestGit(object):
     def test_hash(self):
         assert self.repo.cur_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
+    def test_branch(self):
+        assert self.repo.tag == '0.29.0'
+        assert self.repo._VersionRepo__on_branch is False
+
+        self.repo.tag = 'hello'
+        assert self.repo.tag == 'hello'
+        assert self.repo._VersionRepo__on_branch is False
+
+    def test_tag(self):
+        self.repo.branch = 'hello'
+        assert self.repo.branch == 'hello'
+        assert self.repo._VersionRepo__on_branch is True
+
     def test_clean(self):
         self.repo.download()
         self.repo.clean()

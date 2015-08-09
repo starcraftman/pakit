@@ -35,7 +35,7 @@ File config by a YAML file, default at `~/.wok.yml`.
 ```yaml
 # Default options passed to all recipes self.opts, can be overwridden by specific opts.
 defaults:
-  build: unstable
+  repo: unstable
 paths:
   # Where all builds will go, each under /tmp/wok/builds/recipe.name folder
   prefix: /tmp/wok/builds
@@ -49,7 +49,7 @@ log:
 # Example of specific options, for recipe in 'ag.py'
 # Note that here ag will be built with 'stable' repo instead of default.
 ag:
-  build: stable
+  repo: stable
   # These two options will be available in build/verify funcs via self.opts.
   option_1: hello
   option_2: world
