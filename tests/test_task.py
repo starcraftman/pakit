@@ -86,6 +86,10 @@ class TestTasks(object):
     def teardown(self):
         wok.task.IDB.write()
 
+    def test__eq__(self):
+        assert InstallTask('ag') == InstallTask('ag')
+        assert RemoveTask('ag') != InstallTask('ag')
+
     def test_install(self):
         task = InstallTask('ag')
         task.run()
