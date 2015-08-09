@@ -5,9 +5,13 @@ python:
   #- 3.4
   #- 3.5
 
-before_script: |
-  pip install mock pytest pytest-mock PyYAML
+before_script:
+  pip install coveralls mock pytest pytest-mock PyYAML
 
-script: py.test
+script:
+  coverage run --source wok -m py.test
+
+after_success:
+  coveralls
 
 #vim:set et sw=2 ts=2:
