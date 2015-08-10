@@ -113,17 +113,20 @@ def args_parser():
 
 
 # TODO: Path modification during operation by os.environ
-def main():
-    parser = args_parser()
+def main(argv=None):
+    # For testing
+    if argv is None:
+        argv = sys.argv
 
     # TODO: Add choices kwarg for install/remove based on avail formula
     # Require at least one for now.
-    if len(sys.argv) == 1:
-        parser.print_usage()
+    parser = args_parser()
+    if len(argv) == 1:
         logging.error('No arguments. What should I do?')
+        parser.print_usage()
         sys.exit(1)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:])
     config = global_init(args.conf)
     logging.debug('CLI: %s', args)
 
@@ -133,8 +136,8 @@ def main():
     try:
         tasks = parse_tasks(args)
         if len(tasks) == 0:
+            logging.error('No tasks found. Check invocation.')
             parser.print_usage()
-            logging.error('Insufficient arguments. What should I do?')
             sys.exit(1)
 
         for task in tasks:
@@ -142,7 +145,7 @@ def main():
     except Exception as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())
-
+        raise
 
 if __name__ == '__main__':
     main()

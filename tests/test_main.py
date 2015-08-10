@@ -1,8 +1,8 @@
 """ To be used at some point. Maybe?"""
 from __future__ import absolute_import, print_function
 
+import mock
 import os
-# import pytest
 
 from wok.main import *
 from wok.shell import Command
@@ -73,6 +73,19 @@ class TestParseTasks(object):
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], ListInstalled)
 
-class TestArgv(object):
-    """ Do end to end testing on main(). """
-    pass
+
+class TestMain(object):
+    """ Test different argv's passed to main. """
+    @mock.patch('wok.main.sys')
+    def test_args_none(self, mock_sys):
+        main(['wok'])
+        mock_sys.exit.assert_called_with(1)
+
+    @mock.patch('wok.main.argparse._sys')
+    @mock.patch('wok.main.sys')
+    def test_args_bad(self, mock_sys, mock_argsys):
+        """ NB: I mock argparse._sys, preventing the short circuit
+            sys.exit that would stop code, hence hitting two sys.exits. """
+        main(['wok', 'hello'])
+        mock_argsys.exit.assert_called_with(2)
+        mock_sys.exit.assert_called_with(1)
