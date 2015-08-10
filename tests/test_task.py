@@ -99,7 +99,14 @@ class TestTasks(object):
         task = ListInstalled()
         out = task.run().split('\n')
         assert len(out) == 3
-        assert out[-1].find('-  ag') == 0
+        assert out[-1].find('  ag') == 0
+
+    def test_available(self):
+        task = ListAvailable()
+        out = task.run().split('\n')
+        expect = ['  ' + line for line in RecipeDB().names_and_desc()]
+        assert out[0] == 'Available Recipes:'
+        assert out[1:] == expect
 
     def test_search_names(self):
         results = SearchTask('vim', RecipeDB().names()).run()

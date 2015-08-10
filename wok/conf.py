@@ -14,8 +14,8 @@ TEMPLATE = {
         'repo': 'stable',
     },
     'paths': {
-        'prefix': '/tmp/wok/builds',
         'link': '/tmp/wok/links',
+        'prefix': '/tmp/wok/builds',
         'source': '/tmp/wok/src',
     },
     'log': {

@@ -26,10 +26,6 @@ class RecipeDB(object):
             cls.__instance.__default_formulas()
         return cls.__instance
 
-    def __str__(self):
-        progs = ['\n- {0}'.format(str(prog)) for prog in self.__db.values()]
-        return 'Available To Install: ' + ''.join(progs)
-
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
         # TODO: Iterate all classes in file, only index subclassing Recipe

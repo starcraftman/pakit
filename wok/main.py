@@ -11,7 +11,8 @@ import traceback
 from wok import __version__
 from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
-from wok.task import InstallTask, RemoveTask, UpdateTask, ListInstalled
+from wok.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
+                      ListAvailable)
 import wok.shell
 import wok.task
 
@@ -24,10 +25,12 @@ def parse_tasks(args):
         tasks.extend([InstallTask(prog) for prog in args.install])
     if args.remove is not None:
         tasks.extend([RemoveTask(prog) for prog in args.remove])
-    if args.update is True:
+    if args.update:
         tasks.extend([UpdateTask(prog) for prog, _ in wok.task.IDB])
-    if args.list is True:
+    if args.list:
         tasks.append(ListInstalled())
+    if args.available:
+        tasks.append(ListAvailable())
 
     return tasks
 
@@ -108,6 +111,8 @@ def args_parser():
                       help='update installed programs')
     mut1.add_argument('-l', '--list', default=False, action='store_true',
                       help='list installed programs')
+    mut1.add_argument('-a', '--available', default=False, action='store_true',
+                      help='list available recipes')
 
     return parser
 

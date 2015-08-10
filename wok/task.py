@@ -145,19 +145,28 @@ class ListInstalled(Task):
         super(ListInstalled, self).__init__()
 
     def run(self):
-        logging.debug('List Task')
+        logging.debug('List Installed Programs')
 
-        longest = ''
-        for prog, _ in IDB:
-            if len(prog) > len(longest):
-                longest = prog
-        longest = str(len(longest))
-
-        fmt = '{prog:' + longest + '} | {date} | {hash}'
+        fmt = '{prog:10} | {date} | {hash}'
         installed = [fmt.format(prog=prog, **entry) for prog, entry in IDB]
-        msg = 'Installed:'
-        msg += '\nProgram | Date | Hash or Version'
-        msg += ''.join(['\n-  ' + prog for prog in installed])
+        msg = 'Installed Programs:'
+        msg += '\nProgram      | Date              | Hash or Version'
+        msg += ''.join(['\n  ' + prog for prog in installed])
+        print(msg)
+        return msg
+
+
+class ListAvailable(Task):
+    """ List all installed programs. """
+    def __init__(self):
+        super(ListAvailable, self).__init__()
+
+    def run(self):
+        logging.debug('List Available Recipes')
+
+        msg = 'Available Recipes:'
+        prefix = '\n  '
+        msg += prefix + prefix.join(RecipeDB().names_and_desc())
         print(msg)
         return msg
 
