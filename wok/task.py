@@ -133,10 +133,9 @@ class UpdateTask(RecipeTask):
     def run(self):
         logging.debug('Updating: %s', self.recipe.name)
 
-        if IDB.get(self.recipe.name)['hash'] == self.recipe.repo.cur_hash:
-            return
-        RemoveTask(self.recipe.name).run()
-        InstallTask(self.recipe.name).run()
+        if IDB.get(self.recipe.name)['hash'] != self.recipe.repo.cur_hash:
+            RemoveTask(self.recipe.name).run()
+            InstallTask(self.recipe.name).run()
 
 
 class DisplayTask(RecipeTask):
