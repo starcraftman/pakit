@@ -39,6 +39,15 @@ class TestArgs(object):
         args = parser.parse_args('--list'.split())
         assert args.list is True
 
+    def test_args_available(self):
+        parser = args_parser()
+        args = parser.parse_args('--available'.split())
+        assert args.available is True
+
+    def test_args_display(self):
+        parser = args_parser()
+        args = parser.parse_args('--display ag vim'.split())
+        assert args.display == ['ag', 'vim']
 
 class TestParseTasks(object):
     def setup(self):
@@ -72,6 +81,16 @@ class TestParseTasks(object):
         args = self.parser.parse_args('--list'.split())
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], ListInstalled)
+
+    def test_parse_available(self):
+        args = self.parser.parse_args('--available'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], ListAvailable)
+
+    def test_parse_display(self):
+        args = self.parser.parse_args('--display ag'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], DisplayTask)
 
 
 class TestMain(object):

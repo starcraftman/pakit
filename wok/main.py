@@ -12,7 +12,7 @@ from wok import __version__
 from wok.conf import Config, InstallDB
 from wok.recipe import RecipeDB
 from wok.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
-                      ListAvailable)
+                      ListAvailable, DisplayTask)
 import wok.shell
 import wok.task
 
@@ -21,16 +21,18 @@ def parse_tasks(args):
     """ Take program arguments and make a task list. """
     tasks = []
 
-    if args.install is not None:
+    if args.install:
         tasks.extend([InstallTask(prog) for prog in args.install])
-    if args.remove is not None:
+    if args.remove:
         tasks.extend([RemoveTask(prog) for prog in args.remove])
     if args.update:
         tasks.extend([UpdateTask(prog) for prog, _ in wok.task.IDB])
-    if args.list:
-        tasks.append(ListInstalled())
     if args.available:
         tasks.append(ListAvailable())
+    if args.display:
+        tasks.extend([DisplayTask(prog) for prog in args.display])
+    if args.list:
+        tasks.append(ListInstalled())
 
     return tasks
 
@@ -113,6 +115,8 @@ def args_parser():
                       help='list installed programs')
     mut1.add_argument('-a', '--available', default=False, action='store_true',
                       help='list available recipes')
+    mut1.add_argument('-d', '--display', nargs='+',
+                      help='show detailed information on recipe')
 
     return parser
 

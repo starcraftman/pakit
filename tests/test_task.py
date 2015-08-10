@@ -116,6 +116,19 @@ class TestTasks(object):
         results = SearchTask('grep', RecipeDB().names_and_desc()).run()
         assert results == ['ag: Grep like tool optimized for speed']
 
+    def test_display(self):
+        expect = [
+            'ag: Grep like tool optimized for speed',
+            '  Homepage: https://github.com/ggreer/the_silver_searcher',
+            '  Current Repo: "unstable"',
+            '  Repo "stable":',
+            '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
+            '  Repo "unstable":',
+            '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher',
+        ]
+        results = DisplayTask('ag').run()
+        assert results.split('\n') == expect
+
     def test_remove(self):
         task = RemoveTask('ag')
         assert os.path.exists(os.path.join(task.path('prefix'), 'ag'))

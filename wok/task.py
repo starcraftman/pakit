@@ -139,6 +139,19 @@ class UpdateTask(RecipeTask):
         InstallTask(self.recipe.name).run()
 
 
+class DisplayTask(RecipeTask):
+    """ Display detailed recipe information. """
+    def __init__(self, recipe_name):
+        super(DisplayTask, self).__init__(recipe_name)
+
+    def run(self):
+        logging.debug('Displaying Info: ' + self.recipe.name)
+
+        msg = self.recipe.info()
+        print(msg)
+        return msg
+
+
 class ListInstalled(Task):
     """ List all installed programs. """
     def __init__(self):
@@ -157,7 +170,7 @@ class ListInstalled(Task):
 
 
 class ListAvailable(Task):
-    """ List all installed programs. """
+    """ List all available recipes. """
     def __init__(self):
         super(ListAvailable, self).__init__()
 
