@@ -97,26 +97,26 @@ def args_parser():
     parser = argparse.ArgumentParser(description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
+    mut1 = parser.add_mutually_exclusive_group()
     parser.add_argument('-v', '--version', action='version',
                         version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
+    parser.add_argument('-a', '--available', default=False, action='store_true',
+                      help='list available recipes')
     parser.add_argument('-c', '--conf',
                         default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='(over)write the conf at $HOME/.wok.yaml')
-    mut1 = parser.add_mutually_exclusive_group()
+    parser.add_argument('-d', '--display', nargs='+',
+                      help='show detailed information on recipe')
     mut1.add_argument('-i', '--install', nargs='+',
                       metavar='PROG', help='install specified program(s)')
+    parser.add_argument('-l', '--list', default=False, action='store_true',
+                      help='list installed programs')
     mut1.add_argument('-r', '--remove', nargs='+',
                       metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
                       help='update installed programs')
-    mut1.add_argument('-l', '--list', default=False, action='store_true',
-                      help='list installed programs')
-    mut1.add_argument('-a', '--available', default=False, action='store_true',
-                      help='list available recipes')
-    mut1.add_argument('-d', '--display', nargs='+',
-                      help='show detailed information on recipe')
 
     return parser
 
