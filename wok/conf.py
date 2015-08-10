@@ -27,43 +27,13 @@ TEMPLATE = {
 
 class YamlMixin(object):
     """ Provides YAML file interface for read/write configs. """
-    def _read_from(self, filename):
-        """ Loads the config file and returns the dict. """
-        try:
-            with open(filename) as fin:
-                conf = yaml.load(fin)
-
-            pretty_js = json.dumps(conf, sort_keys=True, indent=2)
-            msg = 'Config File: {fname}\nContents:\n{jso}'.format(
-                fname=filename, jso=pretty_js)
-            logging.debug(msg)
-            return conf
-        except IOError as exc:
-            logging.error('Failed to load user config. %s', exc)
-
-    def _write_to(self, filename, obj):
-        """ Write dictionary to a file on disk. """
-        with open(filename, 'w') as fout:
-            yaml.dump(obj, fout, default_flow_style=False)
-            logging.debug('Config written to: %s', filename)
-
-
-class Config(YamlMixin, object):
-    """ All logic to manage configuration parsing. """
     def __init__(self, filename):
-        self.__conf = copy.deepcopy(TEMPLATE)
+        super(YamlMixin, self).__init__()
         self.__filename = filename
-        if os.path.exists(self.filename):
-            self.read()
-
-    def __str__(self):
-        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
-        return 'Config File: {fname}\nContents:\n{jso}'.format(
-            fname=self.filename, jso=pretty_js)
 
     @property
     def filename(self):
-        """ The filename of the config. """
+        """ The filename to use. """
         return self.__filename
 
     @filename.setter
@@ -71,6 +41,40 @@ class Config(YamlMixin, object):
         if not os.path.exists(new_filename):
             logging.error('File not found: %s', new_filename)
         self.__filename = new_filename
+
+    def read_from(self):
+        """ Loads the config file and returns the dict. """
+        try:
+            with open(self.filename) as fin:
+                conf = yaml.load(fin)
+
+            pretty_js = json.dumps(conf, sort_keys=True, indent=2)
+            msg = 'Config File: {fname}\nContents:\n{jso}'.format(
+                fname=self.filename, jso=pretty_js)
+            logging.debug(msg)
+            return conf
+        except IOError as exc:
+            logging.error('Failed to load user config. %s', exc)
+
+    def write_to(self, obj):
+        """ Write dictionary to a file on disk. """
+        with open(self.filename, 'w') as fout:
+            yaml.dump(obj, fout, default_flow_style=False)
+            logging.debug('Config written to: %s', self.filename)
+
+
+class Config(YamlMixin, object):
+    """ All logic to manage configuration parsing. """
+    def __init__(self, filename):
+        super(Config, self).__init__(filename)
+        self.__conf = copy.deepcopy(TEMPLATE)
+        if os.path.exists(self.filename):
+            self.read()
+
+    def __str__(self):
+        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        return 'Config File: {fname}\nContents:\n{jso}'.format(
+            fname=self.filename, jso=pretty_js)
 
     def get(self, key):
         """ Allow simple specification of path to value down tree.
@@ -114,17 +118,19 @@ class Config(YamlMixin, object):
         obj[leaf] = val
 
     def read(self):
-        self.__conf = self._read_from(self.filename)
+        """ Read from the config file. """
+        self.__conf = self.read_from()
 
     def write(self):
-        self._write_to(self.filename, self.__conf)
+        """ Write to the config file. """
+        self.write_to(self.__conf)
 
 
 class InstallDB(YamlMixin, object):
     """ Stores all information on what IS actually installed. """
     def __init__(self, filename):
+        super(InstallDB, self).__init__(filename)
         self.__conf = {}
-        self.__filename = filename
         if os.path.exists(self.filename):
             self.read()
 
@@ -136,17 +142,6 @@ class InstallDB(YamlMixin, object):
     def __iter__(self):
         for key in self.__conf:
             yield (key, copy.deepcopy(self.__conf[key]))
-
-    @property
-    def filename(self):
-        """ The filename of the config. """
-        return self.__filename
-
-    @filename.setter
-    def filename(self, new_filename):
-        if not os.path.exists(new_filename):
-            logging.error('File not found: %s', new_filename)
-        self.__filename = new_filename
 
     def get(self, prog):
         """ Return the associated entry or None. """
@@ -169,7 +164,9 @@ class InstallDB(YamlMixin, object):
         self.write()
 
     def read(self):
-        self.__conf = self._read_from(self.filename)
+        """ Read from the config file. """
+        self.__conf = self.read_from()
 
     def write(self):
-        self._write_to(self.filename, self.__conf)
+        """ Write to the config file. """
+        self.write_to(self.__conf)

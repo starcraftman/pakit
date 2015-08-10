@@ -72,7 +72,7 @@ class TestConfig(object):
 class TestInstalledConfig(object):
     def setup(self):
         global_init(os.path.join(os.path.dirname(__file__), 'wok.yaml'))
-        self.fname = './wok.in.yaml'
+        self.fname = './installed.yaml'
         self.config = InstallDB(self.fname)
         self.recipe = RecipeDB().get('ag')
         self.recipe.repo = 'stable'
