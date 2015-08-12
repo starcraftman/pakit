@@ -10,7 +10,7 @@ env:
   - TOXENV=flake8
   - TOXENV=pylint
 install:
-  pip install tox
+  pip install coveralls tox
 script:
   tox
 after_success:
