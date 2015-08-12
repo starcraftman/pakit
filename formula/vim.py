@@ -1,7 +1,9 @@
-from wok import *
+""" Formula for building vim """
+from wok import Git, Recipe
 
 
 class Vim(Recipe):
+    """ The classic mode based terminal editor """
     def __init__(self):
         super(Vim, self).__init__()
         self.desc = 'The classic mode based terminal editor'

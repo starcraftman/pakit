@@ -1,16 +1,15 @@
-"""Wok: A homebrew like application
-
-https://github.com/starcraftman/wok
-"""
+""" wok: A build tool """
 from __future__ import absolute_import, print_function
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages, Command
+from setuptools.command.test import test as TestCommand
 import fnmatch
 import glob
 import os
 import shlex
 import subprocess
+import sys
 
 
 def rec_search(wildcard):
@@ -24,7 +23,7 @@ def rec_search(wildcard):
 
 
 class CleanCommand(Command):
-    """ Equivalent of make clean. """
+    """ Equivalent of make clean """
     user_options = []
 
     def initialize_options(self):
@@ -40,6 +39,23 @@ class CleanCommand(Command):
         print('Executing: ' + cmd)
         if raw_input('OK? y/n  ').strip().lower()[0] == 'y':
             subprocess.call(shlex.split(cmd))
+
+
+class PyTest(TestCommand):
+    """ Testing is done with py.test """
+    user_options = []
+
+    def initialize_options(self):
+        self.test_suite = True
+        self.test_args = []
+
+    def finalize_options(self):
+        pass
+
+    def run_tests(self):
+        import pytest
+        sys.exit(pytest.main(self.test_args))
+
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
@@ -124,5 +140,6 @@ setup(
 
     cmdclass={
         'clean': CleanCommand,
+        'test': PyTest,
     }
 )

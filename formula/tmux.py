@@ -1,7 +1,9 @@
-from wok import *
+""" Formula for building tmux """
+from wok import Git, Recipe
 
 
 class Tmux(Recipe):
+    """ A modern screen replacement """
     def __init__(self):
         super(Tmux, self).__init__()
         self.desc = 'The modern screen replacement'

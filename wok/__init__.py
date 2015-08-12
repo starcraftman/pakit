@@ -1,6 +1,5 @@
 """ Wok
-
-    A build tool.
+    A general purpose build tool.
 """
 from __future__ import absolute_import
 

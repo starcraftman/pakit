@@ -1,7 +1,9 @@
-from wok import *
+""" Formula for building ag """
+from wok import Git, Recipe
 
 
 class Ag(Recipe):
+    """ Grep like tool optimized for speed """
     def __init__(self):
         super(Ag, self).__init__()
         self.desc = 'Grep like tool optimized for speed'

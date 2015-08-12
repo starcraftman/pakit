@@ -4,14 +4,14 @@ python:
   - 2.7
   #- 3.4
   #- 3.5
-
-before_script:
-  pip install coveralls mock pytest pytest-mock PyYAML
-
+env:
+  # Coverage runs the py27 test suite
+  - TOXENV=coverage
+  - TOXENV=flake8
+  - TOXENV=pylint
+install:
+  pip install tox
 script:
-  coverage run --source wok -m py.test
-
-after_success:
-  coveralls
+  tox
 
 #vim:set et sw=2 ts=2:
