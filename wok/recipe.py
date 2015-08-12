@@ -1,3 +1,4 @@
+# pylint: disable=W0212
 """ The base class for build recipes. """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
@@ -9,6 +10,7 @@ from wok.shell import Command
 
 
 class RecipeNotFound(Exception):
+    """ The database can't find the requested recipe. """
     pass
 
 
@@ -26,6 +28,9 @@ class RecipeDB(object):
             cls.__instance.__default_formulas()
         return cls.__instance
 
+    def __contains__(self, name):
+        return name in self.__db
+
     def update_db(self, path):
         """ Glob path, and update db with new recipes. """
         # TODO: Iterate all classes in file, only index subclassing Recipe
@@ -38,10 +43,8 @@ class RecipeDB(object):
             obj = self.__recipe_obj(mod, cls)
             self.__db.update({cls: obj})
 
-    def has(self, name):
-        return name in self.__db
-
     def get(self, name):
+        """ Same as normal get, returns object or None if not found. """
         obj = self.__db.get(name)
         if obj is None:
             raise RecipeNotFound('Database missing entry: ' + name)
@@ -96,11 +99,12 @@ class Recipe(object):
         return self.name + ': ' + self.desc
 
     def info(self):
-        """ Long description. """
-        fmt = ['{desc}',
-               '{tab}Homepage: {home}',
-               '{tab}Current Repo: "{cur_build}"',
-               ]
+        """ Long description of the recipe. """
+        fmt = [
+            '{desc}',
+            '{tab}Homepage: {home}',
+            '{tab}Current Repo: "{cur_build}"',
+        ]
         for name, repo in sorted(self.repos.items()):
             fmt += ['{tab}Repo "' + name + '":', '{tab}{tab}' + str(repo)]
         fmt = '\n'.join(fmt)
@@ -109,6 +113,7 @@ class Recipe(object):
         return info.rstrip('\n')
 
     def set_config(self, config):
+        """ Set the configuration for the recipe. """
         self.opts = config.get_opts(self.name)
         self.opts.update({
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
@@ -119,36 +124,47 @@ class Recipe(object):
 
     @property
     def install_dir(self):
+        """ The folder the program will install to. """
         return self.opts.get('prefix')
 
     @property
     def link_dir(self):
+        """ The folder the program will be linked to. """
         return self.opts.get('link')
 
     @property
     def source_dir(self):
+        """ The folder where the source will download & build. """
         return self.opts.get('source')
 
     @property
     def name(self):
+        """ The name of the recipe. """
         return self.__class__.__name__.lower()
 
     @property
     def repo(self):
-        """ The configured repository to build from. """
+        """ The repository to build from. """
         return self.repos.get(self.repo_name)
 
     @repo.setter
     def repo(self, new_repo):
+        """ Set the repository to build from. """
         if new_repo not in self.repos:
             raise KeyError('Build repository not available.')
         self.opts['repo'] = new_repo
 
     @property
     def repo_name(self):
+        """ Return the name of the repository being used. """
         return self.opts.get('repo')
 
     def cmd(self, cmd_str, cmd_dir=None):
+        """ Execute a given cmd_str on the system.
+
+            cmd_str: A string that gets formatted with self.opts.
+            cmd_dir: A directory to execute in.
+        """
         # FIXME: Temporary hack, need to refactor cmd function.
         if cmd_dir is None:
             if os.path.exists(self.source_dir):

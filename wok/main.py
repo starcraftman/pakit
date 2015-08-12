@@ -123,7 +123,7 @@ def args_parser():
 
 # TODO: Path modification during operation by os.environ
 def main(argv=None):
-    # For testing
+    """ The main entry point. For testing, accepts a dummy argv. """
     if argv is None:
         argv = sys.argv
 

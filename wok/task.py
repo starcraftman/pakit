@@ -53,13 +53,16 @@ class Task(object):
 
     @classmethod
     def set_config(cls, new_config):
+        """ Set the global config for all tasks. """
         cls.config = new_config
 
     def path(self, name):
+        """ Returns the name from the config `paths` dict. """
         return self.__class__.config.get('paths.' + name)
 
     @abstractmethod
     def run(self):
+        """ A unversal interface to do an arbitrary action. """
         pass
 
 
@@ -84,7 +87,11 @@ class RecipeTask(Task):
 
     @property
     def recipe(self):
+        """ Access the underlying recipe directly. """
         return self.__recipe
+
+    def run(self):
+        raise NotImplementedError
 
 
 class InstallTask(RecipeTask):

@@ -18,9 +18,9 @@ class TestRecipeDB(object):
         for prog in ['ag', 'vim']:
             assert prog in self.rdb.names()
 
-    def test_has(self):
-        assert self.rdb.has('ag')
-        assert not self.rdb.has('aaaaa')
+    def test__contains__(self):
+        assert 'ag' in self.rdb
+        assert 'aaaa' not in self.rdb
 
     def test_get_found(self):
         obj = self.rdb.get('ag')

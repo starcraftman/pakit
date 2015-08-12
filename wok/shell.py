@@ -60,6 +60,7 @@ class VersionRepo(object):
 
     @branch.setter
     def branch(self, new_branch):
+        """ Set the repository to track a branch. """
         self.__on_branch = True
         self.__tag = new_branch
 
@@ -70,6 +71,7 @@ class VersionRepo(object):
 
     @tag.setter
     def tag(self, new_tag):
+        """ Set the repository to track a specific tag. """
         self.__on_branch = False
         self.__tag = new_tag
 
@@ -80,6 +82,7 @@ class VersionRepo(object):
 
     @target.setter
     def target(self, new_target):
+        """ Set the path to clone to. """
         self.__target = new_target
 
     def clean(self):
@@ -198,8 +201,11 @@ class Hg(VersionRepo):
         cmd.wait()
 
 
+# TODO: Make this unecessary
 @atexit.register
 def cmd_cleanup():
+    """ Cleans up any command stdout files left over,
+        sometimes happen due to errors during testing. """
     for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
         try:
             os.remove(filename)
@@ -225,7 +231,8 @@ class Command(object):
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
         self._stdout = NamedTemporaryFile(mode='w+b', delete=True,
-                                          dir=TMP_DIR, prefix='cmd')
+                                          dir=TMP_DIR, prefix='cmd',
+                                          suffix='.log')
         logging.debug('CMD START: %s', self)
         self._proc = sub.Popen(
             self._cmd, cwd=self._cmd_dir,
@@ -236,12 +243,11 @@ class Command(object):
     def __del__(self):
         """ Ensure terminated & fully logged for tracking. """
         try:
-            prefix = '\n    '
-            msg = prefix[1:] + prefix.join(self.output())
-            logging.debug("CMD LOG: %s\n%s", self, msg)
             if self.alive:
                 self.terminate()
-            self._stdout.close()
+            prefix = '\n    '
+            msg = prefix + prefix.join(self.output())
+            logging.debug("CMD LOG: %s%s", self, msg)
         except (AttributeError, IOError) as exc:
             logging.error(exc)
             raise

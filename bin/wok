@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# Deprecated, pip package uses entry_points.
 PPATH="$(dirname $(readlink -f $(dirname $0))):$PYTHONPATH"
 PYTHONPATH=$PPATH python -m wok.main $@
 

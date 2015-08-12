@@ -8,7 +8,7 @@ import os
 import time
 import yaml
 
-# The default global config
+# The default global config, to start users off right
 TEMPLATE = {
     'defaults': {
         'repo': 'stable',
@@ -33,17 +33,18 @@ class YamlMixin(object):
 
     @property
     def filename(self):
-        """ The filename to use. """
+        """ The filename to read/write. """
         return self.__filename
 
     @filename.setter
     def filename(self, new_filename):
+        """ Set the filename. """
         if not os.path.exists(new_filename):
             logging.error('File not found: %s', new_filename)
         self.__filename = new_filename
 
     def read_from(self):
-        """ Loads the config file and returns the dict. """
+        """ Loads the config file and returns the object created. """
         try:
             with open(self.filename) as fin:
                 conf = yaml.load(fin)
@@ -57,7 +58,7 @@ class YamlMixin(object):
             logging.error('Failed to load user config. %s', exc)
 
     def write_to(self, obj):
-        """ Write dictionary to a file on disk. """
+        """ Write the object to the config file. """
         with open(self.filename, 'w') as fout:
             yaml.dump(obj, fout, default_flow_style=False)
             logging.debug('Config written to: %s', self.filename)
