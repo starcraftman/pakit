@@ -13,5 +13,9 @@ install:
   pip install tox
 script:
   tox
+after_success:
+  if [ "${TOXENV}" = "coverage" ]; then
+    coveralls
+  fi
 
 #vim:set et sw=2 ts=2:
