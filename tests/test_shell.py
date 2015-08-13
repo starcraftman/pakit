@@ -1,13 +1,11 @@
 """ Test command execution class. """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import os
-import pytest
 import shutil
-import time
 
 from wok.main import global_init
-from wok.shell import *
+from wok.shell import Git, Hg, Command
 
 class TestGit(object):
     def setup(self):

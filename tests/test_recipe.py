@@ -4,9 +4,8 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
-from wok.conf import *
 from wok.main import global_init
-from wok.recipe import *
+from wok.recipe import Recipe, RecipeDB, RecipeNotFound
 
 class TestRecipeDB(object):
     def setup(self):
@@ -54,13 +53,13 @@ class TestRecipe(object):
         print(self.recipe.info())
 
         expect = [
-                'ag: Grep like tool optimized for speed',
-                '  Homepage: https://github.com/ggreer/the_silver_searcher',
-                '  Current Repo: "unstable"',
-                '  Repo "stable":',
-                '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
-                '  Repo "unstable":',
-                '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher'
+            'ag: Grep like tool optimized for speed',
+            '  Homepage: https://github.com/ggreer/the_silver_searcher',
+            '  Current Repo: "unstable"',
+            '  Repo "stable":',
+            '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
+            '  Repo "unstable":',
+            '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher'
         ]
 
         assert self.recipe.info().split('\n') == expect

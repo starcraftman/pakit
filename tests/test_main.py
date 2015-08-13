@@ -1,12 +1,16 @@
 """ To be used at some point. Maybe?"""
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import mock
 import os
 
-from wok.main import *
+from wok.main import args_parser, global_init, main, parse_tasks
+from wok.recipe import RecipeDB
 from wok.shell import Command
-from wok.task import *
+from wok.task import (
+    InstallTask, RemoveTask, UpdateTask, DisplayTask,
+    ListInstalled, ListAvailable
+)
 import wok.task
 
 class TestArgs(object):

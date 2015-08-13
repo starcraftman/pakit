@@ -2,15 +2,17 @@
 from __future__ import absolute_import
 
 import glob
+import logging
 import os
-import pytest
-import shutil
 
-from wok.conf import Config
 from wok.main import global_init
 from wok.recipe import RecipeDB
-from wok.shell import Command, CmdFailed, Git
-from wok.task import *
+from wok.shell import Command, CmdFailed
+from wok.task import (
+    subseq_match, substring_match, walk_and_link, walk_and_unlink,
+    InstallTask, RemoveTask, UpdateTask, DisplayTask,
+    ListInstalled, ListAvailable, SearchTask
+)
 import wok.task
 
 def teardown_module(module):
@@ -117,17 +119,8 @@ class TestTasks(object):
         assert results == ['ag: Grep like tool optimized for speed']
 
     def test_display(self):
-        expect = [
-            'ag: Grep like tool optimized for speed',
-            '  Homepage: https://github.com/ggreer/the_silver_searcher',
-            '  Current Repo: "unstable"',
-            '  Repo "stable":',
-            '    Git: tag: 0.30.0, uri: https://github.com/ggreer/the_silver_searcher',
-            '  Repo "unstable":',
-            '    Git: branch: HEAD, uri: https://github.com/ggreer/the_silver_searcher',
-        ]
         results = DisplayTask('ag').run()
-        assert results.split('\n') == expect
+        assert results == RecipeDB().get('ag').info()
 
     def test_remove(self):
         task = RemoveTask('ag')
@@ -137,10 +130,10 @@ class TestTasks(object):
         task.run()
         assert os.path.exists(task.path('prefix'))
         assert len(glob.glob(os.path.join(
-                task.path('prefix'), '*'))) == 1
+            task.path('prefix'), '*'))) == 1
         assert not os.path.exists(task.path('link'))
         assert len(glob.glob(os.path.join(
-                task.path('link'), '*'))) == 0
+            task.path('link'), '*'))) == 0
 
     def test_update(self):
         """ Builds stable, then updates because unstable is newer. """

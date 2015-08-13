@@ -1,5 +1,5 @@
 """ Test configuration code. """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import os
 
@@ -50,22 +50,22 @@ class TestConfig(object):
         print()
         print(str(self.config))
         expect = [
-                'Config File: {0}'.format(self.config.filename),
-                'Contents:',
-                '{',
-                '  "defaults": {',
-                '    "repo": "stable"',
-                '  }, ',
-                '  "log": {',
-                '    "enabled": true, ',
-                '    "file": "/tmp/wok/main.log"',
-                '  }, ',
-                '  "paths": {',
-                '    "link": "/tmp/wok/links", ',
-                '    "prefix": "/tmp/wok/builds", ',
-                '    "source": "/tmp/wok/src"',
-                '  }',
-                '}',
+            'Config File: {0}'.format(self.config.filename),
+            'Contents:',
+            '{',
+            '  "defaults": {',
+            '    "repo": "stable"',
+            '  }, ',
+            '  "log": {',
+            '    "enabled": true, ',
+            '    "file": "/tmp/wok/main.log"',
+            '  }, ',
+            '  "paths": {',
+            '    "link": "/tmp/wok/links", ',
+            '    "prefix": "/tmp/wok/builds", ',
+            '    "source": "/tmp/wok/src"',
+            '  }',
+            '}',
         ]
         assert str(self.config).split('\n') == expect
 
