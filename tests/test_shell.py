@@ -57,7 +57,7 @@ class TestGit(object):
         self.repo.checkout()
         assert self.repo.cur_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
-    def test_str(self):
+    def test__str__(self):
         uri = 'https://github.com/user/repo'
         tag = 'default'
         repo_tag = Git(uri, tag=tag)

@@ -60,7 +60,7 @@ class RecipeDB(object):
 
     def __recipe_obj(self, mod_name, cls_name):
         """ Return an instanciated object of cls_name. """
-        mod = __import__('{mod}.{cls}.'.format(mod=mod_name, cls=cls_name))
+        mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)
         cls = getattr(mod, cls_name.capitalize())
         obj = cls()

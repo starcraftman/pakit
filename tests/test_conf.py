@@ -46,7 +46,7 @@ class TestConfig(object):
         self.config.read()
         assert self.config.get('paths.install') == 22
 
-    def test_str(self):
+    def test__str__(self):
         print()
         print(str(self.config))
         expect = [
@@ -83,6 +83,24 @@ class TestInstalledConfig(object):
         except OSError:
             pass
         self.recipe.repo = 'unstable'
+
+    def test__str__(self):
+        expect = [
+            'Config File: ./installed.yaml',
+            'Contents:',
+            '{',
+            '  "ag": {',
+            '    "hash": "c81622c5c5313c05eab2da3b5eca6c118b74369e", ',
+            '    "repo": "stable", ',
+            '  }',
+            '}'
+        ]
+        self.config.add(self.recipe)
+        print(str(self.config))
+        lines = str(self.config).split('\n')
+        del lines[7]
+        del lines[4]
+        assert expect == lines
 
     def test_add(self):
         self.config.add(self.recipe)
