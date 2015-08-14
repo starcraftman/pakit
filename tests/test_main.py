@@ -3,9 +3,10 @@ from __future__ import absolute_import
 
 import mock
 import os
+import pytest
 
 from wok.main import args_parser, global_init, main, parse_tasks
-from wok.recipe import RecipeDB
+from wok.recipe import RecipeDB, RecipeNotFound
 from wok.shell import Command
 from wok.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
@@ -112,3 +113,15 @@ class TestMain(object):
         main(['wok', 'hello'])
         mock_argsys.exit.assert_called_with(2)
         mock_sys.exit.assert_called_with(1)
+
+    def test_recipe_not_found(self):
+        with pytest.raises(RecipeNotFound):
+            main(['wok', '-i', 'iiiii'])
+
+    @mock.patch('wok.main.sys')
+    def test_write_config(self, mock_sys):
+        conf_file = './conf.yaml'
+        assert not os.path.exists(conf_file)
+        main(['wok', '--conf', conf_file, '--create-conf'])
+        assert os.path.exists(conf_file)
+        os.remove(conf_file)

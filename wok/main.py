@@ -147,6 +147,10 @@ def main(argv=None):
 
     if args.create_conf:
         config.write()
+        msg = 'Wrote config to: ' + args.conf
+        logging.debug(msg)
+        print(msg)
+        sys.exit(0)
 
     try:
         tasks = parse_tasks(args)
