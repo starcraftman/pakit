@@ -99,8 +99,19 @@ def init_logging(log_file):
 
 def args_parser():
     """ The arguments parser, it is fairly large. """
-    mesg = """    wok is a homebrew like installer"""
-    parser = argparse.ArgumentParser(description=mesg,
+    prog_name = os.path.basename(os.path.dirname(sys.argv[0]))
+    mesg = """
+    {0} is a meta build tool providing a package manager like interface
+    to build & install recipes into local paths.
+
+    Before Starting:
+        `wok --create-conf` will create default config template in ~/.wok.yaml
+
+        You may wish to read DESIGN.md & formula/*.py for how to customize
+        and write formula.
+    """.format(prog_name)
+
+    parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
     mut1 = parser.add_mutually_exclusive_group()
