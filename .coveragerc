@@ -6,7 +6,6 @@ source = wok
 exclude_lines =
   pragma: no cover
   argv = sys.argv
-  main()
 
 show_missing = True
 ; vim:set ft=dosini et sw=2 ts=2 sts=2:
