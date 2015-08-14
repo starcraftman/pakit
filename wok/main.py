@@ -59,8 +59,9 @@ def global_init(wok_file):
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'formula')
-    recipes.update_db(default)
-    for path in config.get('paths').get('recipes', []):
+    user_recipes = config.get('paths').get('recipes',
+                                           os.path.expanduser('~/.wok'))
+    for path in [default, user_recipes]:
         recipes.update_db(path)
     wok.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
@@ -104,13 +105,15 @@ def args_parser():
     {0} is a meta build tool providing a package manager like interface
     to build & install recipes into local paths.
 
-    Before Starting:
-        `wok --create-conf` will create default config template in ~/.wok.yaml
+    Alpha Notes:
+        `{0} --create-conf` will create the default config in $HOME/.wok.yaml
 
-        You may wish to read DESIGN.md & formula/*.py for how to customize
-        and write formula.
+        DESIGN.md explains the config options & recipe format
+
+        formula/ag.py is an example recipe
+
+        User recipes can be stored at $HOME/.wok
     """.format(prog_name)
-
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
@@ -123,7 +126,7 @@ def args_parser():
                         default=os.path.expanduser('~/.wok.yaml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
-                        help='(over)write the conf at $HOME/.wok.yaml')
+                        help='(over)write the config to CONF')
     parser.add_argument('-d', '--display', nargs='+', metavar='PROG',
                         help='show detailed information on recipe')
     mut1.add_argument('-i', '--install', nargs='+',

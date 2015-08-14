@@ -35,7 +35,8 @@ class RecipeDB(object):
         # TODO: Iterate all classes in file, only index subclassing Recipe
         new_recs = glob.glob(os.path.join(path, '*.py'))
         new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
-        new_recs.remove('__init__')
+        if '__init__' in new_recs:
+            new_recs.remove('__init__')
 
         mod = os.path.basename(path)
         for cls in new_recs:

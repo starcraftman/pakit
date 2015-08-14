@@ -9,9 +9,9 @@ env:
   - TOXENV=coverage
   - TOXENV=flake8
   - TOXENV=pylint
-install:
+install: |
   pip install coveralls tox
-script:
+script: |
   tox
 after_success: |
   if [ "${TOXENV}" = "coverage" ]; then
