@@ -25,7 +25,6 @@ class RecipeDB(object):
             cls.__instance.__db = {}
             if config is not None:
                 cls.__instance.__config = config
-            cls.__instance.__default_formulas()
         return cls.__instance
 
     def __contains__(self, name):
@@ -57,14 +56,6 @@ class RecipeDB(object):
     def names_and_desc(self):
         """ Names and descriptions available. """
         return [str(recipe) for recipe in self.__db.values()]
-
-    def __default_formulas(self):
-        """ Populate the default formulas. """
-        def_formulas = __file__
-        for _ in range(0, 2):
-            def_formulas = os.path.dirname(def_formulas)
-        def_formulas = os.path.join(def_formulas, 'formula')
-        self.update_db(def_formulas)
 
     def __recipe_obj(self, mod_name, cls_name):
         """ Return an instanciated object of cls_name. """

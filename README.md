@@ -20,8 +20,8 @@ Just a rough guess of what I should be implementing when.
 - [x] Implement basic tasks to install & remove 'ag' program.
 - [x] Support Git & Hg repositories.
 - [x] Simple config from `.wok.yml`.
-- [ ] Upgrade logic.
-- [ ] User defined recipe locations via config.
+- [x] Upgrade logic.
+- [x] User defined recipe locations via config.
 - [x] Pick a license.
 - [x] Pip/Wheel upload.
 

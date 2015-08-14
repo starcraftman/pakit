@@ -46,16 +46,22 @@ def global_init(wok_file):
     init_logging(config.get('log.file'))
     logging.debug('Wok Config: %s', config)
 
-    for dirname in config.get('paths').values():
+    for path in config.get('paths').values():
         try:
-            os.makedirs(dirname)
+            os.makedirs(path)
         except OSError:
             pass
 
     prefix = config.get('paths.prefix')
     wok.shell.TMP_DIR = os.path.dirname(prefix)
     wok.task.Task.set_config(config)
-    RecipeDB(config)
+
+    recipes = RecipeDB(config)
+    default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'formula')
+    recipes.update_db(default)
+    for path in config.get('paths').get('recipes', []):
+        recipes.update_db(path)
     wok.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     return config

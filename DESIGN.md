@@ -43,6 +43,10 @@ paths:
   link: /tmp/wok/links
   # Where source code will go
   source: /tmp/wok/src
+  # User can define a series of folders with recipes
+  recipes:
+    - path1
+    - path2
 log:
   enabled: true
   file: /tmp/wok/main.log
