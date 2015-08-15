@@ -88,7 +88,7 @@ class Recipe(object):
 
     def __str__(self):
         """ Short description. """
-        return self.name + ': ' + self.desc
+        return '{0:10}   {1}'.format(self.name[0:10], self.desc)
 
     def info(self):
         """ Long description of the recipe. """

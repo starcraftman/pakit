@@ -46,14 +46,14 @@ class TestRecipe(object):
         print()
         print(self.recipe)
 
-        assert str(self.recipe) == 'ag: Grep like tool optimized for speed'
+        assert str(self.recipe) == 'ag           Grep like tool optimized for speed'
 
     def test_info(self):
         print()
         print(self.recipe.info())
 
         expect = [
-            'ag: Grep like tool optimized for speed',
+            'ag           Grep like tool optimized for speed',
             '  Homepage: https://github.com/ggreer/the_silver_searcher',
             '  Current Repo: "unstable"',
             '  Repo "stable":',

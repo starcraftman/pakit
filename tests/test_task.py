@@ -106,7 +106,7 @@ class TestTaskRecipe(TestTaskBase):
         assert InstallTask('ag') != InstallTask('vim')
 
     def test__str__(self):
-        expect = 'RecipeTask: ag: Grep like tool optimized for speed'
+        expect = 'RecipeTask: ag           Grep like tool optimized for speed'
         task = RecipeTask(self.recipe.name)
         print(task)
         assert expect == str(task)
@@ -183,8 +183,10 @@ class TestTaskQuery(TestTaskBase):
         task = ListAvailable()
         out = task.run().split('\n')
         expect = ['  ' + line for line in RecipeDB().names_and_desc()]
+        print(expect)
+        print(out)
         assert out[0] == 'Available Recipes:'
-        assert out[1:] == expect
+        assert out[2:] == expect
 
     def test_search_names(self):
         results = SearchTask('vim', RecipeDB().names()).run()

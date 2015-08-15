@@ -9,6 +9,7 @@ import shutil
 from wok.recipe import RecipeDB
 
 IDB = None
+PREFIX = '\n  '
 
 
 def walk_and_link(src, dst):
@@ -166,13 +167,13 @@ class ListInstalled(Task):
 
     def run(self):
         logging.debug('List Installed Programs')
+        fmt = '{prog:10}   {date}   {hash}'
+        installed = ['Program      Date                Hash or Version']
+        installed.extend([fmt.format(prog=prog, **entry)
+                          for prog, entry in IDB])
 
-        fmt = '{prog:10} | {date} | {hash}'
-
-        installed = ['Program    | Date              | Hash or Version']
-        installed.extend([fmt.format(prog=prog, **entry) for prog, entry in IDB])
         msg = 'Installed Programs:'
-        msg += '\n  ' + '\n  '.join(installed)
+        msg += PREFIX + PREFIX.join(installed)
         print(msg)
         return msg
 
@@ -184,10 +185,11 @@ class ListAvailable(Task):
 
     def run(self):
         logging.debug('List Available Recipes')
+        available = ['Program      Description']
+        available.extend(RecipeDB().names_and_desc())
 
         msg = 'Available Recipes:'
-        prefix = '\n  '
-        msg += prefix + prefix.join(RecipeDB().names_and_desc())
+        msg += PREFIX + PREFIX.join(available)
         print(msg)
         return msg
 
