@@ -27,6 +27,7 @@ def walk_and_link(src, dst):
                 os.symlink(sfile, dfile)
             except OSError:
                 logging.error('Could not symlink %s -> %s', sfile, dfile)
+                raise
 
 
 def walk_and_unlink(src, dst):

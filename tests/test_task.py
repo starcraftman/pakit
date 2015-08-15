@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import glob
 import logging
 import os
+import pytest
 
 from wok.main import global_init
 from wok.recipe import RecipeDB
@@ -63,11 +64,16 @@ class TestLinking(object):
         except CmdFailed:
             logging.error('Could not clean ' + self.src)
 
-    def test_walk_and_link(self):
+    def test_walk_and_link_works(self):
         walk_and_link(self.src, self.dst)
         for fname in self.dst_fnames:
             assert os.path.islink(fname)
             assert os.readlink(fname) == fname.replace(self.dst, self.src)
+
+    def test_walk_and_link_raises(self):
+        walk_and_link(self.src, self.dst)
+        with pytest.raises(OSError):
+            walk_and_link(self.src, self.dst)
 
     def test_walk_and_unlink(self):
         walk_and_link(self.src, self.dst)

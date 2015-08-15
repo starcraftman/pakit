@@ -1,11 +1,48 @@
 """ Test configuration code. """
 from __future__ import absolute_import, print_function
 
+import mock
 import os
 
-from wok.conf import Config, InstallDB
+from wok.conf import Config, InstallDB, YamlMixin
 from wok.main import global_init
 from wok.recipe import RecipeDB
+
+
+class TestYamlMixin(object):
+    """ Specifically test mixin separate from targets. """
+    def setup(self):
+        self.config = YamlMixin('./test.yaml')
+
+    def teardown(self):
+        try:
+            os.remove(self.config.filename)
+        except OSError:
+            pass
+
+    def test_filename_get(self):
+        assert self.config.filename == './test.yaml'
+
+    @mock.patch('wok.conf.logging')
+    def test_filename_set(self, mock_log):
+        expect = './not_test.yaml'
+        self.config.filename = expect
+        mock_log.error.assert_called_with('File not found: %s', expect)
+        assert self.config.filename == expect
+
+    def test_read_from(self):
+        with open(self.config.filename, 'w+b') as fout:
+            fout.write('hello: world\n')
+        obj = self.config.read_from()
+        assert type(obj) == type({})
+        assert obj['hello'] == 'world'
+
+    def test_write_to(self):
+        self.config.write_to({'hello': 'world'})
+        assert os.path.exists(self.config.filename)
+        with open(self.config.filename) as fin:
+            assert fin.readlines() == ['hello: world\n']
+
 
 class TestConfig(object):
     """ Test the operation of Config class. """
@@ -17,10 +54,6 @@ class TestConfig(object):
             os.remove(self.config.filename)
         except OSError:
             pass
-
-    def test_filename(self):
-        self.config.write()
-        assert os.path.exists(self.config.filename)
 
     def test_get(self):
         assert self.config.get('paths.prefix') == '/tmp/wok/builds'
@@ -45,6 +78,11 @@ class TestConfig(object):
         self.config.write()
         self.config.read()
         assert self.config.get('paths.install') == 22
+
+    def test_reset(self):
+        self.config.set('paths.prefix', 22)
+        self.config.reset()
+        assert self.config.get('paths.prefix') == '/tmp/wok/builds'
 
     def test__str__(self):
         print()
