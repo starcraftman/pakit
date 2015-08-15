@@ -32,10 +32,10 @@ class VersionRepo(object):
         tag = kwargs.get('tag', None)
         if tag is not None:
             self.__tag = tag
-            self.__on_branch = False
+            self.on_branch = False
         else:
             self.__tag = kwargs.get('branch', None)
-            self.__on_branch = True
+            self.on_branch = True
 
     def make_available(self):
         """ Guarantees that the repo is downloaded and on right commit. """
@@ -45,7 +45,7 @@ class VersionRepo(object):
             self.checkout()
 
     def __str__(self):
-        if self.__on_branch:
+        if self.on_branch:
             tag = 'HEAD' if self.tag is None else self.tag
             tag = 'branch: ' + tag
         else:
@@ -61,7 +61,7 @@ class VersionRepo(object):
     @branch.setter
     def branch(self, new_branch):
         """ Set the repository to track a branch. """
-        self.__on_branch = True
+        self.on_branch = True
         self.__tag = new_branch
 
     @property
@@ -72,7 +72,7 @@ class VersionRepo(object):
     @tag.setter
     def tag(self, new_tag):
         """ Set the repository to track a specific tag. """
-        self.__on_branch = False
+        self.on_branch = False
         self.__tag = new_tag
 
     @property
@@ -154,6 +154,12 @@ class Git(VersionRepo):
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
+        if self.on_branch and self.tag is None:
+            cmd = Command('git branch', self.target)
+            cmd.wait()
+            lines = [line for line in cmd.output() if line.find('*') == 0]
+            self.branch = lines[0][2:]
+
 
 class Hg(VersionRepo):
     """ Represents a mercurial repository. """
@@ -199,6 +205,11 @@ class Hg(VersionRepo):
         cmd = Command('hg clone {tag} {uri} {target}'.format(
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
+
+        if self.on_branch and self.tag is None:
+            cmd = Command('hg branch', self.target)
+            cmd.wait()
+            self.branch = cmd.output()[0]
 
 
 # TODO: Make this unecessary

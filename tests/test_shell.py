@@ -24,27 +24,35 @@ class TestGit(object):
     def test_hash(self):
         assert self.repo.cur_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
-    def test_branch(self):
+    def test_tag(self):
         assert self.repo.tag == '0.29.0'
-        assert self.repo._VersionRepo__on_branch is False
+        assert self.repo.on_branch is False
 
         self.repo.tag = 'hello'
         assert self.repo.tag == 'hello'
-        assert self.repo._VersionRepo__on_branch is False
+        assert self.repo.on_branch is False
 
-    def test_tag(self):
+    def test_branch(self):
         self.repo.branch = 'hello'
         assert self.repo.branch == 'hello'
-        assert self.repo._VersionRepo__on_branch is True
+        assert self.repo.on_branch is True
 
     def test_clean(self):
         self.repo.download()
         self.repo.clean()
         assert not os.path.exists(self.repo.target)
 
-    def test_download(self):
+    def test_download_with_tag(self):
         self.repo.download()
         assert os.path.exists(os.path.join(self.repo.target, '.git'))
+
+    def test_download_with_branch(self):
+        repo = Git(self.repo.uri, target=self.test_dir)
+        assert repo.branch is None
+        repo.download()
+        assert os.path.exists(os.path.join(repo.target, '.git'))
+        assert repo.on_branch is True
+        assert repo.branch == 'master'
 
     def test_is_cloned(self):
         assert not self.repo.is_cloned
@@ -87,9 +95,17 @@ class TestHg(object):
     def test_hash(self):
         assert self.repo.cur_hash == '80:a6ec48f03985'
 
-    def test_download(self):
+    def test_download_with_tag(self):
         self.repo.download()
         assert os.path.exists(os.path.join(self.repo.target, '.hg'))
+
+    def test_download_with_branch(self):
+        repo = Hg(self.repo.uri, target=self.test_dir)
+        assert repo.branch is None
+        repo.download()
+        assert os.path.exists(os.path.join(repo.target, '.hg'))
+        assert repo.on_branch is True
+        assert repo.branch == 'default'
 
     def test_is_cloned(self):
         assert not self.repo.is_cloned
