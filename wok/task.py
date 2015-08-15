@@ -168,10 +168,11 @@ class ListInstalled(Task):
         logging.debug('List Installed Programs')
 
         fmt = '{prog:10} | {date} | {hash}'
-        installed = [fmt.format(prog=prog, **entry) for prog, entry in IDB]
+
+        installed = ['Program    | Date              | Hash or Version']
+        installed.extend([fmt.format(prog=prog, **entry) for prog, entry in IDB])
         msg = 'Installed Programs:'
-        msg += '\nProgram      | Date              | Hash or Version'
-        msg += ''.join(['\n  ' + prog for prog in installed])
+        msg += '\n  ' + '\n  '.join(installed)
         print(msg)
         return msg
 
