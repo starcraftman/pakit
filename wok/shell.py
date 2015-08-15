@@ -93,17 +93,17 @@ class VersionRepo(object):
     @abstractproperty
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        pass
+        raise NotImplementedError
 
     @abstractproperty
     def is_cloned(self):
         """ Returns true iff the target exists & is correct. """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def checkout(self):
         """ Equivalent to git checkout for vcs, updates ref. """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def download(self):
@@ -111,7 +111,7 @@ class VersionRepo(object):
 
             target: Set target directory before downloading.
         """
-        pass
+        raise NotImplementedError
 
 
 class Git(VersionRepo):
@@ -248,6 +248,7 @@ class Command(object):
             prefix = '\n    '
             msg = prefix + prefix.join(self.output())
             logging.debug("CMD LOG: %s%s", self, msg)
+            self._stdout.close()
         except (AttributeError, IOError) as exc:
             logging.error(exc)
             raise

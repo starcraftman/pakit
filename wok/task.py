@@ -64,7 +64,7 @@ class Task(object):
     @abstractmethod
     def run(self):
         """ A unversal interface to do an arbitrary action. """
-        pass
+        raise NotImplementedError
 
 
 class RecipeTask(Task):
@@ -81,7 +81,7 @@ class RecipeTask(Task):
         if not isinstance(other, self.__class__):
             return False
 
-        if self.recipe is not other.recipe:
+        if self.recipe.name != other.recipe.name:
             return False
 
         return True

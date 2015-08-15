@@ -178,9 +178,9 @@ class Recipe(object):
     @abstractmethod
     def build(self):
         """ Build the program. """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def verify(self):
         """ Verify it works somehow. """
-        pass
+        raise NotImplementedError
