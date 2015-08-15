@@ -53,7 +53,8 @@ class TestRecipe(object):
         print(self.recipe.info())
 
         expect = [
-            'ag           Grep like tool optimized for speed',
+            'ag',
+            '  Description: Grep like tool optimized for speed',
             '  Homepage: https://github.com/ggreer/the_silver_searcher',
             '  Current Repo: "unstable"',
             '  Repo "stable":',

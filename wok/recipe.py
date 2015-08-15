@@ -93,15 +93,19 @@ class Recipe(object):
     def info(self):
         """ Long description of the recipe. """
         fmt = [
-            '{desc}',
-            '{tab}Homepage: {home}',
-            '{tab}Current Repo: "{cur_build}"',
+            '{name}',
+            'Description: {desc}',
+            'Homepage: {home}',
+            'Current Repo: "{cur_build}"',
         ]
         for name, repo in sorted(self.repos.items()):
-            fmt += ['{tab}Repo "' + name + '":', '{tab}{tab}' + str(repo)]
-        fmt = '\n'.join(fmt)
-        info = fmt.format(desc=str(self), home=self.homepage, tab='  ',
-                          cur_build=self.repo_name)
+            fmt += ['Repo "' + name + '":', '{tab}' + str(repo)]
+        fmt = '\n  '.join(fmt)
+        info = fmt.format(name=self.name,
+                          desc=self.desc,
+                          home=self.homepage,
+                          cur_build=self.repo_name,
+                          tab='  ')
         return info.rstrip('\n')
 
     def set_config(self, config):
