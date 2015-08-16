@@ -11,6 +11,7 @@ env:
   - TOXENV=pylint
 install: |
   pip install coveralls tox
+  cp -f ./tests/.hgrc $HOME
 script: |
   tox
 after_success: |

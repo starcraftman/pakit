@@ -1,0 +1,12 @@
+[diff]
+git=True
+
+[extensions]
+hgext.convert =
+hgext.graphlog =
+hgext.patchbomb =
+hgext.record =
+mq =
+
+[ui]
+username = Dummy

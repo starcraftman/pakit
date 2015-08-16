@@ -65,6 +65,18 @@ class TestGit(object):
         self.repo.checkout()
         assert self.repo.cur_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
+    def test_update(self):
+        self.repo.branch = 'master'
+        self.repo.download()
+
+        # Lop off history to ensure updateable
+        latest_hash = self.repo.cur_hash
+        cmd = Command('git reset --hard HEAD~3', self.repo.target)
+        cmd.wait()
+        assert self.repo.cur_hash != latest_hash
+        self.repo.update()
+        assert self.repo.cur_hash == latest_hash
+
     def test__str__(self):
         uri = 'https://github.com/user/repo'
         tag = 'default'
@@ -117,6 +129,18 @@ class TestHg(object):
         self.repo.tag = '0.1'
         self.repo.checkout()
         assert self.repo.cur_hash == '14:d390b5e27191'
+
+    def test_update(self):
+        self.repo.branch = 'default'
+        self.repo.download()
+
+        # Lop off history to ensure updateable
+        latest_hash = self.repo.cur_hash
+        cmd = Command('hg strip tip', self.repo.target)
+        cmd.wait()
+        assert self.repo.cur_hash != latest_hash
+        self.repo.update()
+        assert self.repo.cur_hash == latest_hash
 
 class TestCommand(object):
     def test_simple_command(self):

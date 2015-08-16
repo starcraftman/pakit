@@ -113,6 +113,11 @@ class VersionRepo(object):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def update(self):
+        """ Fetches latest changeset and updates current branch. """
+        raise NotImplementedError
+
 
 class Git(VersionRepo):
     """ Represents a git repository. """
@@ -159,6 +164,13 @@ class Git(VersionRepo):
             cmd.wait()
             lines = [line for line in cmd.output() if line.find('*') == 0]
             self.branch = lines[0][2:]
+
+    def update(self):
+        cmd = Command('git fetch origin +{0}:new{0}'.format(self.branch),
+                      self.target)
+        cmd.wait()
+        cmd = Command('git merge --ff-only new' + self.branch, self.target)
+        cmd.wait()
 
 
 class Hg(VersionRepo):
@@ -210,6 +222,12 @@ class Hg(VersionRepo):
             cmd = Command('hg branch', self.target)
             cmd.wait()
             self.branch = cmd.output()[0]
+
+    def update(self):
+        cmd = Command('hg pull -b ' + self.branch, self.target)
+        cmd.wait()
+        cmd = Command('hg update', self.target)
+        cmd.wait()
 
 
 # TODO: Make this unecessary
