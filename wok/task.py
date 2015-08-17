@@ -186,7 +186,7 @@ class ListAvailable(Task):
     def run(self):
         logging.debug('List Available Recipes')
         available = ['Program      Description']
-        available.extend(sorted(RecipeDB().names_and_desc()))
+        available.extend(RecipeDB().names_and_desc())
 
         msg = 'Available Recipes:'
         msg += PREFIX + PREFIX.join(available)

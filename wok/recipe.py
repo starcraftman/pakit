@@ -52,11 +52,11 @@ class RecipeDB(object):
 
     def names(self):
         """ Names of recipes available. """
-        return self.__db.keys()
+        return sorted(self.__db.keys())
 
     def names_and_desc(self):
         """ Names and descriptions available. """
-        return [str(recipe) for recipe in self.__db.values()]
+        return sorted([str(recipe) for recipe in self.__db.values()])
 
     def __recipe_obj(self, mod_name, cls_name):
         """ Return an instanciated object of cls_name. """

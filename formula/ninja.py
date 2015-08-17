@@ -24,6 +24,5 @@ class Ninja(Recipe):
 
     def verify(self):
         lines = self.cmd('{link}/bin/ninja --version')
-        matcher = re.match('\d\.\d+\.\d+', lines[0])
+        matcher = re.match(r'\d\.\d+\.\d+', lines[0])
         return len(matcher.group()) == 1
-
