@@ -1,4 +1,4 @@
-""" wok: A build tool """
+""" pakit: A build tool """
 from __future__ import absolute_import, print_function
 
 # Always prefer setuptools over distutils
@@ -60,11 +60,11 @@ class PyTest(TestCommand):
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 setup(
-    name='wok',
+    name='pakit',
     version='0.1.0',
     description='A homebrew like application',
     long_description='nothing',
-    url='https://github.com/starcraftman/wok',
+    url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
     author_email=MY_EMAIL,
     maintainer=MY_NAME,
@@ -134,7 +134,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'wok = wok.main:main',
+            'pakit = pakit.main:main',
         ],
     },
 

@@ -7,19 +7,19 @@ import mock
 import os
 import pytest
 
-from wok.main import global_init
-from wok.recipe import RecipeDB
-from wok.shell import Command, CmdFailed
-from wok.task import (
+from pakit.main import global_init
+from pakit.recipe import RecipeDB
+from pakit.shell import Command, CmdFailed
+from pakit.task import (
     subseq_match, substring_match, walk_and_link, walk_and_unlink,
     Task, RecipeTask, InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
-import wok.task
+import pakit.task
 
 def teardown_module(module):
     try:
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         config = global_init(config_file)
         tmp_dir = os.path.dirname(config.get('paths.prefix'))
         cmd = Command('rm -rf ' + tmp_dir)
@@ -41,7 +41,7 @@ def test_substring_match():
 
 class TestLinking(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         config = global_init(config_file)
         self.src = config.get('paths.prefix')
         self.dst = config.get('paths.link')
@@ -88,7 +88,7 @@ class TestLinking(object):
 class TestTaskBase(object):
     """ Shared setup, most task tests will want this. """
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.rdb = RecipeDB()
         self.recipe = self.rdb.get('ag')
@@ -122,7 +122,7 @@ class TestTaskInstall(TestTaskBase):
         assert os.path.exists(link_bin)
         assert os.path.realpath(link_bin) == build_bin
 
-    @mock.patch('wok.task.logging')
+    @mock.patch('pakit.task.logging')
     def test_is_installed(self, mock_log):
         task = InstallTask(self.recipe.name)
         task.run()
@@ -130,7 +130,7 @@ class TestTaskInstall(TestTaskBase):
         assert mock_log.error.called is True
 
 class TestTaskRemove(TestTaskBase):
-    @mock.patch('wok.task.logging')
+    @mock.patch('pakit.task.logging')
     def test_is_not_installed(self, mock_log):
         task = RemoveTask(self.recipe.name)
         task.run()
@@ -150,11 +150,11 @@ class TestTaskUpdate(TestTaskBase):
     def test_is_current(self):
         recipe = self.recipe
         InstallTask(recipe.name).run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
         first_hash = recipe.repo.cur_hash
 
         UpdateTask(recipe.name).run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
         assert first_hash == recipe.repo.cur_hash
 
     def test_is_not_current(self):
@@ -163,11 +163,11 @@ class TestTaskUpdate(TestTaskBase):
 
         recipe.repo = 'stable'
         InstallTask(recipe.name).run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
 
         recipe.repo = 'unstable'
         UpdateTask(recipe.name).run()
-        assert wok.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
 
         recipe.repo = old_repo_name
 

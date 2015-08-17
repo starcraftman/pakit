@@ -4,9 +4,9 @@ from __future__ import absolute_import, print_function
 import mock
 import os
 
-from wok.conf import Config, InstallDB, YamlMixin
-from wok.main import global_init
-from wok.recipe import RecipeDB
+from pakit.conf import Config, InstallDB, YamlMixin
+from pakit.main import global_init
+from pakit.recipe import RecipeDB
 
 
 class TestYamlMixin(object):
@@ -23,7 +23,7 @@ class TestYamlMixin(object):
     def test_filename_get(self):
         assert self.config.filename == './test.yaml'
 
-    @mock.patch('wok.conf.logging')
+    @mock.patch('pakit.conf.logging')
     def test_filename_set(self, mock_log):
         expect = './not_test.yaml'
         self.config.filename = expect
@@ -47,7 +47,7 @@ class TestYamlMixin(object):
 class TestConfig(object):
     """ Test the operation of Config class. """
     def setup(self):
-        self.config = Config('./wok.yaml')
+        self.config = Config('./pakit.yaml')
 
     def teardown(self):
         try:
@@ -56,15 +56,15 @@ class TestConfig(object):
             pass
 
     def test_get(self):
-        assert self.config.get('paths.prefix') == '/tmp/wok/builds'
+        assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
 
     def test_get_opts(self):
-        """ Requires the testing wok.yaml. """
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        """ Requires the testing pakit.yaml. """
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         config = Config(config_file)
         opts = config.get_opts('ag')
         assert opts.get('repo') == 'unstable'
-        assert opts.get('prefix') == '/tmp/test_wok/builds'
+        assert opts.get('prefix') == '/tmp/test_pakit/builds'
 
     def test_set(self):
         self.config.set('paths.prefix', '/dev/null')
@@ -82,7 +82,7 @@ class TestConfig(object):
     def test_reset(self):
         self.config.set('paths.prefix', 22)
         self.config.reset()
-        assert self.config.get('paths.prefix') == '/tmp/wok/builds'
+        assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
 
     def test__str__(self):
         print()
@@ -96,12 +96,12 @@ class TestConfig(object):
             '  }, ',
             '  "log": {',
             '    "enabled": true, ',
-            '    "file": "/tmp/wok/main.log"',
+            '    "file": "/tmp/pakit/main.log"',
             '  }, ',
             '  "paths": {',
-            '    "link": "/tmp/wok/links", ',
-            '    "prefix": "/tmp/wok/builds", ',
-            '    "source": "/tmp/wok/src"',
+            '    "link": "/tmp/pakit/links", ',
+            '    "prefix": "/tmp/pakit/builds", ',
+            '    "source": "/tmp/pakit/src"',
             '  }',
             '}',
         ]
@@ -109,7 +109,7 @@ class TestConfig(object):
 
 class TestInstalledConfig(object):
     def setup(self):
-        global_init(os.path.join(os.path.dirname(__file__), 'wok.yaml'))
+        global_init(os.path.join(os.path.dirname(__file__), 'pakit.yaml'))
         self.fname = './installed.yaml'
         self.config = InstallDB(self.fname)
         self.recipe = RecipeDB().get('ag')

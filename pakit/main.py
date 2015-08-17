@@ -8,13 +8,13 @@ import os
 import sys
 import traceback
 
-from wok import __version__
-from wok.conf import Config, InstallDB
-from wok.recipe import RecipeDB
-from wok.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
-                      ListAvailable, DisplayTask)
-import wok.shell
-import wok.task
+from pakit import __version__
+from pakit.conf import Config, InstallDB
+from pakit.recipe import RecipeDB
+from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
+                        ListAvailable, DisplayTask)
+import pakit.shell
+import pakit.task
 
 
 def parse_tasks(args):
@@ -26,7 +26,7 @@ def parse_tasks(args):
     if args.remove:
         tasks.extend([RemoveTask(prog) for prog in args.remove])
     if args.update:
-        tasks.extend([UpdateTask(prog) for prog, _ in wok.task.IDB])
+        tasks.extend([UpdateTask(prog) for prog, _ in pakit.task.IDB])
     if args.available:
         tasks.append(ListAvailable())
     if args.display:
@@ -37,14 +37,14 @@ def parse_tasks(args):
     return tasks
 
 
-def global_init(wok_file):
+def global_init(pakit_file):
     """ Do setup of the global environment.
 
         Returns loaded config.
     """
-    config = Config(wok_file)
+    config = Config(pakit_file)
     init_logging(config.get('log.file'))
-    logging.debug('Wok Config: %s', config)
+    logging.debug('Pakit Config: %s', config)
 
     for path in config.get('paths').values():
         try:
@@ -53,17 +53,17 @@ def global_init(wok_file):
             pass
 
     prefix = config.get('paths.prefix')
-    wok.shell.TMP_DIR = os.path.dirname(prefix)
-    wok.task.Task.set_config(config)
+    pakit.shell.TMP_DIR = os.path.dirname(prefix)
+    pakit.task.Task.set_config(config)
 
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'formula')
     user_recipes = config.get('paths').get('recipes',
-                                           os.path.expanduser('~/.wok'))
+                                           os.path.expanduser('~/.pakit'))
     for path in [default, user_recipes]:
         recipes.update_db(path)
-    wok.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
+    pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     return config
 
@@ -106,24 +106,24 @@ def args_parser():
     to build & install recipes into local paths.
 
     Alpha Notes:
-        `{0} --create-conf` will create the default config in $HOME/.wok.yaml
+        `{0} --create-conf` will create the default config in $HOME/.pakit.yaml
 
         DESIGN.md explains the config options & recipe format
 
         formula/ag.py is an example recipe
 
-        User recipes can be stored at $HOME/.wok
+        User recipes can be stored at $HOME/.pakit
     """.format(prog_name)
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
     mut1 = parser.add_mutually_exclusive_group()
     parser.add_argument('-v', '--version', action='version',
-                        version='wok {0}\nALPHA SOFTWARE!'.format(__version__))
+                        version='pakit {0}\nALPHA!'.format(__version__))
     parser.add_argument('-a', '--available', default=False,
                         action='store_true', help='list available recipes')
     parser.add_argument('-c', '--conf',
-                        default=os.path.expanduser('~/.wok.yaml'),
+                        default=os.path.expanduser('~/.pakit.yaml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='(over)write the config to CONF')

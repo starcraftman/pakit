@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deprecated, pip package uses entry_points.
 PPATH="$(dirname $(readlink -f $(dirname $0))):$PYTHONPATH"
-PYTHONPATH=$PPATH python -m wok.main $@
+PYTHONPATH=$PPATH python -m pakit.main $@
 
 # vim:set et sw=2 ts=4:

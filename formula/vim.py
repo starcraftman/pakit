@@ -1,5 +1,5 @@
 """ Formula for building vim """
-from wok import Git, Recipe
+from pakit import Git, Recipe
 
 
 class Vim(Recipe):

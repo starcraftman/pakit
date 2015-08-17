@@ -6,7 +6,7 @@ import logging
 import os
 import shutil
 
-from wok.recipe import RecipeDB
+from pakit.recipe import RecipeDB
 
 IDB = None
 PREFIX = '\n  '

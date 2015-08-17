@@ -1,5 +1,5 @@
 """ Formula for building tmux """
-from wok import Git, Recipe
+from pakit import Git, Recipe
 
 
 class Tmux(Recipe):

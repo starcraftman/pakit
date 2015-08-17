@@ -4,12 +4,12 @@ from __future__ import absolute_import, print_function
 import os
 import shutil
 
-from wok.main import global_init
-from wok.shell import Git, Hg, Command
+from pakit.main import global_init
+from pakit.shell import Git, Hg, Command
 
 class TestGit(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.test_dir = './temp'
         git_url = 'https://github.com/ggreer/the_silver_searcher'
@@ -92,7 +92,7 @@ class TestGit(object):
 
 class TestHg(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.test_dir = './temp'
         hg_url = 'https://bitbucket.org/sjl/hg-prompt/'

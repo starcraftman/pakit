@@ -2,7 +2,7 @@
 import os
 import re
 
-from wok import Git, Recipe
+from pakit import Git, Recipe
 
 
 class Ninja(Recipe):

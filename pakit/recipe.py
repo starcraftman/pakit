@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 import glob
 import os
 
-from wok.shell import Command
+from pakit.shell import Command
 
 
 class RecipeNotFound(Exception):

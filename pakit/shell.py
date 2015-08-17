@@ -11,7 +11,7 @@ import signal
 import subprocess as sub
 from tempfile import NamedTemporaryFile
 
-TMP_DIR = '/tmp/wok'
+TMP_DIR = '/tmp/pakit'
 
 
 class VersionRepo(object):

@@ -1,5 +1,5 @@
 """ Formula for building ag """
-from wok import Git, Recipe
+from pakit import Git, Recipe
 
 
 class Ag(Recipe):

@@ -14,13 +14,13 @@ TEMPLATE = {
         'repo': 'stable',
     },
     'paths': {
-        'link': '/tmp/wok/links',
-        'prefix': '/tmp/wok/builds',
-        'source': '/tmp/wok/src',
+        'link': '/tmp/pakit/links',
+        'prefix': '/tmp/pakit/builds',
+        'source': '/tmp/pakit/src',
     },
     'log': {
         'enabled': True,
-        'file': '/tmp/wok/main.log',
+        'file': '/tmp/pakit/main.log',
     },
 }
 

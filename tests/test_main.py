@@ -5,14 +5,14 @@ import mock
 import os
 import pytest
 
-from wok.main import args_parser, global_init, main, parse_tasks
-from wok.recipe import RecipeDB, RecipeNotFound
-from wok.shell import Command
-from wok.task import (
+from pakit.main import args_parser, global_init, main, parse_tasks
+from pakit.recipe import RecipeDB, RecipeNotFound
+from pakit.shell import Command
+from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable
 )
-import wok.task
+import pakit.task
 
 class TestArgs(object):
     def setup(self):
@@ -56,7 +56,7 @@ class TestArgs(object):
 
 class TestParseTasks(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.parser = args_parser()
 
@@ -75,7 +75,7 @@ class TestParseTasks(object):
     def test_parse_update(self):
         # Need yaml file to trick into thinking installed
         recipe = RecipeDB().get('ag')
-        wok.task.IDB.add(recipe)
+        pakit.task.IDB.add(recipe)
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
         assert tasks[0] == UpdateTask('ag')
@@ -100,28 +100,28 @@ class TestParseTasks(object):
 
 class TestMain(object):
     """ Test different argv's passed to main. """
-    @mock.patch('wok.main.sys')
+    @mock.patch('pakit.main.sys')
     def test_args_none(self, mock_sys):
-        main(['wok'])
+        main(['pakit'])
         mock_sys.exit.assert_called_with(1)
 
-    @mock.patch('wok.main.argparse._sys')
-    @mock.patch('wok.main.sys')
+    @mock.patch('pakit.main.argparse._sys')
+    @mock.patch('pakit.main.sys')
     def test_args_bad(self, mock_sys, mock_argsys):
         """ NB: I mock argparse._sys, preventing the short circuit
             sys.exit that would stop code, hence hitting two sys.exits. """
-        main(['wok', 'hello'])
+        main(['pakit', 'hello'])
         mock_argsys.exit.assert_called_with(2)
         mock_sys.exit.assert_called_with(1)
 
     def test_recipe_not_found(self):
         with pytest.raises(RecipeNotFound):
-            main(['wok', '-i', 'iiiii'])
+            main(['pakit', '-i', 'iiiii'])
 
-    @mock.patch('wok.main.sys')
+    @mock.patch('pakit.main.sys')
     def test_write_config(self, mock_sys):
         conf_file = './conf.yaml'
         assert not os.path.exists(conf_file)
-        main(['wok', '--conf', conf_file, '--create-conf'])
+        main(['pakit', '--conf', conf_file, '--create-conf'])
         assert os.path.exists(conf_file)
         os.remove(conf_file)

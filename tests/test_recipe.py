@@ -4,12 +4,12 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
-from wok.main import global_init
-from wok.recipe import Recipe, RecipeDB, RecipeNotFound
+from pakit.main import global_init
+from pakit.recipe import Recipe, RecipeDB, RecipeNotFound
 
 class TestRecipeDB(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.rdb = RecipeDB()
 
@@ -32,7 +32,7 @@ class TestRecipeDB(object):
 
 class TestRecipe(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'wok.yaml')
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
         self.config = global_init(config_file)
         self.recipe = RecipeDB().get('ag')
 
