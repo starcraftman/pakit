@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = wok
+source = pakit
 
 [report]
 exclude_lines =
