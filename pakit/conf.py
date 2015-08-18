@@ -141,7 +141,7 @@ class InstallDB(YamlMixin, object):
             fname=self.filename, jso=pretty_js)
 
     def __iter__(self):
-        for key in self.__conf:
+        for key in sorted(self.__conf):
             yield (key, copy.deepcopy(self.__conf[key]))
 
     def get(self, prog):
