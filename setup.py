@@ -62,7 +62,7 @@ MY_EMAIL = 'N/A'
 setup(
     name='pakit',
     version='0.1.0',
-    description='A homebrew like application',
+    description='A package manager that builds from source',
     long_description='nothing',
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
