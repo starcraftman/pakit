@@ -36,6 +36,10 @@ class TestRecipe(object):
         self.config = global_init(config_file)
         self.recipe = RecipeDB().get('ag')
 
+    def test_repo_set_fail(self):
+        with pytest.raises(KeyError):
+            self.recipe.repo = 'hello'
+
     def test_with_func(self):
         with self.recipe:
             assert os.path.exists(self.recipe.source_dir)

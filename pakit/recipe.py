@@ -174,10 +174,6 @@ class Recipe(object):
 
         return cmd.output()
 
-    def clean(self):
-        """ Cleanup, by default delete src dir. """
-        self.cmd('rm -rf {source}')
-
     @abstractmethod
     def build(self):
         """ Build the program. """

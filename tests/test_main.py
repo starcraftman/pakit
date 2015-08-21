@@ -10,7 +10,7 @@ from pakit.recipe import RecipeDB, RecipeNotFound
 from pakit.shell import Command
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
-    ListInstalled, ListAvailable
+    ListInstalled, ListAvailable, SearchTask
 )
 import pakit.task
 
@@ -53,6 +53,12 @@ class TestArgs(object):
         parser = args_parser()
         args = parser.parse_args('--display ag vim'.split())
         assert args.display == ['ag', 'vim']
+
+    def test_args_search(self):
+        parser = args_parser()
+        args = parser.parse_args('--search ag vim'.split())
+        assert args.search == ['ag', 'vim']
+
 
 class TestParseTasks(object):
     def setup(self):
@@ -97,6 +103,10 @@ class TestParseTasks(object):
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], DisplayTask)
 
+    def test_parse_search(self):
+        args = self.parser.parse_args('--search ag'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], SearchTask)
 
 class TestMain(object):
     """ Test different argv's passed to main. """
