@@ -12,7 +12,7 @@ from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.recipe import RecipeDB
 from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
-                        ListAvailable, DisplayTask)
+                        ListAvailable, DisplayTask, SearchTask)
 import pakit.shell
 import pakit.task
 
@@ -31,6 +31,8 @@ def parse_tasks(args):
         tasks.append(ListAvailable())
     if args.display:
         tasks.extend([DisplayTask(prog) for prog in args.display])
+    if args.search:
+        tasks.append(SearchTask(RecipeDB().names(desc=True), args.search))
     if args.list:
         tasks.append(ListInstalled())
 
@@ -131,6 +133,8 @@ def args_parser():
                         help='show detailed information on recipe')
     mut1.add_argument('-i', '--install', nargs='+',
                       metavar='PROG', help='install specified program(s)')
+    mut1.add_argument('-k', '--search', nargs='+', metavar='WORD',
+                      help='search names & descriptions for WORD')
     parser.add_argument('-l', '--list', default=False, action='store_true',
                         help='list installed programs')
     mut1.add_argument('-r', '--remove', nargs='+',

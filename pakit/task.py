@@ -186,7 +186,7 @@ class ListAvailable(Task):
     def run(self):
         logging.debug('List Available Recipes')
         available = ['Program      Description']
-        available.extend(RecipeDB().names_and_desc())
+        available.extend(RecipeDB().names(desc=True))
 
         msg = 'Available Recipes:'
         msg += PREFIX + PREFIX.join(available)
@@ -212,16 +212,22 @@ def substring_match(word, sequence):
 
 class SearchTask(Task):
     """ Search logic, returns list matching sequence. """
-    def __init__(self, sequence, words):
+    def __init__(self, words, queries):
         super(SearchTask, self).__init__()
-        self.sequence = sequence
+        self.queries = queries
         self.words = words
 
     def run(self):
         matched = []
-        for word in self.words:
-            if substring_match(word, self.sequence):
-                matched.append(word)
+        for query in self.queries:
+            match_query = [word for word in self.words
+                           if substring_match(word, query)]
+            matched.extend(match_query)
+        matched = ['Program      Description'] + sorted(list(set(matched)))
 
-        print('\n'.join(matched))
+        msg = 'Your Search For:'
+        msg += PREFIX + PREFIX.join(["'{0}'".format(q) for q in self.queries])
+        msg += '\nMatched These Recipes:'
+        msg += PREFIX + PREFIX.join(matched)
+        print(msg)
         return matched

@@ -182,19 +182,19 @@ class TestTaskQuery(TestTaskBase):
     def test_list_available(self):
         task = ListAvailable()
         out = task.run().split('\n')
-        expect = ['  ' + line for line in RecipeDB().names_and_desc()]
+        expect = ['  ' + line for line in RecipeDB().names(desc=True)]
         print(expect)
         print(out)
         assert out[0] == 'Available Recipes:'
         assert out[2:] == expect
 
     def test_search_names(self):
-        results = SearchTask('vim', RecipeDB().names()).run()
-        assert results == ['vim']
+        results = SearchTask(RecipeDB().names(), ['vim']).run()
+        assert results[1:] == ['vim']
 
     def test_search_desc(self):
-        results = SearchTask('grep', RecipeDB().names_and_desc()).run()
-        assert results == [str(self.recipe)]
+        results = SearchTask(RecipeDB().names(desc=True), ['grep']).run()
+        assert results[1:] == [str(self.recipe)]
 
     def test_display_info(self):
         results = DisplayTask(self.recipe.name).run()
