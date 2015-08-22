@@ -7,11 +7,159 @@ import glob
 import logging
 import os
 import shlex
+import shutil
 import signal
 import subprocess as sub
+import sys
 from tempfile import NamedTemporaryFile
 
+import hashlib
+import tarfile
+import urllib2
+import zipfile
+from pakit.exc import PakitError
+
+EXTS = None
 TMP_DIR = '/tmp/pakit'
+
+
+def extract_tb2(filename, target):
+    """ Short hand extension for tar.bz2 """
+    extract_tar_bz2(filename, target)
+
+
+def extract_tbz(filename, target):
+    """ Short hand extension for tar.bz2 """
+    extract_tar_bz2(filename, target)
+
+
+def extract_tbz2(filename, target):
+    """ Short hand extension for tar.bz2 """
+    extract_tar_bz2(filename, target)
+
+
+def extract_tgz(filename, target):
+    """ Short hand extension for tar.gz """
+    extract_tar_gz(filename, target)
+
+
+def extract_tar_bz2(filename, target):
+    """ Extracts a tar.bz2 archive """
+    extract_tar_gz(filename, target)
+
+
+def extract_tar_gz(filename, target):
+    """ Extracts a tar.gz archive """
+    tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
+    tarf = tarfile.open(filename)
+    tarf.extractall(tmp_dir)
+    extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
+    shutil.move(extracted, target)
+
+
+def extract_zip(filename, target):
+    """ Extracts a zip archive """
+    tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
+    zipf = zipfile.ZipFile(filename)
+    zipf.extractall(tmp_dir)
+    extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
+    shutil.move(extracted, target)
+
+
+def find_arc_name(uri):
+    """ Determine & return the archive name & extension. """
+    right = -1
+    ext = None
+    for ext in EXTS:
+        ext = '.' + ext
+        right = uri.rfind(ext)
+        if right != -1:
+            right += len(ext)
+            left = uri.rfind('/', 0, right) + 1
+            break
+
+    if right == -1:
+        raise PakitError('Could not determine archive name.')
+
+    return (uri[left:right], ext[1:])
+
+
+def get_extract_func(ext):
+    """ Returns the associated extract method based on archive extension. """
+    this_module = sys.modules[__name__]
+    try:
+        return getattr(this_module, 'extract_' + ext.replace('.', '_'))
+    except AttributeError:
+        raise PakitError('Unsupported Archive Format: extension ' + ext)
+
+
+# TODO: Common interface between Archive & VersionRepo
+class Archive(object):
+    """ All archives can be supported by this class. """
+    def __init__(self, uri, **kwargs):
+        self.uri = uri
+        self.arc_hash = kwargs.get('hash', '')
+        self.target = kwargs.get('target', None)
+        self.filename, ext = find_arc_name(self.uri)
+        self.__extract = get_extract_func(ext)
+
+    def __str__(self):
+        return '{name}: {uri}'.format(name=self.__class__.__name__,
+                                      uri=self.uri)
+
+    @property
+    def arc_file(self):
+        """ The location of the archive. """
+        target = self.target
+        if target.find('./') == 0:
+            target = target.replace('./', '')
+        return os.path.join(os.path.dirname(target), self.filename)
+
+    @property
+    def cur_hash(self):
+        """ Expected hash of the archive. """
+        return self.arc_hash
+
+    @property
+    def file_hash(self):
+        """ For archives, the hash of the archive. """
+        # TODO: Support all hashlib.algorithms:
+        #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
+        hasher = hashlib.new('sha1')
+        blk_size = 2 ** 10
+        with open(self.arc_file, 'rb') as fin:
+            block = fin.read(blk_size)
+            while block:
+                hasher.update(block)
+                block = fin.read(blk_size)
+            return hasher.hexdigest()
+
+    @property
+    def ready(self):
+        """ Check folder is not empty. """
+        return os.path.exists(self.target) and \
+            len(os.listdir(self.target)) != 0
+
+    def clean(self):
+        """ Simply purges the source tree. """
+        cmd = Command('rm -rf ' + self.target)
+        cmd.wait()
+
+    def download(self):
+        """ Just download the archive. """
+        resp = urllib2.urlopen(self.uri)
+        with open(self.arc_file, 'w+b') as fout:
+            fout.write(resp.read())
+        if self.file_hash != self.cur_hash:
+            raise PakitError('Hash mismatch on archive')
+
+    def get_it(self):
+        """ Guarantees the source available. """
+        if not self.ready:
+            logging.info('Downloading %s', self.arc_file)
+            self.download()
+            logging.info('Extracting %s to %s', self.arc_file, self.target)
+            self.__extract(self.arc_file, self.target)
 
 
 class VersionRepo(object):
@@ -28,7 +176,7 @@ class VersionRepo(object):
 
     def __init__(self, uri, **kwargs):
         self.uri = uri
-        self.__target = kwargs.get('target', None)
+        self.target = kwargs.get('target', None)
         tag = kwargs.get('tag', None)
         if tag is not None:
             self.__tag = tag
@@ -37,9 +185,9 @@ class VersionRepo(object):
             self.__tag = kwargs.get('branch', None)
             self.on_branch = True
 
-    def make_available(self):
+    def get_it(self):
         """ Guarantees that the repo is downloaded and on right commit. """
-        if not self.is_cloned:
+        if not self.ready:
             self.download()
         else:
             self.checkout()
@@ -75,16 +223,6 @@ class VersionRepo(object):
         self.on_branch = False
         self.__tag = new_tag
 
-    @property
-    def target(self):
-        """ Path to clone the repository to. """
-        return self.__target
-
-    @target.setter
-    def target(self, new_target):
-        """ Set the path to clone to. """
-        self.__target = new_target
-
     def clean(self):
         """ Simply purges the source tree. """
         cmd = Command('rm -rf ' + self.target)
@@ -96,7 +234,7 @@ class VersionRepo(object):
         raise NotImplementedError
 
     @abstractproperty
-    def is_cloned(self):
+    def ready(self):
         """ Returns true iff the target exists & is correct. """
         raise NotImplementedError
 
@@ -127,14 +265,14 @@ class Git(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        self.make_available()
+        self.get_it()
         cmd = Command('git log -1 ', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
         return hash_line.split()[-1]
 
     @property
-    def is_cloned(self):
+    def ready(self):
         """ True iff the target exists & is the required repository. """
         if not os.path.exists(os.path.join(self.target, '.git')):
             return False
@@ -181,14 +319,14 @@ class Hg(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        self.make_available()
+        self.get_it()
         cmd = Command('hg parents', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
         return hash_line.split()[-1]
 
     @property
-    def is_cloned(self):
+    def ready(self):
         """ True iff the target exists & is the required repository. """
         if not os.path.exists(os.path.join(self.target, '.hg')):
             return False
@@ -320,3 +458,7 @@ class Command(object):
         self._proc.wait()
         if self.rcode != 0:
             raise CmdFailed('\n'.join(self.output(10)))
+
+# Placed here on purpose, pick up any extract funcs before me
+EXTS = [func.replace('extract_', '').replace('_', '.') for func
+        in dir(sys.modules[__name__]) if func.find('extract_') == 0]

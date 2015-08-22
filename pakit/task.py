@@ -40,7 +40,7 @@ def walk_and_unlink(src, dst):
 
         try:
             os.rmdir(link_dst)
-        except OSError:
+        except OSError:  # pragma: no cover
             pass
 
 
@@ -50,8 +50,9 @@ class Task(object):
     config = None
 
     def __str__(self):
-        return '{cls}:\n{config}'.format(cls=self.__class__.__name__,
-                                         config=str(Task.config))
+        return '{cls}: Config File {config}'.format(
+            cls=self.__class__.__name__,
+            config=Task.config.filename)
 
     @classmethod
     def set_config(cls, new_config):

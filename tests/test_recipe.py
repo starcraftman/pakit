@@ -64,3 +64,7 @@ class TestRecipe(object):
         ]
 
         assert self.recipe.info().split('\n') == expect
+
+    def test_repo_set(self):
+        with pytest.raises(KeyError):
+            self.recipe.repo = 'aaaaa'
