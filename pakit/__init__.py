@@ -2,8 +2,8 @@
 from __future__ import absolute_import
 
 from pakit.recipe import Recipe
-from pakit.shell import Git, Hg
+from pakit.shell import Archive, Git, Hg
 
-__all__ = ['Recipe', 'Git', 'Hg']
+__all__ = ['Archive', 'Git', 'Hg', 'Recipe']
 
 __version__ = 0.1

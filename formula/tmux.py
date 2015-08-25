@@ -1,5 +1,6 @@
 """ Formula for building tmux """
-from pakit import Git, Recipe
+from pakit import Archive, Git, Recipe
+import os
 
 
 class Tmux(Recipe):
@@ -10,12 +11,16 @@ class Tmux(Recipe):
         self.src = 'https://github.com/tmux/tmux'
         self.homepage = self.src
         self.repos = {
-            'stable': Git(self.src, tag='2.0'),
+            'stable': Archive('https://github.com/tmux/tmux/releases/download'
+                              '/2.0/tmux-2.0.tar.gz',
+                              hash='977871e7433fe054928d86477382bd5f6794dc3d'),
             'unstable': Git(self.src),
         }
 
     def build(self):
-        self.cmd('sh autogen.sh')
+        if os.path.exists(os.path.join(self.opts['source'], 'autogen.sh')):
+            self.cmd('sh autogen.sh')
+
         self.cmd('./configure --prefix {prefix}')
         self.cmd('make install')
 

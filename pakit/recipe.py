@@ -80,7 +80,7 @@ class Recipe(object):
         self.opts = None
 
     def __enter__(self):
-        self.repo.make_available()
+        self.repo.get_it()
 
     def __exit__(self, typ, value, traceback):
         pass
@@ -162,10 +162,7 @@ class Recipe(object):
         """
         # FIXME: Temporary hack, need to refactor cmd function.
         if cmd_dir is None:
-            if os.path.exists(self.source_dir):
-                cmd_dir = self.source_dir
-            else:
-                cmd_dir = os.path.dirname(self.link_dir)
+            cmd_dir = self.source_dir
 
         # TODO: Later, pickup opts from config & extend with prefix.
         cmd_str = cmd_str.format(**self.opts)

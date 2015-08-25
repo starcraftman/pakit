@@ -14,11 +14,11 @@
 Should be something like homebrew when done. Why? Why not.
 
 Expected Features:
-* Python only.
-* Should work on any posix system, emphasis on Linux.
-* Simple recipe specification.
-* Config via single YAML file.
-* Available via pip & wheel eventually.
+* Python only, with minimal dependencies
+* Should work on any posix system, emphasis on Linux
+* Simple recipe specification
+* Config via single YAML file
+* Available via pip & wheel
 
 ## Roadmap
 Just a rough guess of what I should be implementing when.
@@ -33,12 +33,12 @@ Just a rough guess of what I should be implementing when.
 - [x] Pip/Wheel upload.
 
 ### 0.2
-- [ ] Add archive support, supports download, hashing & extracting.
-  - [ ] Tar (tarfile)
-  - [ ] Zip (zipfile)
+- [x] Add archive support, supports download, hashing & extracting.
+  - [x] Tar (tarfile)
+  - [x] Zip (zipfile)
   - [ ] tar.xz (cmdline)
   - [ ] Rar (cmdline?)
-- [ ] Add list & searching support.
+- [x] Add list & searching support.
 - [ ] Investigate alternatives to RecipeDB
 - [ ] Python 3 support?
 

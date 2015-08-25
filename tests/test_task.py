@@ -96,6 +96,17 @@ class TestTaskBase(object):
     def teardown(self):
         RemoveTask(self.recipe.name).run()
 
+class DummyTask(Task):
+    def run(self):
+        pass
+
+class TestTask(TestTaskBase):
+    def test__str__(self):
+        expect = 'DummyTask: Config File ' + self.config.filename
+        task = DummyTask()
+        print(task)
+        assert str(task) == expect
+
 class TestTaskRecipe(TestTaskBase):
     def test_recipe(self):
         assert RecipeTask(self.recipe.name).recipe is self.recipe
