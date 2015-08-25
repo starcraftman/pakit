@@ -56,7 +56,7 @@ class TestLinking(object):
         self.dst_fnames = [fname.replace(self.src, self.dst) for fname in self.fnames]
         for fname in self.fnames:
             with open(fname, 'wb') as fout:
-                fout.write('dummy')
+                fout.write('dummy'.encode())
 
     def teardown(self):
         try:

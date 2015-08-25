@@ -74,6 +74,8 @@ class Config(YamlMixin, object):
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        pretty_js = '\n'.join([line.rstrip() for line
+                               in pretty_js.split('\n')])
         return 'Config File: {fname}\nContents:\n{jso}'.format(
             fname=self.filename, jso=pretty_js)
 
@@ -137,6 +139,8 @@ class InstallDB(YamlMixin, object):
 
     def __str__(self):
         pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        pretty_js = '\n'.join([line.rstrip() for line
+                               in pretty_js.split('\n')])
         return 'Config File: {fname}\nContents:\n{jso}'.format(
             fname=self.filename, jso=pretty_js)
 

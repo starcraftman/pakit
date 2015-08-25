@@ -1,0 +1,6 @@
+#!/bin/sh
+# Deprecated, pip package uses entry_points.
+PPATH="$(dirname $(readlink -f $(dirname $0))):$PYTHONPATH"
+PYTHONPATH=$PPATH python3 -m pakit.main $@
+
+# vim:set et sw=2 ts=4:

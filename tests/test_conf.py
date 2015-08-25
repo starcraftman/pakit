@@ -32,7 +32,7 @@ class TestYamlMixin(object):
 
     def test_read_from(self):
         with open(self.config.filename, 'w+b') as fout:
-            fout.write('hello: world\n')
+            fout.write('hello: world\n'.encode())
         obj = self.config.read_from()
         assert type(obj) == type({})
         assert obj['hello'] == 'world'
@@ -93,14 +93,14 @@ class TestConfig(object):
             '{',
             '  "defaults": {',
             '    "repo": "stable"',
-            '  }, ',
+            '  },',
             '  "log": {',
-            '    "enabled": true, ',
+            '    "enabled": true,',
             '    "file": "/tmp/pakit/main.log"',
-            '  }, ',
+            '  },',
             '  "paths": {',
-            '    "link": "/tmp/pakit/links", ',
-            '    "prefix": "/tmp/pakit/builds", ',
+            '    "link": "/tmp/pakit/links",',
+            '    "prefix": "/tmp/pakit/builds",',
             '    "source": "/tmp/pakit/src"',
             '  }',
             '}',
@@ -128,8 +128,8 @@ class TestInstalledConfig(object):
             'Contents:',
             '{',
             '  "ag": {',
-            '    "hash": "c81622c5c5313c05eab2da3b5eca6c118b74369e", ',
-            '    "repo": "stable", ',
+            '    "hash": "c81622c5c5313c05eab2da3b5eca6c118b74369e",',
+            '    "repo": "stable",',
             '  }',
             '}'
         ]

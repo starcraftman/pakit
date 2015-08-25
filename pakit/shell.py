@@ -15,7 +15,10 @@ from tempfile import NamedTemporaryFile
 
 import hashlib
 import tarfile
-import urllib2
+try:
+    import urllib2 as ulib
+except ImportError:
+    import urllib.request as ulib  # pylint: disable=E0611,F0401
 import zipfile
 from pakit.exc import PakitError
 
@@ -147,7 +150,7 @@ class Archive(object):
 
     def download(self):
         """ Just download the archive. """
-        resp = urllib2.urlopen(self.uri)
+        resp = ulib.urlopen(self.uri)
         with open(self.arc_file, 'w+b') as fout:
             fout.write(resp.read())
         if self.file_hash != self.cur_hash:
