@@ -31,7 +31,7 @@ class TestYamlMixin(object):
         assert self.config.filename == expect
 
     def test_read_from(self):
-        with open(self.config.filename, 'w+b') as fout:
+        with open(self.config.filename, 'wb') as fout:
             fout.write('hello: world\n'.encode())
         obj = self.config.read_from()
         assert type(obj) == type({})

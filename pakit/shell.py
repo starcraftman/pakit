@@ -151,7 +151,7 @@ class Archive(object):
     def download(self):
         """ Just download the archive. """
         resp = ulib.urlopen(self.uri)
-        with open(self.arc_file, 'w+b') as fout:
+        with open(self.arc_file, 'wb') as fout:
             fout.write(resp.read())
         if self.file_hash != self.cur_hash:
             raise PakitError('Hash mismatch on archive')
@@ -400,7 +400,7 @@ class Command(object):
         else:
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
-        self._stdout = NamedTemporaryFile(mode='w+b', delete=True,
+        self._stdout = NamedTemporaryFile(mode='wb', delete=True,
                                           dir=TMP_DIR, prefix='cmd',
                                           suffix='.log')
         logging.debug('CMD START: %s', self)

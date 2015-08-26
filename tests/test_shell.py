@@ -263,7 +263,7 @@ class TestHg(object):
 
 def test_cmd_cleanup():
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
-    with open(cmd_file, 'w+b') as fout:
+    with open(cmd_file, 'wb') as fout:
         fout.write('hello'.encode())
 
     assert os.path.exists(cmd_file)
@@ -284,7 +284,7 @@ class TestCommand(object):
     def test_command_dir(self):
         try:
             os.makedirs('dummy')
-            with open('dummy/hello', 'w+b') as fout:
+            with open('dummy/hello', 'wb') as fout:
                 fout.write('this is a sample line'.encode())
 
             cmd = Command('ls', os.path.abspath('./dummy'))
