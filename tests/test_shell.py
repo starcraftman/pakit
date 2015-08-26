@@ -270,6 +270,16 @@ def test_cmd_cleanup():
     cmd_cleanup()
     assert not os.path.exists(cmd_file)
 
+def test_cmd_cleanup_raises():
+    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
+    os.makedirs(cmd_file)
+
+    assert os.path.exists(cmd_file)
+    with pytest.raises(OSError):
+        cmd_cleanup()
+    assert os.path.exists(cmd_file)
+    os.rmdir(cmd_file)
+
 class TestCommand(object):
     def test_simple_command(self):
         cmd = Command('echo "Hello"')
