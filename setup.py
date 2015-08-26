@@ -41,6 +41,22 @@ class CleanCommand(Command):
             subprocess.call(shlex.split(cmd))
 
 
+class ReleaseCommand(Command):
+    """ Prepare for twine upload by building distributions """
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        for cmd in ['python setup.py sdist --formats=gztar,zip',
+                    'python setup.py bdist_wheel --universal']:
+            subprocess.call(shlex.split(cmd))
+
+
 class PyTest(TestCommand):
     """ Testing is done with py.test """
     user_options = []
@@ -140,6 +156,7 @@ setup(
 
     cmdclass={
         'clean': CleanCommand,
+        'release': ReleaseCommand,
         'test': PyTest,
     }
 )
