@@ -61,7 +61,7 @@ MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 setup(
     name='pakit',
-    version='0.1.0',
+    version='0.1.2',
     description='A package manager that builds from source',
     long_description='nothing',
     url='https://github.com/starcraftman/pakit',
@@ -84,10 +84,10 @@ setup(
         'Programming Language :: Python :: 2',
         # 'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.2',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Build Tools',
     ],
 
