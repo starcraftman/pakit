@@ -1,21 +1,4 @@
-## Overview
-
-The idea is to have a plugin manager which builds from source according
-to configurations in a single YAML file. While working on vim-plug I
-figured I'd want something like that for dev machines.
-
-To be clear this is NOT a replacement for system package managers like
-apt, yast and so on. It is intended to be a supplementary package manager
-like homebrew or pip. You install bleeding edge packages with it and then
-put onto your PATH the paths.link location.
-
-What pakit Provides:
-* Package manager system to install/remove/update packages.
-* Later separately, a bunch of premade recipes, option for user made recipes.
-* Ability to write a simple YAML file controlling options & recipes.
-* Traceability by logging almost everything.
-
-## Final Expected Behaviour
+## Expected Command Line
 
 * `pakit --install tmux ag`       -- Install several programs
 * `pakit --update`                -- Update local programs
@@ -59,7 +42,7 @@ ag:
   option_2: world
 ```
 
-## Recipe Spec
+## Recipe Specification
 
 Work In Progress
 

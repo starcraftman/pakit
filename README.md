@@ -10,17 +10,38 @@
 [![Version](https://img.shields.io/pypi/v/pakit.svg)](https://pypi.python.org/pypi/pakit)
 [![Status](https://img.shields.io/pypi/status/pakit.svg)](https://pypi.python.org/pypi/pakit)
 
-## Motivation
-Should be something like homebrew when done. Why? Why not.
+## Overview
 
-Expected Features:
-* Python only, with minimal dependencies
-* Should work on any posix system, emphasis on Linux
-* Simple recipe specification
-* Config via single YAML file
-* Available via pip & wheel
+Basically I want to make a universal package manager on python.
+Runs everywhere, builds anything and handles dependencies.
+A bit like a meta build tool tying arbitrary recipes together.
+At the end of the day, will probably resemble Homebrew at least a little.
+
+Importantly, the recipes should be configurable via a single YAML file
+that users can modify without changing the recipes. Say you want to pass
+particular flags to the `vim` or `ag` build, you'd just put them in an entry
+in the config.
+
+To be clear this is NOT a replacement for system package managers like
+apt, yast and so on. It is intended to be a supplementary package manager
+like homebrew or pip. You install bleeding edge packages with it and then
+put onto your PATH the paths.link location.
+
+Expected Feature Overview:
+* Python only, with minimal dependencies.
+* Package manager interface like apt or homebrew.
+* 100% tested, framework & supported recipes.
+* Should work on any POSIX system, emphasis on Linux.
+* Simple recipe specification.
+* Configuration via a single YAML file.
+* Available via pip & wheel, for python 2 or 3.
+* Traceability via logs for every command.
+* Premade & tested recipes available for use.
+
+See [DESIGN.md](https://github.com/starcraftman/pakit/blob/master/DESIGN.md) for more details.
 
 ## Roadmap
+For accurate plan, see waffle.io link above.
 Just a rough guess of what I should be implementing when.
 
 ### 0.1
@@ -39,8 +60,10 @@ Just a rough guess of what I should be implementing when.
   - [ ] tar.xz (cmdline)
   - [ ] Rar (cmdline?)
 - [x] Add list & searching support.
-- [ ] Investigate alternatives to RecipeDB
-- [ ] Python 3 support?
+- [x] Python 3 support
+- [ ] Investigate alternatives/improvements to RecipeDB
+- [ ] Better error handling, rollback
+- [ ] Improve Command, timeout & input file
 
 ### 0.3
 - [ ] Dependency logic between recipes tasks.
@@ -49,7 +72,7 @@ Just a rough guess of what I should be implementing when.
 - [ ] Parallelism, envisioned as some task based dependency.
 
 ### Beyond
-- [ ] Make an organization.
+- [x] Make an organization. [pakit](https://github.com/pakit)
 - [ ] Formulas go to separate repo.
 - [ ] Create tool to convert homebrew ruby formula. Maybe?
 - [ ] Make a simple io website & promote?
