@@ -22,14 +22,15 @@ that users can modify without changing the recipes. Say you want to pass
 particular flags to the `vim` or `ag` build, you'd just put them in an entry
 in the config.
 
-To be clear this is NOT a replacement for system package managers like
-apt, yast and so on. It is intended to be a supplementary package manager
-like homebrew or pip. You install bleeding edge packages with it and then
-put onto your PATH the paths.link location.
+To be clear this is NOT a replacement for system package managers like apt, yast and so on.
+It is intended primarily to be a supplementary package manage like homebrew or pip.
+You install bleeding edge packages with it and then put onto your PATH the paths.link location.
+Later on, if I can, I may try to add bootstrapping logic for primitive/embedded areas
+or just to isolate against bad dev environments.
 
 Expected Feature Overview:
 * Python only, with minimal dependencies.
-* Package manager interface like apt or homebrew.
+* Package manager interface, install remove and update recipes.
 * 100% tested, framework & supported recipes.
 * Should work on any POSIX system, emphasis on Linux.
 * Simple recipe specification.
