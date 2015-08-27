@@ -7,10 +7,10 @@ from setuptools.command.test import test as TestCommand
 import fnmatch
 import glob
 import os
+import pakit
 import shlex
 import subprocess
 import sys
-
 
 def rec_search(wildcard):
     """ Search for matching files. """
@@ -77,7 +77,7 @@ MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 setup(
     name='pakit',
-    version='0.1.2',
+    version=pakit.__version__,
     description='A package manager that builds from source',
     long_description='nothing',
     url='https://github.com/starcraftman/pakit',
