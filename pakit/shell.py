@@ -96,13 +96,52 @@ def get_extract_func(ext):
         raise PakitError('Unsupported Archive Format: extension ' + ext)
 
 
-# TODO: Common interface between Archive & VersionRepo
-class Archive(object):
-    """ All archives can be supported by this class. """
-    def __init__(self, uri, **kwargs):
+class Fetchable(object):
+    """ Common interface for a fetchable source code """
+    __metaclass__ = ABCMeta
+
+    def __init__(self, uri, target):
+        self.target = target
         self.uri = uri
+
+    @abstractproperty
+    def cur_hash(self):
+        """ A hash that identifies the source uniquely """
+        raise NotImplementedError
+
+    @abstractproperty
+    def ready(self):
+        """ True iff the source code is available at target """
+        raise NotImplementedError
+
+    def clean(self):
+        """ Purges the source tree """
+        cmd = Command('rm -rf ' + self.target)
+        cmd.wait()
+
+    @abstractmethod
+    def download(self):
+        """ Retrieves code from the remote, may require additional steps """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_it(self):
+        """ Guarantees that source is available at target """
+        raise NotImplementedError
+
+
+class Archive(Fetchable):
+    """ All archives can be supported by this class
+
+        uri: The url of the archive
+
+        Optional Kwargs:
+        hash:       The sha1 hash of the file.
+        target:     A path on local disk where it will be cloned.
+    """
+    def __init__(self, uri, **kwargs):
+        super(Archive, self).__init__(uri, kwargs.get('target', None))
         self.arc_hash = kwargs.get('hash', '')
-        self.target = kwargs.get('target', None)
         self.filename, ext = find_arc_name(self.uri)
         self.__extract = get_extract_func(ext)
 
@@ -143,11 +182,6 @@ class Archive(object):
         return os.path.exists(self.target) and \
             len(os.listdir(self.target)) != 0
 
-    def clean(self):
-        """ Simply purges the source tree. """
-        cmd = Command('rm -rf ' + self.target)
-        cmd.wait()
-
     def download(self):
         """ Just download the archive. """
         resp = ulib.urlopen(self.uri)
@@ -165,7 +199,7 @@ class Archive(object):
             self.__extract(self.arc_file, self.target)
 
 
-class VersionRepo(object):
+class VersionRepo(Fetchable):
     """ Base class for all version control downloaders.
 
         uri: The url of the repository.
@@ -175,11 +209,8 @@ class VersionRepo(object):
         branch:     A branch to checkout during clone.
         tag:        A tag to checkout during clone.
     """
-    __metaclass__ = ABCMeta
-
     def __init__(self, uri, **kwargs):
-        self.uri = uri
-        self.target = kwargs.get('target', None)
+        super(VersionRepo, self).__init__(uri, kwargs.get('target', None))
         tag = kwargs.get('tag', None)
         if tag is not None:
             self.__tag = tag
@@ -187,13 +218,6 @@ class VersionRepo(object):
         else:
             self.__tag = kwargs.get('branch', None)
             self.on_branch = True
-
-    def get_it(self):
-        """ Guarantees that the repo is downloaded and on right commit. """
-        if not self.ready:
-            self.download()
-        else:
-            self.checkout()
 
     def __str__(self):
         if self.on_branch:
@@ -226,11 +250,6 @@ class VersionRepo(object):
         self.on_branch = False
         self.__tag = new_tag
 
-    def clean(self):
-        """ Simply purges the source tree. """
-        cmd = Command('rm -rf ' + self.target)
-        cmd.wait()
-
     @abstractproperty
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
@@ -253,6 +272,13 @@ class VersionRepo(object):
             target: Set target directory before downloading.
         """
         raise NotImplementedError
+
+    def get_it(self):
+        """ Guarantees that the repo is downloaded and on right commit. """
+        if not self.ready:
+            self.download()
+        else:
+            self.checkout()
 
     @abstractmethod
     def update(self):
