@@ -426,7 +426,7 @@ class Command(object):
         else:
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
-        self._stdout = NamedTemporaryFile(mode='wb', delete=True,
+        self._stdout = NamedTemporaryFile(mode='wb', delete=False,
                                           dir=TMP_DIR, prefix='cmd',
                                           suffix='.log')
         logging.debug('CMD START: %s', self)
@@ -440,14 +440,13 @@ class Command(object):
         """ Ensure terminated & fully logged for tracking. """
         try:
             if self.alive:
-                self.terminate()
+                self.terminate()  # pragma: no cover
+            self._stdout.close()
             prefix = '\n    '
             msg = prefix + prefix.join(self.output())
             logging.debug("CMD LOG: %s%s", self, msg)
-            self._stdout.close()
-        except (AttributeError, IOError) as exc:
+        except (AttributeError, IOError, OSError) as exc:
             logging.error(exc)
-            raise
 
     def __str__(self):
         return 'Command: {0}, {1}'.format(self._cmd, self._cmd_dir)
@@ -468,7 +467,7 @@ class Command(object):
             last_n: Return last n lines from output.
         """
         if self._proc is None:
-            return []
+            return []  # pragma: no cover
 
         with open(self._stdout.name, 'r') as out:
             lines = [line.rstrip() for line in out.readlines()]
