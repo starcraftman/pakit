@@ -7,7 +7,7 @@ import shutil
 
 from pakit.exc import PakitError
 from pakit.main import global_init
-from pakit.shell import (Git, Hg, Command, Archive, CmdFailed, find_arc_name,
+from pakit.shell import (Git, Hg, Command, Archive, find_arc_name,
                          cmd_cleanup, get_extract_func, extract_tar_gz)
 import pakit.shell
 
@@ -319,5 +319,5 @@ class TestCommand(object):
 
     def test_failed_cmd(self):
         cmd = Command('false')
-        with pytest.raises(CmdFailed):
+        with pytest.raises(PakitError):
             cmd.wait()

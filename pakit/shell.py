@@ -20,7 +20,7 @@ try:
 except ImportError:
     import urllib.request as ulib  # pylint: disable=E0611,F0401
 import zipfile
-from pakit.exc import PakitError
+from pakit.exc import PakitError, PakitCmdError
 
 EXTS = None
 TMP_DIR = '/tmp/pakit'
@@ -410,11 +410,6 @@ def cmd_cleanup():
             raise
 
 
-class CmdFailed(Exception):
-    """ Command did not return sucessfully. """
-    pass
-
-
 class Command(object):
     """ Represent a command to be run on the system.
         Command is running once constructor returns.
@@ -485,7 +480,7 @@ class Command(object):
         """ Simple wrapper for wait, blocks until finished. """
         self._proc.wait()
         if self.rcode != 0:
-            raise CmdFailed('\n'.join(self.output(10)))
+            raise PakitCmdError('\n'.join(self.output(10)))
 
 # Placed here on purpose, pick up any extract funcs before me
 EXTS = [func.replace('extract_', '').replace('_', '.') for func

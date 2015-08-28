@@ -10,6 +10,7 @@ import traceback
 
 from pakit import __version__
 from pakit.conf import Config, InstallDB
+from pakit.exc import PakitError
 from pakit.recipe import RecipeDB
 from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
                         ListAvailable, DisplayTask, SearchTask)
@@ -179,7 +180,7 @@ def main(argv=None):
 
         for task in tasks:
             task.run()
-    except Exception as exc:
+    except PakitError as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())
         raise

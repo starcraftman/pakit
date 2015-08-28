@@ -55,13 +55,16 @@ Parts of standard recipe:
 * homepage: Where the project is hosted.
 * repos: A dict of possible source downloaders.
 * build(): A function that builds the source selectable by config.
-* verify(): A function that returns true iff the build is good.
+* verify(): A function that uses `assert` statements to verify build.
 
 Example:
 ```py
-from pakit import *
+""" Formula for building ag """
+from pakit import Git, Recipe
+
 
 class Ag(Recipe):
+    """ Grep like tool optimized for speed """
     def __init__(self):
         super(Ag, self).__init__()
         self.desc = 'Grep like tool optimized for speed'
@@ -78,5 +81,5 @@ class Ag(Recipe):
 
     def verify(self):
         lines = self.cmd('{link}/bin/ag --version')
-        return lines[0].find('ag version') != -1
+        assert lines[0].find('ag version') != -1
 ```

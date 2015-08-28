@@ -152,6 +152,10 @@ class InstallDB(YamlMixin, object):
         """ Return the associated entry or None. """
         return self.__conf.get(prog, None)
 
+    def set(self, key, value):
+        """ Allow bypass recipe add. """
+        self.__conf[key] = value
+
     def add(self, recipe):
         """ Call with program name & opts to put into yaml config. """
         time_s = time.time()

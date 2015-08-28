@@ -5,8 +5,9 @@ import mock
 import os
 import pytest
 
+from pakit.exc import PakitError
 from pakit.main import args_parser, global_init, main, parse_tasks
-from pakit.recipe import RecipeDB, RecipeNotFound
+from pakit.recipe import RecipeDB
 from pakit.shell import Command
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
@@ -125,7 +126,7 @@ class TestMain(object):
         mock_sys.exit.assert_called_with(1)
 
     def test_recipe_not_found(self):
-        with pytest.raises(RecipeNotFound):
+        with pytest.raises(PakitError):
             main(['pakit', '-i', 'iiiii'])
 
     @mock.patch('pakit.main.sys')

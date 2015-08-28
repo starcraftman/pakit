@@ -6,12 +6,8 @@ from abc import ABCMeta, abstractmethod
 import glob
 import os
 
+from pakit.exc import PakitError
 from pakit.shell import Command
-
-
-class RecipeNotFound(Exception):
-    """ The database can't find the requested recipe. """
-    pass
 
 
 class RecipeDB(object):
@@ -47,7 +43,7 @@ class RecipeDB(object):
         """ Same as normal get, returns object or None if not found. """
         obj = self.__db.get(name)
         if obj is None:
-            raise RecipeNotFound('Database missing entry: ' + name)
+            raise PakitError('Database missing entry: ' + name)
         return obj
 
     def names(self, **kwargs):

@@ -1,11 +1,11 @@
-""" Formula for building ag """
+""" Formula that always errors on verify """
 from pakit import Git, Recipe
 
 
-class Ag(Recipe):
-    """ Grep like tool optimized for speed """
+class Verify(Recipe):
+    """ Formula that always errors on verify """
     def __init__(self):
-        super(Ag, self).__init__()
+        super(Verify, self).__init__()
         self.desc = 'Grep like tool optimized for speed'
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
@@ -21,3 +21,4 @@ class Ag(Recipe):
     def verify(self):
         lines = self.cmd('{link}/bin/ag --version')
         assert lines[0].find('ag version') != -1
+        assert False

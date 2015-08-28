@@ -151,6 +151,11 @@ class TestInstalledConfig(object):
         ag = self.config.get('ag')
         assert ag['hash'] == self.recipe.repo.cur_hash
 
+    def test_set(self):
+        self.config.set('ag', {'hello': 'world'})
+        entry = self.config.get('ag')
+        assert entry['hello'] == 'world'
+
     def test_get(self):
         self.config.add(self.recipe)
         assert self.config.get('ag') is not None

@@ -26,4 +26,4 @@ class Tmux(Recipe):
 
     def verify(self):
         lines = self.cmd('{link}/bin/tmux -V')
-        return lines[0].find('tmux') != -1
+        assert lines[0].find('tmux') != -1

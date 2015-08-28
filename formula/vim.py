@@ -23,4 +23,4 @@ class Vim(Recipe):
 
     def verify(self):
         lines = self.cmd('{link}/bin/vim --version')
-        return lines[0].find('VIM - Vi') != -1
+        assert lines[0].find('VIM - Vi') != -1

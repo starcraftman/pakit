@@ -6,7 +6,9 @@ import logging
 import os
 import shutil
 
-from pakit.recipe import RecipeDB
+from pakit.exc import PakitError, PakitCmdError, PakitLinkError
+from pakit.recipe import Recipe, RecipeDB
+from pakit.shell import Command
 
 IDB = None
 PREFIX = '\n  '
@@ -27,8 +29,9 @@ def walk_and_link(src, dst):
                 dfile = os.path.join(link_dst, fname)
                 os.symlink(sfile, dfile)
             except OSError:
-                logging.error('Could not symlink %s -> %s', sfile, dfile)
-                raise
+                msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
+                logging.error(msg)
+                raise PakitLinkError(msg)
 
 
 def walk_and_unlink(src, dst):
@@ -36,7 +39,10 @@ def walk_and_unlink(src, dst):
     for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
         link_dst = dirpath.replace(src, dst)
         for fname in filenames:
-            os.remove(os.path.join(link_dst, fname))
+            try:
+                os.remove(os.path.join(link_dst, fname))
+            except OSError:
+                pass  # link was not there
 
         try:
             os.rmdir(link_dst)
@@ -71,9 +77,12 @@ class Task(object):
 
 class RecipeTask(Task):
     """ Represents a task for a recipe. """
-    def __init__(self, recipe_name):
+    def __init__(self, recipe):
         super(RecipeTask, self).__init__()
-        self.__recipe = RecipeDB().get(recipe_name)
+        if isinstance(recipe, Recipe):
+            self.__recipe = recipe
+        else:
+            self.__recipe = RecipeDB().get(recipe)
 
     def __str__(self):
         return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
@@ -99,8 +108,28 @@ class RecipeTask(Task):
 
 class InstallTask(RecipeTask):
     """ Install a recipe. """
-    def __init__(self, recipe_name):
-        super(InstallTask, self).__init__(recipe_name)
+    def __init__(self, recipe):
+        super(InstallTask, self).__init__(recipe)
+
+    def rollback(self, exc):
+        """ Based on type of exception, rollback state. """
+        cascade = False
+        if isinstance(exc, AssertionError):
+            logging.error('Error during verify() of %s', self.recipe.name)
+            cascade = True
+        if isinstance(exc, PakitLinkError) or cascade:
+            if not cascade:
+                logging.error('Error during linking of %s', self.recipe.name)
+            walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
+            cascade = True
+        if isinstance(exc, PakitCmdError) or cascade:
+            if not cascade:
+                logging.error('Error during build() of %s', self.recipe.name)
+            if os.path.exists(self.recipe.repo.target):
+                prefix = os.path.join(self.path('prefix'), self.recipe.name)
+                Command('rm -rf ' + prefix).wait()
+        # In all cases, purge src tree for safety
+        self.recipe.repo.clean()
 
     def run(self):
         logging.debug('Installing: %s', self.recipe.name)
@@ -111,17 +140,21 @@ class InstallTask(RecipeTask):
                           self.recipe.name, entry['date'], entry['hash'])
             return
 
-        with self.recipe:
+        try:
+            self.recipe.repo.get_it()
             self.recipe.build()
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             self.recipe.verify()
             IDB.add(self.recipe)
+        except (AssertionError, PakitError) as exc:
+            self.rollback(exc)
+            raise
 
 
 class RemoveTask(RecipeTask):
     """ Remove a recipe. """
-    def __init__(self, recipe_name):
-        super(RemoveTask, self).__init__(recipe_name)
+    def __init__(self, recipe):
+        super(RemoveTask, self).__init__(recipe)
 
     def run(self):
         logging.debug('Removing: %s', self.recipe.name)
@@ -137,21 +170,42 @@ class RemoveTask(RecipeTask):
 
 class UpdateTask(RecipeTask):
     """ Update a program, don't do it unless changes made. """
-    def __init__(self, recipe_name):
-        super(UpdateTask, self).__init__(recipe_name)
+    def __init__(self, recipe):
+        super(UpdateTask, self).__init__(recipe)
+        self.back_dir = self.recipe.install_dir + '_bak'
+        self.old_entry = None
+
+    def save_old_install(self):
+        """ Before updating, unlink and save old version. """
+        walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
+        self.old_entry = IDB.get(self.recipe.name)
+        IDB.remove(self.recipe.name)
+        shutil.move(self.recipe.install_dir, self.back_dir)
+
+    def restore_old_install(self):
+        """ Update failed, restore old version. """
+        shutil.move(self.back_dir, self.recipe.install_dir)
+        IDB.set(self.recipe.name, self.old_entry)
+        walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
 
     def run(self):
         logging.debug('Updating: %s', self.recipe.name)
 
-        if IDB.get(self.recipe.name)['hash'] != self.recipe.repo.cur_hash:
-            RemoveTask(self.recipe.name).run()
-            InstallTask(self.recipe.name).run()
+        if IDB.get(self.recipe.name)['hash'] == self.recipe.repo.cur_hash:
+            return
+
+        try:
+            self.save_old_install()
+            InstallTask(self.recipe).run()
+            Command('rm -rf ' + self.back_dir).wait()
+        except (AssertionError, PakitError):
+            self.restore_old_install()
 
 
 class DisplayTask(RecipeTask):
     """ Display detailed recipe information. """
-    def __init__(self, recipe_name):
-        super(DisplayTask, self).__init__(recipe_name)
+    def __init__(self, recipe):
+        super(DisplayTask, self).__init__(recipe)
 
     def run(self):
         logging.debug('Displaying Info: ' + self.recipe.name)

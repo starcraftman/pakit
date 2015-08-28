@@ -6,18 +6,13 @@ class PakitError(Exception):
     pass
 
 
-class PakitRollback(PakitError):
-    """ To be thrown internally to trigger a rollback of all actions. """
-    pass
-
-
 class PakitCmdError(PakitError):
     """ Something went wrong with a Command. """
     pass
 
 
-class PakitRecipeError(PakitError):
-    """ Something went wrong with a Recipe> """
+class PakitLinkError(PakitError):
+    """ A problem happened while linking. """
     pass
 
 

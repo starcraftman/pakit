@@ -4,8 +4,9 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
+from pakit.exc import PakitError
 from pakit.main import global_init
-from pakit.recipe import Recipe, RecipeDB, RecipeNotFound
+from pakit.recipe import Recipe, RecipeDB
 
 class TestRecipeDB(object):
     def setup(self):
@@ -27,7 +28,7 @@ class TestRecipeDB(object):
         assert obj.name == 'ag'
 
     def test_get_not_found(self):
-        with pytest.raises(RecipeNotFound):
+        with pytest.raises(PakitError):
             self.rdb.get('xyzxyz')
 
 class TestRecipe(object):
