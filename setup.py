@@ -94,6 +94,7 @@ setup(
     maintainer=MY_NAME,
     maintainer_email=MY_EMAIL,
     license='MIT',
+    platforms=['any'],
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
