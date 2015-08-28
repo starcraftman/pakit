@@ -293,11 +293,15 @@ class Git(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        self.get_it()
+        clean_end = False
+        if not self.ready:
+            clean_end = True
+            self.get_it()
         cmd = Command('git log -1 ', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
-        self.clean()
+        if clean_end:
+            self.clean()
         return hash_line.split()[-1]
 
     @property
@@ -348,11 +352,15 @@ class Hg(VersionRepo):
     @property
     def cur_hash(self):
         """ Return the current hash of the remote repo. """
-        self.get_it()
+        clean_end = False
+        if not self.ready:
+            clean_end = True
+            self.get_it()
         cmd = Command('hg parents', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
-        self.clean()
+        if clean_end:
+            self.clean()
         return hash_line.split()[-1]
 
     @property

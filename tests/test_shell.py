@@ -184,7 +184,6 @@ class TestGit(object):
         self.repo.checkout()
         assert self.repo.cur_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
-    @pytest.mark.skipif(True, reason='to be changed when caching reviewed')
     def test_update(self):
         self.repo.branch = 'master'
         self.repo.download()
@@ -250,7 +249,6 @@ class TestHg(object):
         self.repo.checkout()
         assert self.repo.cur_hash == '14:d390b5e27191'
 
-    @pytest.mark.skipif(True, reason='to be changed when caching reviewed')
     def test_update(self):
         self.repo.branch = 'default'
         self.repo.download()
