@@ -73,6 +73,11 @@ class PyTest(TestCommand):
         import pytest
         sys.exit(pytest.main(self.test_args))
 
+def get_changelog():
+    """ Fetches the latest changelog for pypi """
+    with open('CHANGELOG.txt') as fin:
+        lines = fin.readlines()
+    return '\nChange Log:\n' + ''.join(lines)
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
@@ -80,7 +85,7 @@ setup(
     name='pakit',
     version=pakit.__version__,
     description='A package manager that builds from source',
-    long_description='nothing',
+    long_description=get_changelog(),
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
     author_email=MY_EMAIL,

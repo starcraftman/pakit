@@ -1,0 +1,8 @@
+0.1.4
+  - Fix UpdateTask, was broken and not noiced due to bad test.
+  - Add better error handling for problems during InstallTask & UpdateTask.
+0.1.2
+  - Add support for Python 3 versions in testing.
+  - Add basic archive support (tar.gz, tar.bz2, zip)
+0.1.0
+  - Initial release.

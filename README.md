@@ -62,9 +62,9 @@ Just a rough guess of what I should be implementing when.
   - [ ] Rar (cmdline?)
 - [x] Add list & searching support.
 - [x] Python 3 support
-- [ ] Investigate alternatives/improvements to RecipeDB
-- [ ] Better error handling, rollback
+- [x] Better error handling, rollback
 - [ ] Improve Command, timeout & input file
+- [ ] Investigate alternatives/improvements to RecipeDB
 
 ### 0.3
 - [ ] Dependency logic between recipes tasks.
