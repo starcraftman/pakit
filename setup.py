@@ -13,6 +13,13 @@ import subprocess
 import sys
 
 
+def get_changelog():
+    """ Fetches the latest changelog for pypi """
+    with open('CHANGELOG.txt') as fin:
+        lines = fin.readlines()
+    return '\nChange Log:\n' + ''.join(lines)
+
+
 def rec_search(wildcard):
     """ Search for matching files. """
     matched = []
@@ -73,11 +80,6 @@ class PyTest(TestCommand):
         import pytest
         sys.exit(pytest.main(self.test_args))
 
-def get_changelog():
-    """ Fetches the latest changelog for pypi """
-    with open('CHANGELOG.txt') as fin:
-        lines = fin.readlines()
-    return '\nChange Log:\n' + ''.join(lines)
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
