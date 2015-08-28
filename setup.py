@@ -12,6 +12,7 @@ import shlex
 import subprocess
 import sys
 
+
 def rec_search(wildcard):
     """ Search for matching files. """
     matched = []
