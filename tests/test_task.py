@@ -250,11 +250,13 @@ class TestTaskUpdate(TestTaskBase):
 
         recipe.repo = 'stable'
         InstallTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
+        assert pakit.task.IDB.get(recipe.name)['hash'] == expect
+        # assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
 
         recipe.repo = 'unstable'
         UpdateTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] != expect
 
         recipe.repo = old_repo_name
 

@@ -158,12 +158,12 @@ class Archive(Fetchable):
         return os.path.join(os.path.dirname(target), self.filename)
 
     @property
-    def cur_hash(self):
+    def expect_hash(self):
         """ Expected hash of the archive. """
         return self.arc_hash
 
     @property
-    def file_hash(self):
+    def cur_hash(self):
         """ For archives, the hash of the archive. """
         # TODO: Support all hashlib.algorithms:
         #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
@@ -187,7 +187,7 @@ class Archive(Fetchable):
         resp = ulib.urlopen(self.uri)
         with open(self.arc_file, 'wb') as fout:
             fout.write(resp.read())
-        if self.file_hash != self.cur_hash:
+        if self.expect_hash != self.cur_hash:
             raise PakitError('Hash mismatch on archive')
 
     def get_it(self):
@@ -275,10 +275,9 @@ class VersionRepo(Fetchable):
 
     def get_it(self):
         """ Guarantees that the repo is downloaded and on right commit. """
-        if not self.ready:
-            self.download()
-        else:
-            self.checkout()
+        if self.ready:
+            self.clean()
+        self.download()
 
     @abstractmethod
     def update(self):
@@ -298,6 +297,7 @@ class Git(VersionRepo):
         cmd = Command('git log -1 ', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
+        self.clean()
         return hash_line.split()[-1]
 
     @property
@@ -352,6 +352,7 @@ class Hg(VersionRepo):
         cmd = Command('hg parents', self.target)
         cmd.wait()
         hash_line = cmd.output()[0]
+        self.clean()
         return hash_line.split()[-1]
 
     @property

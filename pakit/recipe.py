@@ -144,6 +144,8 @@ class Recipe(object):
         if new_repo not in self.repos:
             raise KeyError('Build repository not available.')
         self.opts['repo'] = new_repo
+        if os.path.exists(self.source_dir):
+            self.repo.clean()
 
     @property
     def repo_name(self):
@@ -157,7 +159,7 @@ class Recipe(object):
             cmd_dir: A directory to execute in.
         """
         # FIXME: Temporary hack, need to refactor cmd function.
-        if cmd_dir is None:
+        if cmd_dir is None and os.path.exists(self.source_dir):
             cmd_dir = self.source_dir
 
         # TODO: Later, pickup opts from config & extend with prefix.

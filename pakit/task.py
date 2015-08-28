@@ -146,6 +146,7 @@ class InstallTask(RecipeTask):
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
             self.recipe.verify()
             IDB.add(self.recipe)
+            self.recipe.repo.clean()
         except (AssertionError, PakitError) as exc:
             self.rollback(exc)
             raise
