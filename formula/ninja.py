@@ -25,4 +25,5 @@ class Ninja(Recipe):
     def verify(self):
         lines = self.cmd('{link}/bin/ninja --version')
         matcher = re.match(r'\d\.\d+\.\d+', lines[0])
-        assert len(matcher.group()) == 1
+        assert matcher is not None
+        assert matcher.group() != ''
