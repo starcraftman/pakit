@@ -216,6 +216,18 @@ class TestTaskRollback(object):
         assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
         assert not os.path.exists(self.recipe.link_dir)
 
+    def test_update_error_rollback(self):
+        self.recipe = self._get_recipe('update')
+
+        self.recipe.repo = 'stable'
+        InstallTask(self.recipe).run()
+        expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
+        assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
+
+        self.recipe.repo = 'unstable'
+        UpdateTask(self.recipe).run()
+        assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
+
 class TestTaskRemove(TestTaskBase):
     @mock.patch('pakit.task.logging')
     def test_is_not_installed(self, mock_log):
