@@ -1,5 +1,7 @@
 include CHANGELOG.txt
+include DESIGN.md
 include LICENSE.txt
 include README.md
-include .pylintrc
 include tox.ini
+include .coveragerc
+include .pylintrc
