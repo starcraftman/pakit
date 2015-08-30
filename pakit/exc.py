@@ -7,12 +7,17 @@ class PakitError(Exception):
 
 
 class PakitCmdError(PakitError):
-    """ Something went wrong with a Command. """
+    """ The Command's return code was not 0. """
+    pass
+
+
+class PakitCmdTimeout(PakitError):
+    """ The Command timed out. """
     pass
 
 
 class PakitLinkError(PakitError):
-    """ A problem happened while linking. """
+    """ A linking error occurred. """
     pass
 
 

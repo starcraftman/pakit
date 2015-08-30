@@ -2,16 +2,14 @@
 from __future__ import absolute_import, print_function
 
 import glob
-import logging
 import mock
 import os
 import pytest
-import sys
+import shutil
 
-from pakit.exc import PakitError, PakitCmdError, PakitLinkError
+from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.main import global_init
 from pakit.recipe import RecipeDB
-from pakit.shell import Command
 from pakit.task import (
     subseq_match, substring_match, walk_and_link, walk_and_unlink,
     Task, RecipeTask, InstallTask, RemoveTask, UpdateTask, DisplayTask,
@@ -20,14 +18,10 @@ from pakit.task import (
 import pakit.task
 
 def teardown_module(module):
-    try:
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        config = global_init(config_file)
-        tmp_dir = os.path.dirname(config.get('paths.prefix'))
-        cmd = Command('rm -rf ' + tmp_dir)
-        cmd.wait()
-    except PakitError:
-        logging.error('Could not clean ' + tmp_dir)
+    config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
+    config = global_init(config_file)
+    tmp_dir = os.path.dirname(config.get('paths.prefix'))
+    shutil.rmtree(tmp_dir)
 
 def test_subseq_match():
     haystack = 'Hello World!'
@@ -62,10 +56,13 @@ class TestLinking(object):
 
     def teardown(self):
         try:
-            cmd = Command('rm -rf ' + os.path.dirname(self.src))
-            cmd.wait()
-        except PakitError:
-            logging.error('Could not clean ' + self.src)
+            shutil.rmtree(self.src)
+        except OSError:
+            pass
+        try:
+            shutil.rmtree(self.dst)
+        except OSError:
+            pass
 
     def test_walk_and_link_works(self):
         walk_and_link(self.src, self.dst)
@@ -171,12 +168,12 @@ class TestTaskRollback(object):
 
     def teardown(self):
         try:
-            Command('rm -rf ' + self.recipe.install_dir).wait()
-        except PakitCmdError:
+            shutil.rmtree(self.recipe.install_dir)
+        except OSError:
             pass
         try:
-            Command('rm -rf ' + self.recipe.link_dir).wait()
-        except PakitCmdError:
+            shutil.rmtree(self.recipe.link_dir)
+        except OSError:
             pass
         try:
             self.recipe.repo.clean()

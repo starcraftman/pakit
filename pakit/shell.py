@@ -12,6 +12,7 @@ import signal
 import subprocess as sub
 import sys
 from tempfile import NamedTemporaryFile
+import time
 
 import hashlib
 import tarfile
@@ -20,7 +21,7 @@ try:
 except ImportError:
     import urllib.request as ulib  # pylint: disable=E0611,F0401
 import zipfile
-from pakit.exc import PakitError, PakitCmdError
+from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 
 EXTS = None
 TMP_DIR = '/tmp/pakit'
@@ -485,9 +486,19 @@ class Command(object):
         os.killpg(self._proc.pid, signal.SIGTERM)
         self._proc.wait()
 
-    def wait(self):
-        """ Simple wrapper for wait, blocks until finished. """
-        self._proc.wait()
+    def wait(self, max_time=30):
+        """ Block here until done or stdout stops receiving output.
+            max_time: The max idle on stdout.
+
+            Raises PakitCmdTimeout when stdout stops getting output.
+            Raises PakitCmdError when returncode is not 0.
+        """
+        while self._proc.poll() is None:
+            time.sleep(0.25)
+            interval = time.time() - os.path.getmtime(self._stdout.name)
+            if interval > max_time:
+                raise PakitCmdTimeout('\n'.join(self.output(10)))
+
         if self.rcode != 0:
             raise PakitCmdError('\n'.join(self.output(10)))
 

@@ -4,11 +4,11 @@ from __future__ import absolute_import
 import mock
 import os
 import pytest
+import shutil
 
 from pakit.exc import PakitError
 from pakit.main import args_parser, global_init, main, parse_tasks
 from pakit.recipe import RecipeDB
-from pakit.shell import Command
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
@@ -87,7 +87,10 @@ class TestParseTasks(object):
         tasks = parse_tasks(args)
         assert tasks[0] == UpdateTask('ag')
         assert isinstance(tasks[0], UpdateTask)
-        Command('rm -rf ' + self.config.get('paths.prefix')).wait()
+        try:
+            shutil.rmtree(self.config.get('paths.prefix'))
+        except OSError:
+            pass
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())

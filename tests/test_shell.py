@@ -5,7 +5,7 @@ import os
 import pytest
 import shutil
 
-from pakit.exc import PakitError
+from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 from pakit.main import global_init
 from pakit.shell import (Git, Hg, Command, Archive, find_arc_name,
                          cmd_cleanup, get_extract_func, extract_tar_gz)
@@ -317,7 +317,12 @@ class TestCommand(object):
         cmd.terminate()
         assert not cmd.alive
 
-    def test_failed_cmd(self):
+    def test_cmd_failed(self):
         cmd = Command('false')
-        with pytest.raises(PakitError):
+        with pytest.raises(PakitCmdError):
             cmd.wait()
+
+    def test_cmd_timeout(self):
+        cmd = Command('sleep 10')
+        with pytest.raises(PakitCmdTimeout):
+            cmd.wait(2)
