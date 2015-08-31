@@ -1,4 +1,11 @@
-""" All things shell related, including Command class. """
+"""
+All code related to running system commands.
+
+Command: Class to run arbitrary system commands.
+Archive: Used to fetch a source archive.
+Git: Used to fetch a git repository.
+Hg: Used to fetch a mercurial repository.
+"""
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -28,32 +35,44 @@ TMP_DIR = '/tmp/pakit'
 
 
 def extract_tb2(filename, target):
-    """ Short hand extension for tar.bz2 """
+    """
+    Alias for tar.bz2
+    """
     extract_tar_bz2(filename, target)
 
 
 def extract_tbz(filename, target):
-    """ Short hand extension for tar.bz2 """
+    """
+    Alias for tar.bz2
+    """
     extract_tar_bz2(filename, target)
 
 
 def extract_tbz2(filename, target):
-    """ Short hand extension for tar.bz2 """
+    """
+    Alias for tar.bz2
+    """
     extract_tar_bz2(filename, target)
 
 
 def extract_tgz(filename, target):
-    """ Short hand extension for tar.gz """
+    """
+    Alias for tar.gz
+    """
     extract_tar_gz(filename, target)
 
 
 def extract_tar_bz2(filename, target):
-    """ Extracts a tar.bz2 archive """
+    """
+    Extracts a tar.bz2 archive
+    """
     extract_tar_gz(filename, target)
 
 
 def extract_tar_gz(filename, target):
-    """ Extracts a tar.gz archive """
+    """
+    Extracts a tar.gz archive
+    """
     tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
     tarf = tarfile.open(filename)
     tarf.extractall(tmp_dir)
@@ -62,7 +81,9 @@ def extract_tar_gz(filename, target):
 
 
 def extract_zip(filename, target):
-    """ Extracts a zip archive """
+    """
+    Extracts a zip archive
+    """
     tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
     zipf = zipfile.ZipFile(filename)
     zipf.extractall(tmp_dir)
@@ -71,7 +92,18 @@ def extract_zip(filename, target):
 
 
 def find_arc_name(uri):
-    """ Determine & return the archive name & extension. """
+    """
+    Given a URI, extract the filename of the archive by locating the extension.
+
+    For examle, if uri = 'somesite.com/files/archive.tar.gz' this function
+    will return 'archive.tar.gz'. The extension of the archive must be in EXTS.
+
+    Args:
+        uri: A URI that stores the archive.
+
+    Returns:
+        The archive filename.
+    """
     right = -1
     ext = None
     for ext in EXTS:
@@ -89,7 +121,19 @@ def find_arc_name(uri):
 
 
 def get_extract_func(ext):
-    """ Returns the associated extract method based on archive extension. """
+    """
+    Get the right extract function given an extension.
+
+    Args:
+        ext: The extension of the archive, not including the period.
+            For example, zip or tar.gz
+
+    Returns:
+        The function of the form extract(filename, target).
+
+    Raises:
+        PakitError: The extension can not be extracted.
+    """
     this_module = sys.modules[__name__]
     try:
         return getattr(this_module, 'extract_' + ext.replace('.', '_'))
@@ -98,7 +142,16 @@ def get_extract_func(ext):
 
 
 class Fetchable(object):
-    """ Common interface for a fetchable source code """
+    """
+    Extablishes an abstract interface for fetching source code.
+
+    Subclasses are destined for Recipe.repos to be used to retrieve source
+    from the wild.
+
+    Attributes:
+        target: The folder the source code should end up in.
+        uri: The location of the source code.
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self, uri, target):
@@ -106,39 +159,55 @@ class Fetchable(object):
         self.uri = uri
 
     @abstractproperty
-    def cur_hash(self):
-        """ A hash that identifies the source uniquely """
+    def src_hash(self):
+        """
+        A hash that identifies the source snapshot
+        """
         raise NotImplementedError
 
     @abstractproperty
     def ready(self):
-        """ True iff the source code is available at target """
+        """
+        True iff the source code is available at target
+        """
         raise NotImplementedError
 
     def clean(self):
-        """ Purges the source tree """
+        """
+        Purges the source tree from the system
+        """
         cmd = Command('rm -rf ' + self.target)
         cmd.wait()
 
     @abstractmethod
     def download(self):
-        """ Retrieves code from the remote, may require additional steps """
+        """
+        Retrieves code from the remote, may require additional steps
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_it(self):
-        """ Guarantees that source is available at target """
+        """
+        Guarantees that source is available at target
+        """
         raise NotImplementedError
 
 
 class Archive(Fetchable):
-    """ All archives can be supported by this class
+    """
+    Retrieve an archive from a remote URI and extract it to target.
 
-        uri: The url of the archive
+    Supports any extension that has an extract function in this module
+    of the form `extract_ext`. For example, if given a zip will use the
+    extract_zip function.
 
-        Optional Kwargs:
-        hash:       The sha1 hash of the file.
-        target:     A path on local disk where it will be cloned.
+    Attributes:
+        filename: The filename of the archive.
+        expect_hash: The expected hash of the archive.
+        src_hash: The actual sha1 hash of the archive.
+        target: The folder the source code should end up in.
+        uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
         super(Archive, self).__init__(uri, kwargs.get('target', None))
@@ -152,7 +221,9 @@ class Archive(Fetchable):
 
     @property
     def arc_file(self):
-        """ The location of the archive. """
+        """
+        The path to the downloaded archive.
+        """
         target = self.target
         if target.find('./') == 0:
             target = target.replace('./', '')
@@ -160,12 +231,16 @@ class Archive(Fetchable):
 
     @property
     def expect_hash(self):
-        """ Expected hash of the archive. """
+        """
+        The expected hash of the archive.
+        """
         return self.arc_hash
 
     @property
-    def cur_hash(self):
-        """ For archives, the hash of the archive. """
+    def src_hash(self):
+        """
+        The actual hash of the downloaded archive file.
+        """
         # TODO: Support all hashlib.algorithms:
         #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
         hasher = hashlib.new('sha1')
@@ -179,20 +254,26 @@ class Archive(Fetchable):
 
     @property
     def ready(self):
-        """ Check folder is not empty. """
+        """
+        True iff the source code is available at target
+        """
         return os.path.exists(self.target) and \
             len(os.listdir(self.target)) != 0
 
     def download(self):
-        """ Just download the archive. """
+        """
+        Retrieves code from the remote, may require additional steps
+        """
         resp = ulib.urlopen(self.uri)
         with open(self.arc_file, 'wb') as fout:
             fout.write(resp.read())
-        if self.expect_hash != self.cur_hash:
+        if self.expect_hash != self.src_hash:
             raise PakitError('Hash mismatch on archive')
 
     def get_it(self):
-        """ Guarantees the source available. """
+        """
+        Guarantees that source is available at target
+        """
         if not self.ready:
             logging.info('Downloading %s', self.arc_file)
             self.download()
@@ -201,14 +282,20 @@ class Archive(Fetchable):
 
 
 class VersionRepo(Fetchable):
-    """ Base class for all version control downloaders.
+    """
+    Base class for all version control downloaders.
 
-        uri: The url of the repository.
+    When a 'tag' is set, check out a specific revision of the repository.
+    When a 'branch' is set, checkout out the latest commit on the branch of
+    the repository.
+    These two options are mutually exclusive.
 
-        Optional Kwargs:
-        target:     A path on local disk where it will be cloned.
-        branch:     A branch to checkout during clone.
-        tag:        A tag to checkout during clone.
+    Attributes:
+        branch: A branch to checkout during clone.
+        src_hash: The hash of the current commit.
+        tag: A tag to checkout during clone.
+        target: The folder the source code should end up in.
+        uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
         super(VersionRepo, self).__init__(uri, kwargs.get('target', None))
@@ -231,69 +318,103 @@ class VersionRepo(Fetchable):
 
     @property
     def branch(self):
-        """ A branch of the repository. """
+        """
+        A branch of the repository.
+        """
         return self.__tag
 
     @branch.setter
     def branch(self, new_branch):
-        """ Set the repository to track a branch. """
+        """
+        Set the branch to checkout from the repository.
+        """
         self.on_branch = True
         self.__tag = new_branch
 
     @property
     def tag(self):
-        """ A tag of the repository. """
+        """
+        A revision or tag of the repository.
+        """
         return self.__tag
 
     @tag.setter
     def tag(self, new_tag):
-        """ Set the repository to track a specific tag. """
+        """
+        Set the tag to checkout from the repository.
+        """
         self.on_branch = False
         self.__tag = new_tag
 
     @abstractproperty
-    def cur_hash(self):
-        """ Return the current hash of the remote repo. """
+    def src_hash(self):
+        """
+        The hash of the current commit.
+        """
         raise NotImplementedError
 
     @abstractproperty
     def ready(self):
-        """ Returns true iff the target exists & is correct. """
+        """
+        Returns true iff the repository is available and the
+        right tag or branch is checked out.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def checkout(self):
-        """ Equivalent to git checkout for vcs, updates ref. """
+        """
+        Equivalent to git checkout for the version syste.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def download(self):
-        """ Download the repo to with specified opts.
-
-            target: Set target directory before downloading.
+        """
+        Download the repository to the target.
         """
         raise NotImplementedError
 
     def get_it(self):
-        """ Guarantees that the repo is downloaded and on right commit. """
+        """
+        Guarantees that the repo is downloaded and on right commit.
+        """
         if self.ready:
             self.clean()
         self.download()
 
     @abstractmethod
     def update(self):
-        """ Fetches latest changeset and updates current branch. """
+        """
+        Fetches latest commit when branch is set.
+        """
         raise NotImplementedError
 
 
 class Git(VersionRepo):
-    """ Represents a git repository. """
+    """
+    Fetch a git repository from the given URI.
+
+    When a 'tag' is set, check out a specific revision of the repository.
+    When a 'branch' is set, checkout out the latest commit on the branch of
+    the repository.
+    These two options are mutually exclusive.
+
+    Attributes:
+        branch: A branch to checkout during clone.
+        src_hash: The hash of the current commit.
+        tag: A tag to checkout during clone.
+        target: The folder the source code should end up in.
+        uri: The location of the source code.
+    """
     def __init__(self, uri, **kwargs):
         super(Git, self).__init__(uri, **kwargs)
 
     @property
-    def cur_hash(self):
-        """ Return the current hash of the remote repo. """
+    def src_hash(self):
+        """
+        Return the current hash of the repository.
+        """
         clean_end = False
         if not self.ready:
             clean_end = True
@@ -307,7 +428,10 @@ class Git(VersionRepo):
 
     @property
     def ready(self):
-        """ True iff the target exists & is the required repository. """
+        """
+        Returns true iff the repository is available and
+        the right tag or branch is checked out.
+        """
         if not os.path.exists(os.path.join(self.target, '.git')):
             return False
 
@@ -316,15 +440,16 @@ class Git(VersionRepo):
         return self.uri in cmd.output()[1]
 
     def checkout(self):
-        """ Updates the repository to the tag. """
+        """
+        Checkout the right tag or branch.
+        """
         if self.tag is not None:
             cmd = Command('git checkout ' + self.tag, self.target)
             cmd.wait()
 
     def download(self):
-        """ Download the repo to target.
-
-            target: Where the repository will be stored
+        """
+        Download the repository to the target.
         """
         tag = '' if self.tag is None else '-b ' + self.tag
         cmd = Command('git clone --recursive {tag} {uri} {target}'.format(
@@ -338,6 +463,9 @@ class Git(VersionRepo):
             self.branch = lines[0][2:]
 
     def update(self):
+        """
+        Fetches latest commit when branch is set.
+        """
         cmd = Command('git fetch origin +{0}:new{0}'.format(self.branch),
                       self.target)
         cmd.wait()
@@ -346,13 +474,29 @@ class Git(VersionRepo):
 
 
 class Hg(VersionRepo):
-    """ Represents a mercurial repository. """
+    """
+    Fetch a mercurial repository from the given URI.
+
+    When a 'tag' is set, check out a specific revision of the repository.
+    When a 'branch' is set, checkout out the latest commit on the branch of
+    the repository.
+    These two options are mutually exclusive.
+
+    Attributes:
+        branch: A branch to checkout during clone.
+        src_hash: The hash of the current commit.
+        tag: A tag to checkout during clone.
+        target: The folder the source code should end up in.
+        uri: The location of the source code.
+    """
     def __init__(self, uri, **kwargs):
         super(Hg, self).__init__(uri, **kwargs)
 
     @property
-    def cur_hash(self):
-        """ Return the current hash of the remote repo. """
+    def src_hash(self):
+        """
+        Return the current hash of the repository.
+        """
         clean_end = False
         if not self.ready:
             clean_end = True
@@ -366,7 +510,10 @@ class Hg(VersionRepo):
 
     @property
     def ready(self):
-        """ True iff the target exists & is the required repository. """
+        """
+        Returns true iff the repository is available and the
+        right tag or branch is checked out.
+        """
         if not os.path.exists(os.path.join(self.target, '.hg')):
             return False
 
@@ -380,15 +527,16 @@ class Hg(VersionRepo):
         return found
 
     def checkout(self):
-        """ Updates the repository to the tag. """
+        """
+        Checkout the right tag or branch.
+        """
         if self.tag is not None:
             cmd = Command('hg update ' + self.tag, self.target)
             cmd.wait()
 
     def download(self):
-        """ Download the repo to target.
-
-            target: Where the repository will be stored
+        """
+        Download the repository to the target.
         """
         tag = '' if self.tag is None else '-u ' + self.tag
         cmd = Command('hg clone {tag} {uri} {target}'.format(
@@ -401,6 +549,9 @@ class Hg(VersionRepo):
             self.branch = cmd.output()[0]
 
     def update(self):
+        """
+        Fetches latest commit when branch is set.
+        """
         cmd = Command('hg pull -b ' + self.branch, self.target)
         cmd.wait()
         cmd = Command('hg update', self.target)
@@ -410,8 +561,9 @@ class Hg(VersionRepo):
 # TODO: Make this unecessary
 @atexit.register
 def cmd_cleanup():
-    """ Cleans up any command stdout files left over,
-        sometimes happen due to errors during testing. """
+    """
+    Cleans up any command stdout files left over,
+    """
     for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
         try:
             os.remove(filename)
@@ -421,8 +573,17 @@ def cmd_cleanup():
 
 
 class Command(object):
-    """ Represent a command to be run on the system.
-        Command is running once constructor returns.
+    """
+    Execute a command on the host system.
+
+    Once the constructor returns, the command is running.
+    At that point, either wait for it to complete or go about your business.
+    The process and all children will be part of the same process group,
+    this allows for easy termination via signals.
+
+    Attributes:
+        alive: True only if the command is still running.
+        rcode: When the command finishes, is the return code.
     """
     def __init__(self, cmd, cmd_dir=None):
         super(Command, self).__init__()
@@ -442,7 +603,11 @@ class Command(object):
         )
 
     def __del__(self):
-        """ Ensure terminated & fully logged for tracking. """
+        """
+        When the command object is garbage collected:
+            - Terminate processes if still running.
+            - Write the entire output of the command to the log.
+        """
         try:
             if self.alive:
                 self.terminate()  # pragma: no cover
@@ -458,18 +623,27 @@ class Command(object):
 
     @property
     def alive(self):
-        """ Returns if the process is running. """
+        """
+        The command is still running.
+        """
         return self._proc.poll() is None
 
     @property
     def rcode(self):
-        """ Returns the return code. """
+        """
+        The return code of the command.
+        """
         return self._proc.returncode
 
     def output(self, last_n=0):
-        """ Return by default all stdout from command.
+        """
+        The output of the run command.
 
-            last_n: Return last n lines from output.
+        Args:
+            last_n: Return last n lines from output, default all output.
+
+        Returns:
+            A list of lines from the output of the command.
         """
         if self._proc is None:
             return []  # pragma: no cover
@@ -480,23 +654,33 @@ class Command(object):
         return lines[-last_n:]
 
     def terminate(self):
-        """ Terminate the process and all children.
-            On return, they are all dead.
         """
-        os.killpg(self._proc.pid, signal.SIGTERM)
-        self._proc.wait()
+        Terminates the subprocess running the command and all
+        children spawned by the command.
+
+        On return, they are all dead.
+        """
+        if self.alive:
+            os.killpg(self._proc.pid, signal.SIGTERM)
+            self._proc.wait()
 
     def wait(self, max_time=30):
-        """ Block here until done or stdout stops receiving output.
-            max_time: The max idle on stdout.
+        """
+        Block here until the command is done.
 
-            Raises PakitCmdTimeout when stdout stops getting output.
-            Raises PakitCmdError when returncode is not 0.
+        Args:
+            max_time: If stdout receives no text for this interval,
+                terminate the command and raise error.
+
+        Raises:
+            PakitCmdTimeout: When stdout stops getting output for max_time.
+            PakitCmdError: When return code is not 0.
         """
         while self._proc.poll() is None:
             time.sleep(0.25)
             interval = time.time() - os.path.getmtime(self._stdout.name)
             if interval > max_time:
+                self.terminate()
                 raise PakitCmdTimeout('\n'.join(self.output(10)))
 
         if self.rcode != 0:

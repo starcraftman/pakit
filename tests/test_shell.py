@@ -118,7 +118,7 @@ class TestArchive(object):
 
     def test_hash(self):
         self.archive.get_it()
-        assert self.archive.cur_hash == self.archive.expect_hash
+        assert self.archive.src_hash == self.archive.expect_hash
         assert self.archive.expect_hash == '977871e7433fe054928d86477382bd5f6794dc3d'
 
     def test_clean(self):
@@ -141,7 +141,7 @@ class TestGit(object):
             pass
 
     def test_hash(self):
-        assert self.repo.cur_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
+        assert self.repo.src_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
 
     def test_tag(self):
         assert self.repo.tag == '0.29.0'
@@ -182,19 +182,19 @@ class TestGit(object):
         self.repo.download()
         self.repo.tag = '0.20.0'
         self.repo.checkout()
-        assert self.repo.cur_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
+        assert self.repo.src_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
 
     def test_update(self):
         self.repo.branch = 'master'
         self.repo.download()
 
         # Lop off history to ensure updateable
-        latest_hash = self.repo.cur_hash
+        latest_hash = self.repo.src_hash
         cmd = Command('git reset --hard HEAD~3', self.repo.target)
         cmd.wait()
-        assert self.repo.cur_hash != latest_hash
+        assert self.repo.src_hash != latest_hash
         self.repo.update()
-        assert self.repo.cur_hash == latest_hash
+        assert self.repo.src_hash == latest_hash
 
     def test__str__(self):
         uri = 'https://github.com/user/repo'
@@ -224,7 +224,7 @@ class TestHg(object):
             pass
 
     def test_hash(self):
-        assert self.repo.cur_hash == '80:a6ec48f03985'
+        assert self.repo.src_hash == '80:a6ec48f03985'
 
     def test_download_with_tag(self):
         self.repo.download()
@@ -247,19 +247,19 @@ class TestHg(object):
         self.repo.download()
         self.repo.tag = '0.1'
         self.repo.checkout()
-        assert self.repo.cur_hash == '14:d390b5e27191'
+        assert self.repo.src_hash == '14:d390b5e27191'
 
     def test_update(self):
         self.repo.branch = 'default'
         self.repo.download()
 
         # Lop off history to ensure updateable
-        latest_hash = self.repo.cur_hash
+        latest_hash = self.repo.src_hash
         cmd = Command('hg strip tip', self.repo.target)
         cmd.wait()
-        assert self.repo.cur_hash != latest_hash
+        assert self.repo.src_hash != latest_hash
         self.repo.update()
-        assert self.repo.cur_hash == latest_hash
+        assert self.repo.src_hash == latest_hash
 
 def test_cmd_cleanup():
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')

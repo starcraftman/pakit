@@ -1,4 +1,8 @@
-""" The obligatory main entry point. """
+"""
+The main entry point for pakit.
+
+Acts as an intermediary between program arguments and pakit Tasks.
+"""
 from __future__ import absolute_import, print_function
 
 import argparse
@@ -19,7 +23,12 @@ import pakit.task
 
 
 def parse_tasks(args):
-    """ Take program arguments and make a task list. """
+    """
+    Parse the program arguments into a list of Tasks to execute
+
+    Returns:
+        A list of Tasks.
+    """
     tasks = []
 
     if args.install:
@@ -40,14 +49,21 @@ def parse_tasks(args):
     return tasks
 
 
-def global_init(pakit_file):
-    """ Do setup of the global environment.
-
-        Returns loaded config.
+def global_init(config_file):
     """
-    config = Config(pakit_file)
+    Performs global configuration of pakit.
+
+    Must be called before using pakit. Will ...
+        - Read user configuration.
+        - Initialize the logging system.
+        - Populate the recipe database.
+
+    Returns:
+        The loaded config object.
+    """
+    config = Config(config_file)
     init_logging(config.get('log.file'))
-    logging.debug('Pakit Config: %s', config)
+    logging.debug('Global Config: %s', config)
 
     for path in config.get('paths').values():
         try:
@@ -62,17 +78,18 @@ def global_init(pakit_file):
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'formula')
-    user_recipes = config.get('paths').get('recipes',
-                                           os.path.expanduser('~/.pakit'))
-    for path in [default, user_recipes]:
-        recipes.update_db(path)
+    recipes.index(default)
     pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     return config
 
 
 def init_logging(log_file):
-    """ Setup project wide file logging. """
+    """
+    Setup project wide logging.
+
+    Specifically this will setup both file and console logging.
+    """
     try:
         os.makedirs(os.path.dirname(log_file))
     except OSError:
@@ -102,7 +119,12 @@ def init_logging(log_file):
 
 
 def args_parser():
-    """ The arguments parser, it is fairly large. """
+    """
+    Create the program argument parser.
+
+    Returns:
+        An argparse parser object.
+    """
     prog_name = os.path.basename(os.path.dirname(sys.argv[0]))
     mesg = """
     {0} is a meta build tool providing a package manager like interface
@@ -148,7 +170,12 @@ def args_parser():
 
 # TODO: Path modification during operation by os.environ
 def main(argv=None):
-    """ The main entry point. For testing, accepts a dummy argv. """
+    """
+    The main entry point for this program.
+
+    Args:
+        argv: A list of program options, if None use sys.argv.
+    """
     if argv is None:
         argv = sys.argv
 

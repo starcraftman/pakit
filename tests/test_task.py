@@ -246,12 +246,12 @@ class TestTaskUpdate(TestTaskBase):
     def test_is_current(self):
         recipe = self.recipe
         InstallTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
-        first_hash = recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
+        first_hash = recipe.repo.src_hash
 
         UpdateTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
-        assert first_hash == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
+        assert first_hash == recipe.repo.src_hash
 
     def test_is_not_current(self):
         recipe = self.recipe
@@ -261,7 +261,7 @@ class TestTaskUpdate(TestTaskBase):
         InstallTask(recipe).run()
         expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
         assert pakit.task.IDB.get(recipe.name)['hash'] == expect
-        # assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        # assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
 
         recipe.repo = 'unstable'
         UpdateTask(recipe).run()
@@ -284,7 +284,7 @@ class TestTaskUpdate(TestTaskBase):
         task = UpdateTask(recipe)
         task.save_old_install()
         task.restore_old_install()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.cur_hash
+        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
         assert os.path.exists(recipe.install_dir)
         assert not os.path.exists(recipe.install_dir + '_bak')
         recipe.verify()

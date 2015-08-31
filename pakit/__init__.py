@@ -1,4 +1,19 @@
-""" pakit: A general purpose build tool. """
+"""
+PakIt: A build tool with a package manager interface.
+
+In short, Recipes are defined and put in the formula directory. These
+recipes subclass Recipe, providing information on how to build a program.
+Pakit will dynamically import and instantiate the recipes at run time.
+For more information see pakit.recipe
+
+Configuration is done by a YAML file in your HOME folder.
+The default is `~/.pakit.yaml`.
+Here you can tell pakit where to install and link programs.
+You can also set default and recipe specific options.
+For more information see pakit.conf
+
+All possible actions are defined under pakit.task.
+"""
 from __future__ import absolute_import
 
 from pakit.recipe import Recipe

@@ -1,26 +1,38 @@
-""" Houses all exceptions. """
+"""
+All pakit exceptions are subclasses of PakitError
+"""
 
 
 class PakitError(Exception):
-    """ All exceptions descend from this. """
+    """
+    The base pakit exception, indicates general failure.
+    """
     pass
 
 
 class PakitCmdError(PakitError):
-    """ The Command's return code was not 0. """
+    """
+    The Command finished and the return code indicated failure.
+    """
     pass
 
 
 class PakitCmdTimeout(PakitError):
-    """ The Command timed out. """
+    """
+    The Command timed out after writing no stdout for max_time.
+    """
     pass
 
 
 class PakitLinkError(PakitError):
-    """ A linking error occurred. """
+    """
+    An error occurred during linking.
+    """
     pass
 
 
 class PakitFetchError(PakitError):
-    """ A problem occurred retrieving source. """
+    """
+    The source could not be retrieved.
+    """
     pass

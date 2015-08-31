@@ -1,5 +1,10 @@
 # pylint: disable=W0212
-""" The base class for build recipes. """
+"""
+The Recipe class and RecipeDB are found here.
+
+Recipe: The base class for all recipes.
+RecipeDB: The database that indexes all recipes.
+"""
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
@@ -10,61 +15,26 @@ from pakit.exc import PakitError
 from pakit.shell import Command
 
 
-class RecipeDB(object):
-    """ Simple object database, allows queries and can search paths. """
-    __instance = None
-
-    def __new__(cls, config=None):
-        """ Used to implement singleton. """
-        if cls.__instance is None:
-            cls.__instance = super(RecipeDB, cls).__new__(cls)
-            cls.__instance.__db = {}
-            if config is not None:
-                cls.__instance.__config = config
-        return cls.__instance
-
-    def __contains__(self, name):
-        return name in self.__db
-
-    def update_db(self, path):
-        """ Glob path, and update db with new recipes. """
-        # TODO: Iterate all classes in file, only index subclassing Recipe
-        new_recs = glob.glob(os.path.join(path, '*.py'))
-        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
-        if '__init__' in new_recs:
-            new_recs.remove('__init__')
-
-        mod = os.path.basename(path)
-        for cls in new_recs:
-            obj = self.__recipe_obj(mod, cls)
-            self.__db.update({cls: obj})
-
-    def get(self, name):
-        """ Same as normal get, returns object or None if not found. """
-        obj = self.__db.get(name)
-        if obj is None:
-            raise PakitError('Database missing entry: ' + name)
-        return obj
-
-    def names(self, **kwargs):
-        """ Names of recipes available, optionally with descriptions. """
-        if kwargs.get('desc', False):
-            return sorted([str(recipe) for recipe in self.__db.values()])
-        else:
-            return sorted(self.__db.keys())
-
-    def __recipe_obj(self, mod_name, cls_name):
-        """ Return an instanciated object of cls_name. """
-        mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
-        mod = getattr(mod, cls_name)
-        cls = getattr(mod, cls_name.capitalize())
-        obj = cls()
-        obj.set_config(self.__config)
-        return obj
-
-
 class Recipe(object):
-    """ A schema to build some binary. """
+    """
+    A recipe to build some binary through a series of commands.
+
+    Attributes:
+        desc: A short description that summarizes the recipe.
+            Keep it short, less than 50 chars.
+        homepage: The website that hosts the project.
+        repos: A dictionary that stores all possible methods to retrieve
+            source code. By convention, should contain a *stable* and
+            *unstable* entry.
+        opts: A dictionary storing options for the recipe, to be
+            used primarily in the build() commands. See 'cmd' method.
+        repo: The active source repository.
+        repo_name: The name of the current repository in *repos*.
+        name: The name of the recipe.
+        install_dir: Where the program will be installed to.
+        link_dir: Where the installation will be linked to.
+        source_dir: Where the source code will be downloaded to and built.
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -82,16 +52,20 @@ class Recipe(object):
         pass
 
     def __str__(self):
-        """ Short description. """
+        """
+        A one line summary of the recipe.
+        """
         return '{0:10}   {1}'.format(self.name[0:10], self.desc)
 
     def info(self):
-        """ Long description of the recipe. """
+        """
+        A detailed description of the recipe.
+        """
         fmt = [
             '{name}',
             'Description: {desc}',
             'Homepage: {home}',
-            'Current Repo: "{cur_build}"',
+            'Current Repo: "{cur_repo}"',
         ]
         for name, repo in sorted(self.repos.items()):
             fmt += ['Repo "' + name + '":', '{tab}' + str(repo)]
@@ -99,12 +73,16 @@ class Recipe(object):
         info = fmt.format(name=self.name,
                           desc=self.desc,
                           home=self.homepage,
-                          cur_build=self.repo_name,
+                          cur_repo=self.repo_name,
                           tab='  ')
         return info.rstrip('\n')
 
     def set_config(self, config):
-        """ Set the configuration for the recipe. """
+        """
+        Query the config for the required opts.
+
+        Users should not be using this directly.
+        """
         self.opts = config.get_opts(self.name)
         self.opts.update({
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
@@ -115,32 +93,47 @@ class Recipe(object):
 
     @property
     def install_dir(self):
-        """ The folder the program will install to. """
+        """
+        The folder the program will install to.
+        """
         return self.opts.get('prefix')
 
     @property
     def link_dir(self):
-        """ The folder the program will be linked to. """
+        """
+        The folder the program will be linked to.
+        """
         return self.opts.get('link')
 
     @property
     def source_dir(self):
-        """ The folder where the source will download & build. """
+        """
+        The folder where the source will download & build.
+        """
         return self.opts.get('source')
 
     @property
     def name(self):
-        """ The name of the recipe. """
+        """
+        The name of the recipe.
+        """
         return self.__class__.__name__.lower()
 
     @property
     def repo(self):
-        """ The repository to build from. """
+        """
+        The *Fetchable* class providing the source code.
+        """
         return self.repos.get(self.repo_name)
 
     @repo.setter
     def repo(self, new_repo):
-        """ Set the repository to build from. """
+        """
+        Set the repository for the source code.
+
+        Args:
+            new_repo: A key in *repos*.
+        """
         if new_repo not in self.repos:
             raise KeyError('Build repository not available.')
         self.opts['repo'] = new_repo
@@ -149,14 +142,20 @@ class Recipe(object):
 
     @property
     def repo_name(self):
-        """ Return the name of the repository being used. """
+        """
+        The name of the repository in *repos*.
+        """
         return self.opts.get('repo')
 
     def cmd(self, cmd_str, cmd_dir=None):
-        """ Execute a given cmd_str on the system.
+        """
+        Execute a given cmd_str on the system.
 
-            cmd_str: A string that gets formatted with self.opts.
-            cmd_dir: A directory to execute in.
+        Args:
+            cmd_str: A string that will expand embedded dictionary markers.
+                For example 'ls {prefix}/bin' would expand to
+                'ls /tmp/pakit/builds/bin' before executing the command.
+            cmd_dir: The directory to execute in.
         """
         # FIXME: Temporary hack, need to refactor cmd function.
         if cmd_dir is None and os.path.exists(self.source_dir):
@@ -171,10 +170,116 @@ class Recipe(object):
 
     @abstractmethod
     def build(self):
-        """ Build the program. """
+        """
+        Build the program from the source directory.
+
+        Should make use of the 'cmd' method to execute system commands.
+
+        Can put build specific commands based on repo_name.
+
+        Raises:
+            PakitCmdError: A Command returned an error.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def verify(self):
-        """ Verify it works somehow. """
+        """
+        Use `assert` statements to verify the built program works.
+
+        Raises:
+            AssertionError: When an assertion fails.
+        """
         raise NotImplementedError
+
+
+class RecipeDB(object):
+    """
+    An object database that can import recipes dynamically.
+    """
+    __instance = None
+
+    def __new__(cls, config=None):
+        """ Used to implement singleton. """
+        if cls.__instance is None:
+            cls.__instance = super(RecipeDB, cls).__new__(cls)
+            cls.__instance.__db = {}
+            if config is not None:
+                cls.__instance.__config = config
+        return cls.__instance
+
+    def __contains__(self, name):
+        return name in self.__db
+
+    def index(self, path):
+        """
+        Index all *Recipes* in the path.
+
+        For each file, the Recipe subclass should be named after the file.
+        So for formula/ag.py should have a class called Ag.
+
+        Args:
+            path: The folder containing recipes to index.
+        """
+        # TODO: Iterate all classes in file, only index subclassing Recipe
+        new_recs = glob.glob(os.path.join(path, '*.py'))
+        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+        if '__init__' in new_recs:
+            new_recs.remove('__init__')
+
+        mod = os.path.basename(path)
+        for cls in new_recs:
+            obj = self.__recipe_obj(mod, cls)
+            self.__db.update({cls: obj})
+
+    def get(self, name):
+        """
+        Get the recipe from the database.
+
+        Raises:
+            PakitError: Could not find the recipe.
+        """
+        obj = self.__db.get(name)
+        if obj is None:
+            raise PakitError('Database missing entry: ' + name)
+        return obj
+
+    def names(self, desc=False):
+        """
+        Names of recipes available, optionally with descriptions.
+
+        Args:
+            desc:
+                When True, return a list of recipe names and descriptions.
+                When False, return a list of recipe names and descriptions.
+
+        Returns:
+            A list of strings. By default the names of all recipes.
+            Otherwise, it is a list of recipes and their description.
+        """
+        if desc:
+            return sorted([str(recipe) for recipe in self.__db.values()])
+        else:
+            return sorted(self.__db.keys())
+
+    def __recipe_obj(self, mod_name, cls_name):
+        """
+        Import and instantiate the recipe class. Then configure it.
+
+        Args:
+            mod_name: The module name, should be importable via PYTHONPATH.
+            cls_name: The class name in the module.
+
+        Returns:
+            The instantiated recipe.
+
+        Raises:
+            ImportError: If the module could not be imported.
+            AttributeError: The module did not have the required class.
+        """
+        mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
+        mod = getattr(mod, cls_name)
+        cls = getattr(mod, cls_name.capitalize())
+        obj = cls()
+        obj.set_config(self.__config)
+        return obj

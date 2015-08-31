@@ -61,6 +61,33 @@ class TestConfig(object):
         except OSError:
             pass
 
+    def test__str__(self):
+        print()
+        print(str(self.config))
+        expect = [
+            'Config File: {0}'.format(self.config.filename),
+            'Contents:',
+            '{',
+            '  "defaults": {',
+            '    "repo": "stable"',
+            '  },',
+            '  "log": {',
+            '    "enabled": true,',
+            '    "file": "/tmp/pakit/main.log"',
+            '  },',
+            '  "paths": {',
+            '    "link": "/tmp/pakit/links",',
+            '    "prefix": "/tmp/pakit/builds",',
+            '    "source": "/tmp/pakit/src"',
+            '  }',
+            '}',
+        ]
+        assert str(self.config).split('\n') == expect
+
+    def test__contains__(self):
+        assert 'log' in self.config
+        assert 'moose' not in self.config
+
     def test_get(self):
         assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
 
@@ -89,29 +116,6 @@ class TestConfig(object):
         self.config.set('paths.prefix', 22)
         self.config.reset()
         assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
-
-    def test__str__(self):
-        print()
-        print(str(self.config))
-        expect = [
-            'Config File: {0}'.format(self.config.filename),
-            'Contents:',
-            '{',
-            '  "defaults": {',
-            '    "repo": "stable"',
-            '  },',
-            '  "log": {',
-            '    "enabled": true,',
-            '    "file": "/tmp/pakit/main.log"',
-            '  },',
-            '  "paths": {',
-            '    "link": "/tmp/pakit/links",',
-            '    "prefix": "/tmp/pakit/builds",',
-            '    "source": "/tmp/pakit/src"',
-            '  }',
-            '}',
-        ]
-        assert str(self.config).split('\n') == expect
 
 class TestInstalledConfig(object):
     def setup(self):
@@ -146,10 +150,15 @@ class TestInstalledConfig(object):
         del lines[4]
         assert expect == lines
 
+    def test__contains__(self):
+        self.config.set('ag', {'hello': 'world'})
+        assert 'ag' in self.config
+        assert 'moose' not in self.config
+
     def test_add(self):
         self.config.add(self.recipe)
         ag = self.config.get('ag')
-        assert ag['hash'] == self.recipe.repo.cur_hash
+        assert ag['hash'] == self.recipe.repo.src_hash
 
     def test_set(self):
         self.config.set('ag', {'hello': 'world'})
@@ -159,7 +168,7 @@ class TestInstalledConfig(object):
     def test_get(self):
         self.config.add(self.recipe)
         assert self.config.get('ag') is not None
-        assert self.config.get('ag')['hash'] == self.recipe.repo.cur_hash
+        assert self.config.get('ag')['hash'] == self.recipe.repo.src_hash
         self.config.remove('ag')
         assert self.config.get('ag') is None
 
@@ -180,4 +189,4 @@ class TestInstalledConfig(object):
         self.config.read()
         entry = self.config.get('ag')
         assert entry is not None
-        assert entry['hash'] == self.recipe.repo.cur_hash
+        assert entry['hash'] == self.recipe.repo.src_hash

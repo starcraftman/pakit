@@ -45,7 +45,7 @@ class TestRecipe(object):
         with self.recipe:
             assert os.path.exists(self.recipe.source_dir)
             assert len(os.listdir(self.recipe.source_dir)) != 0
-            assert self.recipe.repo.cur_hash == self.recipe.repos.get('unstable').cur_hash
+            assert self.recipe.repo.src_hash == self.recipe.repos.get('unstable').src_hash
 
     def test__str__(self):
         print()
