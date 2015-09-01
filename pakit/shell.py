@@ -33,64 +33,76 @@ from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 EXTS = None
 TMP_DIR = '/tmp/pakit'
 
+def wrap_extract(extract_func):
+    """
+    A decorator that handles some boiler plate between
+    extract functions.
 
-def extract_tb2(filename, target):
+    Condition: extract_func must extract the folder with source
+    into the tmp_dir. Rest is handled automatically.
+    """
+    def inner(filename, target):
+        """
+        Inner part of decorator.
+        """
+        tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
+        extract_func(filename, tmp_dir)
+        extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
+        shutil.move(extracted, target)
+        os.rmdir(tmp_dir)
+    return inner
+
+def extract_tb2(filename, tmp_dir):
     """
     Alias for tar.bz2
     """
-    extract_tar_bz2(filename, target)
+    extract_tar_bz2(filename, tmp_dir)
 
 
-def extract_tbz(filename, target):
+def extract_tbz(filename, tmp_dir):
     """
     Alias for tar.bz2
     """
-    extract_tar_bz2(filename, target)
+    extract_tar_bz2(filename, tmp_dir)
 
 
-def extract_tbz2(filename, target):
+def extract_tbz2(filename, tmp_dir):
     """
     Alias for tar.bz2
     """
-    extract_tar_bz2(filename, target)
+    extract_tar_bz2(filename, tmp_dir)
 
 
-def extract_tgz(filename, target):
+def extract_tgz(filename, tmp_dir):
     """
     Alias for tar.gz
     """
-    extract_tar_gz(filename, target)
+    extract_tar_gz(filename, tmp_dir)
 
 
-def extract_tar_bz2(filename, target):
+def extract_tar_bz2(filename, tmp_dir):
     """
     Extracts a tar.bz2 archive
     """
-    extract_tar_gz(filename, target)
+    extract_tar_gz(filename, tmp_dir)
 
 
-def extract_tar_gz(filename, target):
+@wrap_extract
+def extract_tar_gz(filename, tmp_dir):
     """
-    Extracts a tar.gz archive
+    Extracts a tar.gz archive to a temp dir
     """
-    tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
     tarf = tarfile.open(filename)
     tarf.extractall(tmp_dir)
-    extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
-    shutil.move(extracted, target)
-    os.rmdir(tmp_dir)
 
 
-def extract_zip(filename, target):
+@wrap_extract
+def extract_zip(filename, tmp_dir):
     """
     Extracts a zip archive
     """
-    tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
     zipf = zipfile.ZipFile(filename)
     zipf.extractall(tmp_dir)
-    extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
-    shutil.move(extracted, target)
-    os.rmdir(tmp_dir)
 
 
 def find_arc_name(uri):
