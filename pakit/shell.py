@@ -33,6 +33,7 @@ from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 EXTS = None
 TMP_DIR = '/tmp/pakit'
 
+
 def wrap_extract(extract_func):
     """
     A decorator that handles some boiler plate between
@@ -51,6 +52,7 @@ def wrap_extract(extract_func):
         shutil.move(extracted, target)
         os.rmdir(tmp_dir)
     return inner
+
 
 def extract_tb2(filename, tmp_dir):
     """
