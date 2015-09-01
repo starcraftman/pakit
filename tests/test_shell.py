@@ -118,8 +118,8 @@ class TestArchive(object):
 
     def test_hash(self):
         self.archive.get_it()
-        assert self.archive.src_hash == self.archive.expect_hash
-        assert self.archive.expect_hash == '977871e7433fe054928d86477382bd5f6794dc3d'
+        assert self.archive.src_hash == self.archive.actual_hash
+        assert self.archive.actual_hash == '977871e7433fe054928d86477382bd5f6794dc3d'
 
     def test_clean(self):
         self.archive.download()

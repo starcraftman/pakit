@@ -78,6 +78,7 @@ def extract_tar_gz(filename, target):
     tarf.extractall(tmp_dir)
     extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
     shutil.move(extracted, target)
+    os.rmdir(tmp_dir)
 
 
 def extract_zip(filename, target):
@@ -89,6 +90,7 @@ def extract_zip(filename, target):
     zipf.extractall(tmp_dir)
     extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
     shutil.move(extracted, target)
+    os.rmdir(tmp_dir)
 
 
 def find_arc_name(uri):
@@ -203,9 +205,9 @@ class Archive(Fetchable):
     extract_zip function.
 
     Attributes:
+        actual_hash: The actual sha1 hash of the archive.
         filename: The filename of the archive.
-        expect_hash: The expected hash of the archive.
-        src_hash: The actual sha1 hash of the archive.
+        src_hash: The expected hash of the archive.
         target: The folder the source code should end up in.
         uri: The location of the source code.
     """
@@ -230,27 +232,38 @@ class Archive(Fetchable):
         return os.path.join(os.path.dirname(target), self.filename)
 
     @property
-    def expect_hash(self):
+    def src_hash(self):
         """
         The expected hash of the archive.
         """
         return self.arc_hash
 
     @property
-    def src_hash(self):
+    def actual_hash(self):
         """
         The actual hash of the downloaded archive file.
         """
         # TODO: Support all hashlib.algorithms:
+        # FIXME: This function is messy.
         #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
+        arc_clean = False
+        if not os.path.exists(self.arc_file):
+            self.download()
+            arc_clean = True
         hasher = hashlib.new('sha1')
+        hash_str = None
         blk_size = 2 ** 10
+
         with open(self.arc_file, 'rb') as fin:
             block = fin.read(blk_size)
             while block:
                 hasher.update(block)
                 block = fin.read(blk_size)
-            return hasher.hexdigest()
+            hash_str = hasher.hexdigest()
+
+        if arc_clean:
+            os.remove(self.arc_file)
+        return hash_str
 
     @property
     def ready(self):
@@ -267,7 +280,7 @@ class Archive(Fetchable):
         resp = ulib.urlopen(self.uri)
         with open(self.arc_file, 'wb') as fout:
             fout.write(resp.read())
-        if self.expect_hash != self.src_hash:
+        if self.actual_hash != self.src_hash:
             raise PakitError('Hash mismatch on archive')
 
     def get_it(self):
@@ -279,6 +292,7 @@ class Archive(Fetchable):
             self.download()
             logging.info('Extracting %s to %s', self.arc_file, self.target)
             self.__extract(self.arc_file, self.target)
+            os.remove(self.arc_file)
 
 
 class VersionRepo(Fetchable):
