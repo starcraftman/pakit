@@ -77,7 +77,7 @@ def global_init(config_file):
 
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                           'formula')
+                           'pakit_recipes')
     recipes.index(default)
     pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
@@ -135,9 +135,7 @@ def args_parser():
 
         DESIGN.md explains the config options & recipe format
 
-        formula/ag.py is an example recipe
-
-        User recipes can be stored at $HOME/.pakit
+        pakit_recipes/ag.py is an example recipe
     """.format(prog_name)
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
@@ -179,7 +177,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    # TODO: Add choices kwarg for install/remove based on avail formula
+    # TODO: Add recipe name completion
     # Require at least one for now.
     parser = args_parser()
     if len(argv) == 1:

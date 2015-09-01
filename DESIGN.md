@@ -46,7 +46,7 @@ ag:
 
 Work In Progress
 
-Below is an example, taken from formula/ag.py.
+Below is an example, taken from pakit_recipes/ag.py.
 Core logic implemented in pakit/recipe.py
 Aim is to have very short easily written recipes.
 

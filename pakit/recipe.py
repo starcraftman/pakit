@@ -216,7 +216,7 @@ class RecipeDB(object):
         Index all *Recipes* in the path.
 
         For each file, the Recipe subclass should be named after the file.
-        So for formula/ag.py should have a class called Ag.
+        So for path/ag.py should have a class called Ag.
 
         Args:
             path: The folder containing recipes to index.

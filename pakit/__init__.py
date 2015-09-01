@@ -1,7 +1,7 @@
 """
-PakIt: A build tool with a package manager interface.
+PakIt: Build and manage programs simply
 
-In short, Recipes are defined and put in the formula directory. These
+In short, Recipes are defined and put in the pakit_recipes directory. These
 recipes subclass Recipe, providing information on how to build a program.
 Pakit will dynamically import and instantiate the recipes at run time.
 For more information see pakit.recipe

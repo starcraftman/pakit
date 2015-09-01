@@ -60,8 +60,12 @@ class ReleaseCommand(Command):
         pass
 
     def run(self):
-        for cmd in ['python setup.py sdist --formats=gztar,zip',
-                    'python setup.py bdist_wheel --universal']:
+        cmds = [
+            'make -C ./docs man',
+            'python setup.py sdist --formats=gztar,zip',
+            'python setup.py bdist_wheel --universal'
+        ]
+        for cmd in cmds:
             subprocess.call(shlex.split(cmd))
 
 
@@ -86,7 +90,7 @@ MY_EMAIL = 'N/A'
 setup(
     name='pakit',
     version=pakit.__version__,
-    description='A package manager that builds from source',
+    description='Build and manage programs simply',
     long_description=get_changelog(),
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
@@ -130,16 +134,16 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['argparse', 'PyYAML'],
 
-    tests_require=['pytest', 'mock'],
+    tests_require=['coverage', 'mock', 'pytest', 'tox'],
 
     # # List additional groups of dependencies here (e.g. development
     # # dependencies). You can install these using the following syntax,
     # # for example:
     # # $ pip install -e .[dev,test]
-    # extras_require={
-        # 'dev': ['check-manifest'],
-        # 'test': ['coverage'],
-    # },
+    extras_require={
+        'dev': ['flake8', 'pylint', 'Sphinx'],
+        'test': ['coverage', 'mock', 'pytest', 'tox'],
+    },
 
     # # If there are data files included in your packages that need to be
     # # installed, specify them here.  If using Python 2.6 or less, then these
