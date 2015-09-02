@@ -205,6 +205,32 @@ def get_extract_func(ext):
         raise PakitError('Unsupported Archive Format: extension ' + ext)
 
 
+def hash_archive(archive, hash_alg):
+    """
+    Hash an archive.
+
+    Args:
+        archive: Path to an archive.
+        hash_alg: Hashing algorithm to use, available algorithms
+            are in hashlib.algorithms
+
+    Returns:
+        The hex based hash of the archive, using hash_alg.
+    """
+    hasher = hashlib.new(hash_alg)
+    hash_str = None
+    blk_size = 2 ** 10
+
+    with open(archive, 'rb') as fin:
+        block = fin.read(blk_size)
+        while block:
+            hasher.update(block)
+            block = fin.read(blk_size)
+        hash_str = hasher.hexdigest()
+
+    return hash_str
+
+
 class Fetchable(object):
     """
     Extablishes an abstract interface for fetching source code.
@@ -240,8 +266,7 @@ class Fetchable(object):
         """
         Purges the source tree from the system
         """
-        cmd = Command('rm -rf ' + self.target)
-        cmd.wait()
+        Command('rm -rf ' + self.target).wait()
 
     @abstractmethod
     def download(self):
@@ -269,14 +294,14 @@ class Archive(Fetchable):
     Attributes:
         actual_hash: The actual sha1 hash of the archive.
         filename: The filename of the archive.
-        src_hash: The expected hash of the archive.
+        src_hash: The expected sha1 hash of the archive.
         target: The folder the source code should end up in.
         uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
         super(Archive, self).__init__(uri, kwargs.get('target', None))
-        self.arc_hash = kwargs.get('hash', '')
         self.filename, ext = find_arc_name(self.uri)
+        self.__src_hash = kwargs.get('hash', '')
         self.__extract = get_extract_func(ext)
 
     def __str__(self):
@@ -298,30 +323,21 @@ class Archive(Fetchable):
         """
         The expected hash of the archive.
         """
-        return self.arc_hash
+        return self.__src_hash
 
     @property
     def actual_hash(self):
         """
         The actual hash of the downloaded archive file.
         """
-        # TODO: Support all hashlib.algorithms:
-        # FIXME: This function is messy.
+        # TODO: Support all hashlib.algorithms via config:
         #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
         arc_clean = False
         if not os.path.exists(self.arc_file):
             self.download()
             arc_clean = True
-        hasher = hashlib.new('sha1')
-        hash_str = None
-        blk_size = 2 ** 10
 
-        with open(self.arc_file, 'rb') as fin:
-            block = fin.read(blk_size)
-            while block:
-                hasher.update(block)
-                block = fin.read(blk_size)
-            hash_str = hasher.hexdigest()
+        hash_str = hash_archive(self.arc_file, 'sha1')
 
         if arc_clean:
             os.remove(self.arc_file)

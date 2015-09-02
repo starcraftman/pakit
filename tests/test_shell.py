@@ -8,7 +8,7 @@ import shutil
 
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 from pakit.main import global_init
-from pakit.shell import (Git, Hg, Command, Archive, find_arc_name,
+from pakit.shell import (Git, Hg, Command, Archive, find_arc_name, hash_archive,
                          cmd_cleanup, get_extract_func, extract_tar_gz)
 import pakit.shell
 
@@ -29,6 +29,13 @@ def test_get_extract_func():
 def test_get_extract_func_not_found():
     with pytest.raises(PakitError):
         get_extract_func('tar.gzzz')
+
+def test_hash_archive_sha1():
+    arc = Archive(TAR_URL, target='./temp',
+                  hash='977871e7433fe054928d86477382bd5f6794dc3d')
+    arc.download()
+    assert hash_archive(arc.arc_file, 'sha1') == '977871e7433fe054928d86477382bd5f6794dc3d'
+    os.remove(arc.arc_file)
 
 class TestExtractFuncs(object):
     def setup(self):
