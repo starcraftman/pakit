@@ -54,6 +54,25 @@ def wrap_extract(extract_func):
     return inner
 
 
+@wrap_extract
+def extract_rar(filename, tmp_dir):
+    """
+    Extracts a rar archive
+    """
+    os.makedirs(tmp_dir)
+    success = False
+    cmd_str = 'rar x {file} {tmp}'.format(file=filename, tmp=tmp_dir)
+    for cmd in [cmd_str, 'un' + cmd_str]:
+        try:
+            Command(cmd).wait()
+            success = True
+        except (OSError, PakitCmdError):
+            pass
+
+    if not success:
+        raise PakitCmdError('Need `rar` or `unrar` to extract: ' + filename)
+
+
 def extract_tb2(filename, tmp_dir):
     """
     Alias for tar.bz2
@@ -82,6 +101,13 @@ def extract_tgz(filename, tmp_dir):
     extract_tar_gz(filename, tmp_dir)
 
 
+def extract_txz(filename, tmp_dir):
+    """
+    Alias for tar.xz
+    """
+    extract_tar_xz(filename, tmp_dir)
+
+
 def extract_tar_bz2(filename, tmp_dir):
     """
     Extracts a tar.bz2 archive
@@ -99,12 +125,34 @@ def extract_tar_gz(filename, tmp_dir):
 
 
 @wrap_extract
+def extract_tar_xz(filename, tmp_dir):
+    """
+    Extracts a tar.xz archive to a temp dir
+    """
+    os.makedirs(tmp_dir)
+    shutil.move(filename, tmp_dir)
+    new_arc = os.path.join(tmp_dir, os.path.basename(filename))
+    Command('xz -d ' + new_arc).wait()
+    tar_file = new_arc[:new_arc.rindex('.t')] + '.tar'
+    extract_tar_gz(tar_file, tmp_dir)
+    shutil.move(tar_file, filename)
+
+
+@wrap_extract
 def extract_zip(filename, tmp_dir):
     """
     Extracts a zip archive
     """
     zipf = zipfile.ZipFile(filename)
     zipf.extractall(tmp_dir)
+
+
+@wrap_extract
+def extract_7z(filename, tmp_dir):
+    """
+    Extracts a 7z archive
+    """
+    Command('7z x -o{tmp} {file}'.format(file=filename, tmp=tmp_dir)).wait()
 
 
 def find_arc_name(uri):

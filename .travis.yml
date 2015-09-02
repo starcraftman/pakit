@@ -29,6 +29,7 @@ matrix:
     - python: 2.7
       env: TOXENV=pylint
 install: |
+  sudo apt-get install unrar p7zip-full
   pip install coveralls tox
   cp -f ./tests/.hgrc $HOME
 script: |

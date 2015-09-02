@@ -1,6 +1,7 @@
 """ Test command execution class. """
 from __future__ import absolute_import, print_function
 
+import mock
 import os
 import pytest
 import shutil
@@ -57,6 +58,15 @@ class TestExtractFuncs(object):
         extract(self.arc_file(ext), self.target)
         assert os.listdir(os.path.dirname(self.expect_file)) == ['example.txt']
 
+    def test_rar(self):
+        self.__test_ext('rar')
+
+    @mock.patch('pakit.shell.sub')
+    def test_rar_no_command(self, mock_sub):
+        mock_sub.side_effect = PakitCmdError('No cmd.')
+        with pytest.raises(PakitCmdError):
+            self.__test_ext('rar')
+
     def test_tb2(self):
         self.__test_ext('tb2')
 
@@ -69,14 +79,23 @@ class TestExtractFuncs(object):
     def test_tgz(self):
         self.__test_ext('tgz')
 
+    def test_txz(self):
+        self.__test_ext('txz')
+
     def test_tar_bz2(self):
         self.__test_ext('tar.bz2')
 
     def test_tar_gz(self):
         self.__test_ext('tar.gz')
 
+    def test_tar_xz(self):
+        self.__test_ext('tar.xz')
+
     def test_zip(self):
         self.__test_ext('zip')
+
+    def test_7z(self):
+        self.__test_ext('7z')
 
 class TestArchive(object):
     def setup(self):

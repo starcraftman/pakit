@@ -1,6 +1,7 @@
 NEXT
   - Add man page.
   - Command timeout & input file.
+  - Add Archive support for tar.xz, rar and 7z
   - Fix Bug: Not all Archive temp files cleaned.
 
 0.1.4

@@ -58,8 +58,9 @@ Just a rough guess of what I should be implementing when.
 - [x] Add archive support, supports download, hashing & extracting.
   - [x] Tar (tarfile)
   - [x] Zip (zipfile)
-  - [ ] tar.xz (cmdline)
-  - [ ] Rar (cmdline?)
+  - [x] tar.xz (xz command)
+  - [x] Rar (rar command)
+  - [x] 7z (7z command)
 - [x] Add list & searching support.
 - [x] Python 3 support
 - [x] Better error handling, rollback
