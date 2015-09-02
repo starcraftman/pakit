@@ -1,14 +1,17 @@
 """ Formula that always errors on build """
+import os
+
 from pakit import Git, Recipe
 from pakit.exc import PakitCmdError
+import tests.common as tc
 
 
 class Build(Recipe):
     """ Formula that always errors on build """
     def __init__(self):
         super(Build, self).__init__()
-        self.desc = 'Grep like tool optimized for speed'
-        self.src = 'https://github.com/ggreer/the_silver_searcher'
+        self.desc = 'Recipe always fails on build()'
+        self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {
             'stable': Git(self.src, tag='0.30.0'),

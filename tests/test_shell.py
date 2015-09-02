@@ -1,4 +1,6 @@
-""" Test command execution class. """
+"""
+Test pakit.shell
+"""
 from __future__ import absolute_import, print_function
 
 import mock
@@ -7,55 +9,76 @@ import pytest
 import shutil
 
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
-from pakit.main import global_init
-from pakit.shell import (Git, Hg, Command, Archive, find_arc_name, hash_archive,
-                         cmd_cleanup, get_extract_func, extract_tar_gz)
+from pakit.shell import (Git, Hg, Command, Archive, find_arc_name,
+                         hash_archive, cmd_cleanup, get_extract_func,
+                         extract_tar_gz)
 import pakit.shell
+import tests.common as tc
 
 
-TAR_URL = 'http://sourceforge.net/projects/tmux/files/tmux/tmux-2.0/' \
-          'tmux-2.0.tar.gz/download?use_mirror=hivelocity'
+TAR_URL = 'https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz'
+
 
 def test_find_arc_name():
     assert find_arc_name(TAR_URL)[0] == 'tmux-2.0.tar.gz'
+
 
 def test_find_arc_name_fail():
     with pytest.raises(PakitError):
         find_arc_name('archive.not.an.arc')
 
+
 def test_get_extract_func():
     assert get_extract_func('tar.gz') is extract_tar_gz
+
 
 def test_get_extract_func_not_found():
     with pytest.raises(PakitError):
         get_extract_func('tar.gzzz')
 
+
 def test_hash_archive_sha1():
-    arc = Archive(TAR_URL, target='./temp',
-                  hash='977871e7433fe054928d86477382bd5f6794dc3d')
+    expect_hash = '977871e7433fe054928d86477382bd5f6794dc3d'
+    arc = Archive(TAR_URL, target='./temp', hash=expect_hash)
     arc.download()
-    assert hash_archive(arc.arc_file, 'sha1') == '977871e7433fe054928d86477382bd5f6794dc3d'
+    assert hash_archive(arc.arc_file, 'sha1') == expect_hash
     os.remove(arc.arc_file)
+
+
+def test_cmd_cleanup():
+    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
+    with open(cmd_file, 'wb') as fout:
+        fout.write('hello'.encode())
+
+    assert os.path.exists(cmd_file)
+    cmd_cleanup()
+    assert not os.path.exists(cmd_file)
+
+
+def test_cmd_cleanup_raises():
+    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
+    os.makedirs(cmd_file)
+
+    assert os.path.exists(cmd_file)
+    with pytest.raises(OSError):
+        cmd_cleanup()
+    assert os.path.exists(cmd_file)
+    os.rmdir(cmd_file)
+
 
 class TestExtractFuncs(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.arc_dir = 'arcs'
         self.target = 'temp'
         self.expect_file = os.path.join(self.target, 'example.txt')
-        cmd = Command('git clone https://github.com/pakit/arc_fmts.git ' + self.arc_dir)
+        cmd = Command('git clone https://github.com/pakit/arc_fmts.git '
+                      + self.arc_dir)
         cmd.wait()
 
     def teardown(self):
-        try:
-            shutil.rmtree(self.arc_dir)
-        except OSError:
-            pass
-        try:
-            shutil.rmtree(self.target)
-        except OSError:
-            pass
+        tc.delete_it(self.arc_dir)
+        tc.delete_it(self.target)
 
     def arc_file(self, ext):
         return os.path.join(self.arc_dir, 'example.' + ext)
@@ -104,24 +127,18 @@ class TestExtractFuncs(object):
     def test_7z(self):
         self.__test_ext('7z')
 
+
 class TestArchive(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.test_arc = 'tmux-2.0.tar.gz'
         self.test_dir = './temp'
         self.archive = Archive(TAR_URL, target=self.test_dir,
                                hash='977871e7433fe054928d86477382bd5f6794dc3d')
 
     def teardown(self):
-        try:
-            os.remove(self.test_arc)
-        except OSError:
-            pass
-        try:
-            shutil.rmtree(self.test_dir)
-        except OSError:
-            pass
+        tc.delete_it(self.test_arc)
+        tc.delete_it(self.test_dir)
 
     def test__str__(self):
         expect = 'Archive: ' + self.archive.uri
@@ -133,7 +150,7 @@ class TestArchive(object):
 
     def test_download_bad_hash(self):
         archive = Archive(TAR_URL, target=self.test_dir,
-                               hash='bad hash')
+                          hash='bad hash')
         with pytest.raises(PakitError):
             archive.download()
 
@@ -145,26 +162,24 @@ class TestArchive(object):
     def test_hash(self):
         self.archive.get_it()
         assert self.archive.src_hash == self.archive.actual_hash
-        assert self.archive.actual_hash == '977871e7433fe054928d86477382bd5f6794dc3d'
+        expect_hash = '977871e7433fe054928d86477382bd5f6794dc3d'
+        assert self.archive.actual_hash == expect_hash
 
     def test_clean(self):
         self.archive.download()
         self.archive.clean()
         assert not os.path.exists(self.archive.target)
 
+
 class TestGit(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.test_dir = './temp'
-        git_url = 'https://github.com/ggreer/the_silver_searcher'
+        git_url = os.path.join(tc.STAGING, 'git')
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
 
     def teardown(self):
-        try:
-            shutil.rmtree(self.test_dir)
-        except OSError:
-            pass
+        tc.delete_it(self.test_dir)
 
     def test_hash(self):
         assert self.repo.src_hash == '808b32de91196b4a9a571e75ac96efa58ca90b99'
@@ -232,22 +247,20 @@ class TestGit(object):
         print(str(repo_tag))
         print(str(repo_branch))
 
-        assert str(repo_branch) == 'Git: branch: {0}, uri: {1}'.format(tag, uri)
+        expect = 'Git: branch: {0}, uri: {1}'.format(tag, uri)
+        assert str(repo_branch) == expect
         assert str(repo_tag) == 'Git: tag: {0}, uri: {1}'.format(tag, uri)
+
 
 class TestHg(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.test_dir = './temp'
-        hg_url = 'https://bitbucket.org/sjl/hg-prompt/'
+        hg_url = os.path.join(tc.STAGING, 'hg')
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
 
     def teardown(self):
-        try:
-            shutil.rmtree(self.test_dir)
-        except OSError:
-            pass
+        tc.delete_it(self.test_dir)
 
     def test_hash(self):
         assert self.repo.src_hash == '80:a6ec48f03985'
@@ -287,24 +300,6 @@ class TestHg(object):
         self.repo.update()
         assert self.repo.src_hash == latest_hash
 
-def test_cmd_cleanup():
-    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
-    with open(cmd_file, 'wb') as fout:
-        fout.write('hello'.encode())
-
-    assert os.path.exists(cmd_file)
-    cmd_cleanup()
-    assert not os.path.exists(cmd_file)
-
-def test_cmd_cleanup_raises():
-    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
-    os.makedirs(cmd_file)
-
-    assert os.path.exists(cmd_file)
-    with pytest.raises(OSError):
-        cmd_cleanup()
-    assert os.path.exists(cmd_file)
-    os.rmdir(cmd_file)
 
 class TestCommand(object):
     def test_simple_command(self):

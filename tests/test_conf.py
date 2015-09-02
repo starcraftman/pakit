@@ -1,40 +1,44 @@
-""" Test configuration code. """
+"""
+Test pakit.conf
+"""
 from __future__ import absolute_import, print_function
 
 import mock
 import os
 
 from pakit.conf import Config, InstallDB, YamlMixin
-from pakit.main import global_init
 from pakit.recipe import RecipeDB
+import tests.common as tc
 
 
 class TestYamlMixin(object):
     """ Specifically test mixin separate from targets. """
+    @classmethod
+    def setup_class(cls):
+        tc.env_setup()
+
     def setup(self):
-        self.config = YamlMixin('./test.yaml')
+        self.config_file = os.path.join(tc.STAGING, 'file.yaml')
+        self.config = YamlMixin(self.config_file)
 
     def teardown(self):
-        try:
-            os.remove(self.config.filename)
-        except OSError:
-            pass
+        tc.delete_it(self.config_file)
 
     def test_filename_get(self):
-        assert self.config.filename == './test.yaml'
+        assert self.config.filename == self.config_file
 
     @mock.patch('pakit.conf.logging')
     def test_filename_set(self, mock_log):
-        expect = './not_test.yaml'
-        self.config.filename = expect
-        mock_log.error.assert_called_with('File not found: %s', expect)
-        assert self.config.filename == expect
+        new_file = self.config_file + '2'
+        self.config.filename = new_file
+        mock_log.error.assert_called_with('File not found: %s', new_file)
+        assert self.config.filename == new_file
 
     def test_read_from(self):
         with open(self.config.filename, 'wb') as fout:
             fout.write('hello: world\n'.encode())
         obj = self.config.read_from()
-        assert type(obj) == type({})
+        assert isinstance(obj, dict)
         assert obj['hello'] == 'world'
 
     @mock.patch('pakit.conf.logging')
@@ -52,14 +56,16 @@ class TestYamlMixin(object):
 
 class TestConfig(object):
     """ Test the operation of Config class. """
+    @classmethod
+    def setup_class(cls):
+        tc.env_setup()
+
     def setup(self):
-        self.config = Config('./pakit.yaml')
+        self.config_file = os.path.join(tc.STAGING, 'pakit.yaml')
+        self.config = Config(self.config_file)
 
     def teardown(self):
-        try:
-            os.remove(self.config.filename)
-        except OSError:
-            pass
+        tc.delete_it(self.config_file)
 
     def test__str__(self):
         print()
@@ -117,24 +123,22 @@ class TestConfig(object):
         self.config.reset()
         assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
 
+
 class TestInstalledConfig(object):
     def setup(self):
-        global_init(os.path.join(os.path.dirname(__file__), 'pakit.yaml'))
-        self.fname = './installed.yaml'
-        self.config = InstallDB(self.fname)
+        self.config = tc.env_setup()
+        self.idb_file = os.path.join(tc.STAGING, 'installed.yaml')
+        self.idb = InstallDB(self.idb_file)
         self.recipe = RecipeDB().get('ag')
         self.recipe.repo = 'stable'
 
     def teardown(self):
-        try:
-            os.remove(self.fname)
-        except OSError:
-            pass
+        tc.delete_it(self.idb_file)
         self.recipe.repo = 'unstable'
 
     def test__str__(self):
         expect = [
-            'Config File: ./installed.yaml',
+            'Config File: ' + self.idb_file,
             'Contents:',
             '{',
             '  "ag": {',
@@ -143,50 +147,49 @@ class TestInstalledConfig(object):
             '  }',
             '}'
         ]
-        self.config.add(self.recipe)
-        print(str(self.config))
-        lines = str(self.config).split('\n')
+        self.idb.add(self.recipe)
+        print(str(self.idb))
+        lines = str(self.idb).split('\n')
         del lines[7]
         del lines[4]
         assert expect == lines
 
     def test__contains__(self):
-        self.config.set('ag', {'hello': 'world'})
-        assert 'ag' in self.config
-        assert 'moose' not in self.config
+        self.idb.set('ag', {'hello': 'world'})
+        assert 'ag' in self.idb
+        assert 'moose' not in self.idb
 
     def test_add(self):
-        self.config.add(self.recipe)
-        ag = self.config.get('ag')
+        self.idb.add(self.recipe)
+        ag = self.idb.get('ag')
         assert ag['hash'] == self.recipe.repo.src_hash
 
     def test_set(self):
-        self.config.set('ag', {'hello': 'world'})
-        entry = self.config.get('ag')
+        self.idb.set('ag', {'hello': 'world'})
+        entry = self.idb.get('ag')
         assert entry['hello'] == 'world'
 
     def test_get(self):
-        self.config.add(self.recipe)
-        assert self.config.get('ag') is not None
-        assert self.config.get('ag')['hash'] == self.recipe.repo.src_hash
-        self.config.remove('ag')
-        assert self.config.get('ag') is None
+        self.idb.add(self.recipe)
+        assert self.idb.get('ag') is not None
+        assert self.idb.get('ag')['hash'] == self.recipe.repo.src_hash
+        self.idb.remove('ag')
+        assert self.idb.get('ag') is None
 
     def test_remove(self):
-        self.config.add(self.recipe)
-        self.config.remove('ag')
-        assert self.config.get('ag') is None
+        self.idb.add(self.recipe)
+        self.idb.remove('ag')
+        assert self.idb.get('ag') is None
 
     def test_write(self):
-        self.config.add(self.recipe)
-        self.config.write()
-        assert os.path.exists(self.config.filename)
+        self.idb.add(self.recipe)
+        self.idb.write()
+        assert os.path.exists(self.idb_file)
 
     def test_read(self):
-        self.config.add(self.recipe)
-        self.config.write()
-        self.config = InstallDB(self.fname)
-        self.config.read()
-        entry = self.config.get('ag')
+        self.idb.add(self.recipe)
+        self.idb.write()
+        self.idb.read()
+        entry = self.idb.get('ag')
         assert entry is not None
         assert entry['hash'] == self.recipe.repo.src_hash

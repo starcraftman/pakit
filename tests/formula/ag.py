@@ -1,15 +1,15 @@
-""" Formula that always errors on link """
+""" Formula for building ag """
 import os
 
 from pakit import Git, Recipe
 import tests.common as tc
 
 
-class Link(Recipe):
-    """ Formula that always errors on link """
+class Ag(Recipe):
+    """ Grep like tool optimized for speed """
     def __init__(self):
-        super(Link, self).__init__()
-        self.desc = 'Recipe always fails on linking'
+        super(Ag, self).__init__()
+        self.desc = 'Grep like tool optimized for speed'
         self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {
@@ -20,11 +20,6 @@ class Link(Recipe):
     def build(self):
         self.cmd('./build.sh --prefix {prefix}')
         self.cmd('make install')
-        # sabotage linking
-        link_path = os.path.join('{link}', 'bin').format(**self.opts)
-        os.makedirs(link_path)
-        with open(os.path.join(link_path, 'ag'), 'wb') as fout:
-            fout.write('dummy'.encode())
 
     def verify(self):
         lines = self.cmd('{link}/bin/ag --version')

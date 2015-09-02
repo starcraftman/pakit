@@ -1,14 +1,15 @@
-""" All tests related to tasks. """
+"""
+Test pakit.task
+"""
 from __future__ import absolute_import, print_function
 
 import glob
+import logging
 import mock
 import os
 import pytest
-import shutil
 
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakit.main import global_init
 from pakit.recipe import RecipeDB
 from pakit.task import (
     subseq_match, substring_match, walk_and_link, walk_and_unlink,
@@ -16,12 +17,8 @@ from pakit.task import (
     ListInstalled, ListAvailable, SearchTask
 )
 import pakit.task
+import tests.common as tc
 
-def teardown_module(module):
-    config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-    config = global_init(config_file)
-    tmp_dir = os.path.dirname(config.get('paths.prefix'))
-    shutil.rmtree(tmp_dir)
 
 def test_subseq_match():
     haystack = 'Hello World!'
@@ -29,40 +26,42 @@ def test_subseq_match():
     assert subseq_match(haystack, 'HeWd')
     assert not subseq_match(haystack, 'Good')
 
+
 def test_substring_match():
     haystack = 'Hello World!'
     assert substring_match(haystack, 'hello')
     assert substring_match(haystack, 'Hello')
     assert not substring_match(haystack, 'HelloW')
 
+
 class TestLinking(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        config = global_init(config_file)
+        config = tc.env_setup()
         self.src = config.get('paths.prefix')
         self.dst = config.get('paths.link')
         self.teardown()
 
         self.subdir = os.path.join(self.src, 'subdir')
         os.makedirs(self.subdir)
-        os.makedirs(self.dst)
 
-        self.fnames = [os.path.join(self.src, 'file' + str(num)) for num in range(0, 6)]
-        self.fnames += [os.path.join(self.subdir, 'file' + str(num)) for num in range(0, 4)]
-        self.dst_fnames = [fname.replace(self.src, self.dst) for fname in self.fnames]
+        self.fnames = [os.path.join(self.src, 'file' + str(num))
+                       for num in range(0, 6)]
+        self.fnames += [os.path.join(self.subdir, 'file' + str(num))
+                        for num in range(0, 4)]
+        self.dst_fnames = [fname.replace(self.src, self.dst)
+                           for fname in self.fnames]
         for fname in self.fnames:
             with open(fname, 'wb') as fout:
                 fout.write('dummy'.encode())
 
     def teardown(self):
-        try:
-            shutil.rmtree(self.src)
-        except OSError:
-            pass
-        try:
-            shutil.rmtree(self.dst)
-        except OSError:
-            pass
+        tc.delete_it(self.src)
+        tc.delete_it(self.dst)
+        for path in [self.src, self.dst]:
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
 
     def test_walk_and_link_works(self):
         walk_and_link(self.src, self.dst)
@@ -94,18 +93,18 @@ class TestLinking(object):
         for fname in self.fnames:
             assert os.path.exists(fname)
 
+
 class TestTaskBase(object):
     """ Shared setup, most task tests will want this. """
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
-        self.rdb = RecipeDB()
-        self.recipe = self.rdb.get('ag')
+        self.config = tc.env_setup()
+        self.recipe = RecipeDB().get('ag')
 
     def teardown(self):
         RemoveTask(self.recipe).run()
         try:
-            os.remove(os.path.join(os.path.dirname(self.recipe.install_dir), 'installed.yaml'))
+            os.remove(os.path.join(os.path.dirname(self.recipe.install_dir),
+                                   'installed.yaml'))
         except OSError:
             pass
         try:
@@ -113,9 +112,11 @@ class TestTaskBase(object):
         except PakitCmdError:
             pass
 
+
 class DummyTask(Task):
     def run(self):
         pass
+
 
 class TestTask(TestTaskBase):
     def test__str__(self):
@@ -123,6 +124,7 @@ class TestTask(TestTaskBase):
         task = DummyTask()
         print(task)
         assert str(task) == expect
+
 
 class TestTaskRecipe(TestTaskBase):
     def test_recipe_str(self):
@@ -142,6 +144,7 @@ class TestTaskRecipe(TestTaskBase):
         print(task)
         assert expect == str(task)
 
+
 class TestTaskInstall(TestTaskBase):
     def test_is_not_installed(self):
         task = InstallTask(self.recipe)
@@ -160,45 +163,30 @@ class TestTaskInstall(TestTaskBase):
         task.run()
         assert mock_log.error.called is True
 
+
 class TestTaskRollback(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.recipe = None
 
     def teardown(self):
-        try:
-            shutil.rmtree(self.recipe.install_dir)
-        except OSError:
-            pass
-        try:
-            shutil.rmtree(self.recipe.link_dir)
-        except OSError:
-            pass
+        tc.delete_it(self.recipe.install_dir)
+        tc.delete_it(self.recipe.link_dir)
+        tc.delete_it(self.recipe.source_dir)
         try:
             self.recipe.repo.clean()
         except PakitCmdError:
             pass
 
-    def _get_recipe(self, name):
-        """ Helper for now, RecipeDB needs work """
-        mod = __import__('tests.formula.{cls}'.format(cls=name))
-        mod = getattr(mod, 'formula')
-        mod = getattr(mod, name)
-        cls = getattr(mod, name.capitalize())
-        obj = cls()
-        obj.set_config(self.config)
-        return obj
-
     def test_install_build_error(self):
-        self.recipe = self._get_recipe('build')
+        self.recipe = RecipeDB().get('build')
         with pytest.raises(PakitCmdError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
         assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
 
     def test_install_link_error(self):
-        self.recipe = self._get_recipe('link')
+        self.recipe = RecipeDB().get('link')
         with pytest.raises(PakitLinkError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
@@ -206,15 +194,15 @@ class TestTaskRollback(object):
         assert not os.path.exists(self.recipe.link_dir)
 
     def test_install_verify_error(self):
-        self.recipe = self._get_recipe('verify')
+        self.recipe = RecipeDB().get('verify')
         with pytest.raises(AssertionError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
         assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
         assert not os.path.exists(self.recipe.link_dir)
 
-    def test_update_error_rollback(self):
-        self.recipe = self._get_recipe('update')
+    def test_update_rollback_error(self):
+        self.recipe = RecipeDB().get('update')
 
         self.recipe.repo = 'stable'
         InstallTask(self.recipe).run()
@@ -224,6 +212,8 @@ class TestTaskRollback(object):
         self.recipe.repo = 'unstable'
         UpdateTask(self.recipe).run()
         assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
+        RemoveTask(self.recipe).run()
+
 
 class TestTaskRemove(TestTaskBase):
     @mock.patch('pakit.task.logging')
@@ -242,7 +232,12 @@ class TestTaskRemove(TestTaskBase):
         assert globbed == [os.path.join(task.path('prefix'), 'installed.yaml')]
         assert not os.path.exists(task.path('link'))
 
+
 class TestTaskUpdate(TestTaskBase):
+    def teardown(self):
+        super(TestTaskUpdate, self).teardown()
+        logging.error(ListInstalled().run())
+
     def test_is_current(self):
         recipe = self.recipe
         InstallTask(recipe).run()
@@ -261,7 +256,6 @@ class TestTaskUpdate(TestTaskBase):
         InstallTask(recipe).run()
         expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
         assert pakit.task.IDB.get(recipe.name)['hash'] == expect
-        # assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
 
         recipe.repo = 'unstable'
         UpdateTask(recipe).run()
@@ -288,6 +282,7 @@ class TestTaskUpdate(TestTaskBase):
         assert os.path.exists(recipe.install_dir)
         assert not os.path.exists(recipe.install_dir + '_bak')
         recipe.verify()
+
 
 class TestTaskQuery(TestTaskBase):
     def test_list_installed(self):

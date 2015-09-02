@@ -10,6 +10,7 @@ from abc import ABCMeta, abstractmethod
 
 import glob
 import os
+import sys
 
 from pakit.exc import PakitError
 from pakit.shell import Command
@@ -222,6 +223,8 @@ class RecipeDB(object):
             path: The folder containing recipes to index.
         """
         # TODO: Iterate all classes in file, only index subclassing Recipe
+        sys.path.insert(0, os.path.dirname(path))
+
         new_recs = glob.glob(os.path.join(path, '*.py'))
         new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
         if '__init__' in new_recs:
@@ -231,6 +234,8 @@ class RecipeDB(object):
         for cls in new_recs:
             obj = self.__recipe_obj(mod, cls)
             self.__db.update({cls: obj})
+
+        sys.path = sys.path[1:]
 
     def get(self, name):
         """

@@ -59,18 +59,23 @@ def extract_rar(filename, tmp_dir):
     """
     Extracts a rar archive
     """
-    os.makedirs(tmp_dir)
     success = False
     cmd_str = 'rar x {file} {tmp}'.format(file=filename, tmp=tmp_dir)
     for cmd in [cmd_str, 'un' + cmd_str]:
         try:
+            os.makedirs(tmp_dir)
             Command(cmd).wait()
             success = True
         except (OSError, PakitCmdError):
             pass
+        finally:
+            try:
+                os.rmdir(tmp_dir)
+            except OSError:
+                pass
 
     if not success:
-        raise PakitCmdError('Need `rar` or `unrar` to extract: ' + filename)
+        raise PakitCmdError('Could not extract rar: ' + filename)
 
 
 def extract_tb2(filename, tmp_dir):

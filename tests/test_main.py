@@ -1,19 +1,22 @@
-""" To be used at some point. Maybe?"""
+"""
+Test pakit.main
+"""
 from __future__ import absolute_import
 
 import mock
 import os
 import pytest
-import shutil
 
 from pakit.exc import PakitError
-from pakit.main import args_parser, global_init, main, parse_tasks
+from pakit.main import args_parser, main, parse_tasks
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
 import pakit.task
+import tests.common as tc
+
 
 class TestArgs(object):
     def setup(self):
@@ -63,8 +66,7 @@ class TestArgs(object):
 
 class TestParseTasks(object):
     def setup(self):
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
-        self.config = global_init(config_file)
+        self.config = tc.env_setup()
         self.parser = args_parser()
 
     def test_parse_install(self):
@@ -85,12 +87,9 @@ class TestParseTasks(object):
         pakit.task.IDB.add(recipe)
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
-        assert tasks[0] == UpdateTask('ag')
+        assert tasks[0] == UpdateTask(recipe.name)
         assert isinstance(tasks[0], UpdateTask)
-        try:
-            shutil.rmtree(self.config.get('paths.prefix'))
-        except OSError:
-            pass
+        pakit.task.IDB.remove(recipe.name)
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())
@@ -112,8 +111,19 @@ class TestParseTasks(object):
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], SearchTask)
 
+
 class TestMain(object):
     """ Test different argv's passed to main. """
+    @classmethod
+    def setup_class(cls):
+        tc.env_setup()
+
+    @classmethod
+    def teardown_class(cls):
+        tc.env_teardown()
+        tc.CONF = None
+        tc.env_setup()
+
     @mock.patch('pakit.main.sys')
     def test_args_none(self, mock_sys):
         main(['pakit'])
