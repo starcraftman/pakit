@@ -661,20 +661,40 @@ class Command(object):
         alive: True only if the command is still running.
         rcode: When the command finishes, is the return code.
     """
-    def __init__(self, cmd, cmd_dir=None):
+    def __init__(self, cmd, cmd_dir=None, prev_cmd=None):
+        """
+        Run a command on the system.
+
+        Note: Don't use '|' or '&', instead execute commands
+        one after another & supply prev_cmd.
+
+        Args:
+            cmd: A string that you would type into the shell.
+                If shlex.split would not correctly split the line
+                then pass a list.
+            cmd_dir: Change to this directory before executing.
+            prev_cmd: Read the stdout of this command for stdin.
+
+        Raises:
+            OSError: Usually could not find command on system.
+        """
         super(Command, self).__init__()
         if isinstance(cmd, list):
             self._cmd = cmd
         else:
             self._cmd = shlex.split(cmd)
         self._cmd_dir = cmd_dir
-        self._stdout = NamedTemporaryFile(mode='wb', delete=False,
-                                          dir=TMP_DIR, prefix='cmd',
-                                          suffix='.log')
+        stdin = None
+        if prev_cmd:
+            stdin = open(prev_cmd.stdout.name, 'r')
+
         logging.debug('CMD START: %s', self)
+        self.stdout = NamedTemporaryFile(mode='wb', delete=False,
+                                         dir=TMP_DIR, prefix='cmd',
+                                         suffix='.log')
         self._proc = sub.Popen(
             self._cmd, cwd=self._cmd_dir,
-            stdout=self._stdout, stderr=sub.STDOUT,
+            stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT,
             preexec_fn=os.setsid
         )
 
@@ -687,7 +707,7 @@ class Command(object):
         try:
             if self.alive:
                 self.terminate()  # pragma: no cover
-            self._stdout.close()
+            self.stdout.close()
             prefix = '\n    '
             msg = prefix + prefix.join(self.output())
             logging.debug("CMD LOG: %s%s", self, msg)
@@ -724,7 +744,7 @@ class Command(object):
         if self._proc is None:
             return []  # pragma: no cover
 
-        with open(self._stdout.name, 'r') as out:
+        with open(self.stdout.name, 'r') as out:
             lines = [line.rstrip() for line in out.readlines()]
 
         return lines[-last_n:]
@@ -754,7 +774,7 @@ class Command(object):
         """
         while self._proc.poll() is None:
             time.sleep(0.25)
-            interval = time.time() - os.path.getmtime(self._stdout.name)
+            interval = time.time() - os.path.getmtime(self.stdout.name)
             if interval > max_time:
                 self.terminate()
                 raise PakitCmdTimeout('\n'.join(self.output(10)))

@@ -345,3 +345,10 @@ class TestCommand(object):
         cmd = Command('sleep 10')
         with pytest.raises(PakitCmdTimeout):
             cmd.wait(2)
+
+    def test_prev_cmd_stdin(self):
+        cmd = Command('echo -e "Hello\nGoodbye!"')
+        cmd.wait()
+        cmd2 = Command('grep "ood"', prev_cmd=cmd)
+        cmd2.wait()
+        assert cmd2.output() == ['Goodbye!']
