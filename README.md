@@ -28,13 +28,15 @@ export PATH=$(pwd)/pakit/bin:$PATH
 sudo pip install argparse PyYAML
 ```
 
-**Path Of Installs**: All recipes get linked to `paths.link`, by default `/tmp/pakit/link` so:
+**Path Of Installs**: All recipes get linked to `paths.link`,
+by default `/tmp/pakit/link`. To use programs put it on PATH.:
+
 ```bash
 export PATH=/tmp/pakit/links:$PATH
 ```
 
-**IMPORTANT**: If you like pakit, you will have to make above exports permanent by adding to your shell configuration,
-usually `.bashrc` or `.bash_aliases`.
+**IMPORTANT**: If you like pakit, you will have to make above exports permanent
+by adding to your shell configuration, usually `.bashrc` or `.bash_aliases`.
 
 ### Run Commands
 
@@ -57,9 +59,9 @@ ag --hidden --depth 2 --shell export
 
 **Remove Package**: `pakit -r tmux`
 
-**What CAN be installed**: `pakit -a`
+**What CAN Be Installed**: `pakit -a`
 
-**What IS installed**: `pakit -l`
+**What IS Installed**: `pakit -l`
 
 **Edit Config**:
 Now let us examine simple recipe configuration.
@@ -72,7 +74,10 @@ ag:
 This will tell pakit to change from 'stable' to 'unstable' source for ag.
 `unstable` means latest commit to source code, `stable` means some tagged release.
 
-**Update Packages (specifically ag)**: `pakit -u`
+**Update Packages (will update ag)**: `pakit -u`
+
+Update command will fetch latest commits from source code on specified branches
+or tags and build if newer than current.
 
 ### More Information
 
