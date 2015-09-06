@@ -10,6 +10,72 @@
 [![Version](https://img.shields.io/pypi/v/pakit.svg)](https://pypi.python.org/pypi/pakit)
 [![Status](https://img.shields.io/pypi/status/pakit.svg)](https://pypi.python.org/pypi/pakit)
 
+## Description
+
+It is a small, python based package manage that builds from source.
+
+You want a longer speach? Skip to the Overview section.
+
+## Pakit In 1 Minute
+
+### Install
+
+**Latest**: Clone from Github
+
+```bash
+git clone https://github.com/starcraftman/pakit.git
+export PATH=$(pwd)/pakit/bin:$PATH
+sudo pip install argparse PyYAML
+```
+
+**Path Of Installs**: All recipes get linked to `/tmp/pakit/link` by default so:
+```bash
+export PATH=/tmp/pakit/links:$PATH
+```
+
+**IMPORTANT**: If you like pakit, you will have to make above exports permanent by adding to your shell configuration,
+usually `.bashrc` or `.bash_aliases`.
+
+### Run Commands
+
+Do these in order!
+
+**Get Help Any Time**: `pakit -h`
+
+**Generate Config**: `pakit --create-conf`
+
+NB: This writes default config used to file in home: `~/.pakit.yaml`
+
+**Install Packages**: `pakit -i ag tmux`
+
+**Remove Package**: `pakit -r tmux`
+
+**What CAN be installed**: `pakit -a`
+
+**What IS installed**: `pakit -l`
+
+Now let us examine simple recipe configuration & updating.
+Edit your `~/.pakit.yaml` file and add the following line at the bottom, then save & exit.
+
+```yaml
+ag:
+  repo: unstable
+```
+
+**Update Packages (specifically ag)**: `pakit -u`
+
+### More Information
+
+For developer information on how it works see `pydoc pakit` and submodules.
+
+For more user information, see the man page inside the package.
+
+For where I am going, see DESIGN.md & the waffle.io page.
+
+### Dev Setup
+
+To install all dev packages run in the pakit root: `python setup.py deps`
+
 ## Overview
 
 Basically I want to make a universal package manager on python.

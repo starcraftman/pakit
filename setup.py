@@ -69,6 +69,22 @@ class ReleaseCommand(Command):
             subprocess.call(shlex.split(cmd))
 
 
+class InstallDeps(Command):
+    """ Install dependencies to run & test. """
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        print('Installing runtime & testing dependencies')
+        cmd = 'sudo pip install ' + ' '.join(RUN_DEPS + TEST_DEPS)
+        subprocess.call(shlex.split(cmd))
+
+
 class PyTest(TestCommand):
     """ Testing is done with py.test """
     user_options = []
@@ -87,6 +103,8 @@ class PyTest(TestCommand):
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
+RUN_DEPS = ['argparse', 'PyYAML']
+TEST_DEPS = ['coverage', 'flake8', 'mock', 'pytest', 'tox']
 setup(
     name='pakit',
     version=pakit.__version__,
@@ -132,17 +150,17 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['argparse', 'PyYAML'],
+    install_requires=RUN_DEPS,
 
-    tests_require=['coverage', 'mock', 'pytest', 'tox'],
+    tests_require=TEST_DEPS,
 
     # # List additional groups of dependencies here (e.g. development
     # # dependencies). You can install these using the following syntax,
     # # for example:
     # # $ pip install -e .[dev,test]
     extras_require={
-        'dev': ['flake8', 'pylint', 'Sphinx'],
-        'test': ['coverage', 'mock', 'pytest', 'tox'],
+        'dev': TEST_DEPS + ['Sphinx'],
+        'test': TEST_DEPS,
     },
 
     # # If there are data files included in your packages that need to be
@@ -169,6 +187,7 @@ setup(
 
     cmdclass={
         'clean': CleanCommand,
+        'deps': InstallDeps,
         'release': ReleaseCommand,
         'test': PyTest,
     }
