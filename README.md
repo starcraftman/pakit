@@ -48,6 +48,13 @@ NB: This writes default config used to file in home: `~/.pakit.yaml`
 
 **Install Packages**: `pakit -i ag tmux`
 
+**Use Programs**: Verify that the programs work, ag is a grep like tool.
+
+```bash
+which ag
+ag --hidden --depth 2 --shell export
+```
+
 **Remove Package**: `pakit -r tmux`
 
 **What CAN be installed**: `pakit -a`
