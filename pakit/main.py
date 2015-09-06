@@ -79,6 +79,10 @@ def global_init(config_file):
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'pakit_recipes')
     recipes.index(default)
+    try:
+        recipes.index(config.get('paths.recipes'))
+    except KeyError:
+        pass
     pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     return config
@@ -133,9 +137,13 @@ def args_parser():
     Alpha Notes:
         `{0} --create-conf` will create the default config in $HOME/.pakit.yaml
 
-        DESIGN.md explains the config options & recipe format
+        Please see distributed man page & pydoc for more information.
+        DESIGN.md might also have some of the information.
 
         pakit_recipes/ag.py is an example recipe
+
+        User recipes can be put in $HOME/.pakit/recipes by default.
+        If two recipes have same name, last one in wins.
     """.format(prog_name)
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.

@@ -70,6 +70,7 @@ class TestConfig(object):
     def test__str__(self):
         print()
         print(str(self.config))
+        user_recs = os.path.expanduser('~/.pakit/recipes')
         expect = [
             'Config File: {0}'.format(self.config.filename),
             'Contents:',
@@ -84,6 +85,7 @@ class TestConfig(object):
             '  "paths": {',
             '    "link": "/tmp/pakit/links",',
             '    "prefix": "/tmp/pakit/builds",',
+            '    "recipes": "{0}",'.format(user_recs),
             '    "source": "/tmp/pakit/src"',
             '  }',
             '}',

@@ -83,6 +83,7 @@ This is an example config:
    paths:
       link: /tmp/pakit/links
       prefix: /tmp/pakit/builds
+      recipes: /home/username/.pakit/recipes
       source: /tmp/pakit/src
    ag:
       repo: unstable
@@ -102,6 +103,11 @@ paths.prefix
    All recipes will be installed into this path.
    Using the above config, the recipe **ag** would be installed to
    **/tmp/pakit/builds/ag**.
+
+paths.recipes
+   Path to a folder with user created recipes. Path must be a valid package
+   name according to python rules. Importantly this means base folder
+   can **NOT** be a hidden directory (leading '.').
 
 paths.source
    The path where source code will be downloaded & built.

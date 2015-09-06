@@ -20,6 +20,7 @@ TEMPLATE = {
     'paths': {
         'link': '/tmp/pakit/links',
         'prefix': '/tmp/pakit/builds',
+        'recipes': os.path.expanduser('~/.pakit/recipes'),
         'source': '/tmp/pakit/src',
     },
     'log': {

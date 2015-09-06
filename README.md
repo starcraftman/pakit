@@ -48,7 +48,7 @@ Just a rough guess of what I should be implementing when.
 ### 0.1
 - [x] Implement basic tasks to install & remove 'ag' program.
 - [x] Support Git & Hg repositories.
-- [x] Simple config from `.pakit.yml`.
+- [x] Simple config from `.pakit.yaml`.
 - [x] Upgrade logic.
 - [x] User defined recipe locations via config.
 - [x] Pick a license.

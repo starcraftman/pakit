@@ -6,14 +6,14 @@
 * `pakit --list`                  -- List installed programs
 * `pakit --available`             -- List ALL available formula
 * `pakit --search lib`            -- Display matching avilable recipes
-* `pakit --conf ./a.yml -i ag`    -- Override default config
+* `pakit --conf ./a.yaml -i ag`   -- Override default config
 * 'pakit --display vim ag`        -- Display package information
 
 Short opts in order: -i -u -r -l -a -s -c -d
 
 ## Configuration
 
-File config by a YAML file, default at `~/.pakit.yml`.
+File config by a YAML file, default at `~/.pakit.yaml`.
 
 ```yaml
 # Default options passed to all recipes self.opts, can be overwridden by specific opts.
