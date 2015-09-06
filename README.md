@@ -28,7 +28,7 @@ export PATH=$(pwd)/pakit/bin:$PATH
 sudo pip install argparse PyYAML
 ```
 
-**Path Of Installs**: All recipes get linked to `/tmp/pakit/link` by default so:
+**Path Of Installs**: All recipes get linked to `paths.link`, by default `/tmp/pakit/link` so:
 ```bash
 export PATH=/tmp/pakit/links:$PATH
 ```
@@ -61,27 +61,32 @@ ag --hidden --depth 2 --shell export
 
 **What IS installed**: `pakit -l`
 
-Now let us examine simple recipe configuration & updating.
+**Edit Config**:
+Now let us examine simple recipe configuration.
 Edit your `~/.pakit.yaml` file and add the following line at the bottom, then save & exit.
 
 ```yaml
 ag:
   repo: unstable
 ```
+This will tell pakit to change from 'stable' to 'unstable' source for ag.
+`unstable` means latest commit to source code, `stable` means some tagged release.
 
 **Update Packages (specifically ag)**: `pakit -u`
 
 ### More Information
 
-For developer information on how it works see `pydoc pakit` and submodules.
-
 For more user information, see the man page inside the package.
 
-For where I am going, see DESIGN.md & the waffle.io page.
+For developer information on how it works see `pydoc pakit` and submodules.
+
+For where I am going, see `DESIGN.md` & the waffle.io page.
 
 ### Dev Setup
 
 To install all dev packages run in the pakit root: `python setup.py deps`
+
+To run the test suite: `tox`
 
 ## Overview
 
