@@ -16,11 +16,20 @@ It is a small, python based package manage that builds from source.
 
 You want a longer speach? Skip to the Overview section.
 
-## Pakit In 1 Minute
+## Pakit In 5 Minutes
 
 ### Install
 
-**Latest**: Clone from Github
+Currently, pakit can't handle dependencies so anything you build has to have
+dependencies met already. Work in progress.
+
+Step 1: Install dependencies to system.
+
+```bash
+sudo apt-get install build-essential automake git python-pip liblzma-dev libevent-dev ncurses-dev
+```
+
+Step 2: Get Pakit From Github & Put On $PATH
 
 ```bash
 git clone https://github.com/starcraftman/pakit.git
@@ -28,11 +37,13 @@ export PATH=$(pwd)/pakit/bin:$PATH
 sudo pip install argparse PyYAML
 ```
 
-**Path Of Installs**: All recipes get linked to `paths.link`,
-by default `/tmp/pakit/link`. To use programs put it on PATH.:
+Note: If you installed from pip, above step wouldn ot be needed.
+
+Step 3:: Put Install Location on $PATH
+by default `/tmp/pakit/link/bin` has all binaries. To use programs put it on PATH.:
 
 ```bash
-export PATH=/tmp/pakit/links:$PATH
+export PATH=/tmp/pakit/links/bin:$PATH
 ```
 
 **IMPORTANT**: If you like pakit, you will have to make above exports permanent
@@ -40,56 +51,115 @@ by adding to your shell configuration, usually `.bashrc` or `.bash_aliases`.
 
 ### Run Commands
 
-Do these in order!
+Run these commands in order to demonstrate pakit.
 
-**Get Help Any Time**: `pakit -h`
+**Print Help**
 
-**Generate Config**: `pakit --create-conf`
+```bash
+pakit -h
+```
 
-NB: This writes default config used to file in home: `~/.pakit.yaml`
+**Write User Config**
 
-**Install Packages**: `pakit -i ag tmux`
+Writes the default config to a file in home, default: `~/.pakit.yaml`
 
-**Use Programs**: Verify that the programs work, ag is a grep like tool.
+```bash
+pakit --create-conf
+```
+
+**Install Packages**
+
+Install two packages, the grep program `ag` and the screen replacement
+`tmux` to `paths.prefix` and link to `paths.link`. May take a while.
+
+```bash
+pakit -i ag tmux
+```
+
+**Check Programs**
+
+Verify that installed programs work.
+
+* `which` should print out location of binary.
+* `ag` command will search your hidden shell files for `export` commands.
 
 ```bash
 which ag
 ag --hidden --depth 2 --shell export
 ```
 
-**Remove Package**: `pakit -r tmux`
+**Remove Package**
 
-**What CAN Be Installed**: `pakit -a`
+Simple remove, no trace will be left.
 
-**What IS Installed**: `pakit -l`
+```bash
+pakit -r tmux
+```
 
-**Edit Config**:
-Now let us examine simple recipe configuration.
-Edit your `~/.pakit.yaml` file and add the following line at the bottom, then save & exit.
+**List Available Recipes**
+
+Prints out any recipe pakit can run.
+
+```bash
+pakit -a
+```
+
+**List Installed Programs**
+
+Prints out recipes that have installed programs.
+
+```bash
+pakit -l
+```
+
+**Edit Config**
+
+Now to demonstrate configuration, let us change `ag` from building from the
+last `stable` release to the latest commit (i.e. `unstable`).
+
+Edit your `~/.pakit.yaml` file and add the following line at the end. Save and exit.
 
 ```yaml
 ag:
   repo: unstable
 ```
-This will tell pakit to change from 'stable' to 'unstable' source for ag.
-`unstable` means latest commit to source code, `stable` means some tagged release.
 
-**Update Packages (will update ag)**: `pakit -u`
+All recipes should have a `stable` and `unstable` source at least.
+This newly added `ag` section, overrides the `defaults` section only for the `ag` recipe.
 
-Update command will fetch latest commits from source code on specified branches
-or tags and build if newer than current.
+**Update Packages**:
+
+Updates all recipes on the system. If there are new commits on the branch, a tag has
+been changed or the URI/archive has changed it should force a rebuild of the new source.
+At this time, `ag` will be rebuilt from the latest commit to its repostiory.
+
+```bash
+pakit -u
+```
+
+**Verify Update Changed Ag**
+
+This command should list a different hash than before. You may have to scroll up to confirm.
+
+```bash
+pakit -l
+```
 
 ### More Information
 
-For more user information, see the man page inside the package.
+From inside the pakit source folder:
 
-For developer information on how it works see `pydoc pakit` and submodules.
+* Consult man: `man pakit`
 
-For where I am going, see `DESIGN.md` & the waffle.io page.
+* Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
+
+* Read `DESIGN.md` for details on design. A bit out of date.
+
+* See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
 
 ### Dev Setup
 
-To install all dev packages run in the pakit root: `python setup.py deps`
+To install all needed pip packages: `python setup.py deps`
 
 To run the test suite: `tox`
 
