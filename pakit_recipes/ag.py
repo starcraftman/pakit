@@ -7,7 +7,7 @@ class Ag(Recipe):
     def __init__(self):
         super(Ag, self).__init__()
         self.desc = 'Grep like tool optimized for speed'
-        self.src = 'https://github.com/ggreer/the_silver_searcher'
+        self.src = 'https://github.com/ggreer/the_silver_searcher.git'
         self.homepage = self.src
         self.repos = {
             'stable': Git(self.src, tag='0.30.0'),

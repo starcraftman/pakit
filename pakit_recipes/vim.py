@@ -7,7 +7,7 @@ class Vim(Recipe):
     def __init__(self):
         super(Vim, self).__init__()
         self.desc = 'The classic mode based terminal editor'
-        self.src = 'https://github.com/vim/vim'
+        self.src = 'https://github.com/vim/vim.git'
         self.homepage = 'www.vim.org'
         self.repos = {
             'stable': Git(self.src),
