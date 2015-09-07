@@ -25,8 +25,8 @@ dependencies met already. Work in progress.
 
 **Install Dependencies**
 
-Set up the user build environment to build ag & git. Pakit only really depends
-on the commands a recipe needs to execute.
+Set up the user build environment to build `ag` & `tmux`. Pakit only really depends
+on the commands a recipe needs to execute. On Ubuntu you would need:
 
 ```bash
 sudo apt-get install build-essential automake git python-pip liblzma-dev libevent-dev ncurses-dev
