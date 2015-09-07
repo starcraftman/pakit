@@ -14,7 +14,7 @@
 
 It is a small, python based package manage that builds from source.
 
-You want a longer speach? Skip to the Overview section.
+You want a longer speach? Skip to the [Overview](https://github.com/starcraftman/pakit#overview) section.
 
 ## Try Pakit In 5 Minutes
 
