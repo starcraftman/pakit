@@ -118,6 +118,7 @@ Edit your `~/.pakit.yaml` file and add the following line at the end. Save and e
 ```yaml
 ag:
   repo: unstable
+```
   
 All recipes should have a `stable` and `unstable` source at least.
 This newly added `ag` section, overrides the `defaults` section only for the `ag` recipe.
