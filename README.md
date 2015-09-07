@@ -12,7 +12,7 @@
 
 ## Description
 
-It is a small, python based package manage that builds from source.
+It is a small, python based package manager that builds from source.
 
 Want a longer explanation? Skip to the [Overview](https://github.com/starcraftman/pakit#overview) section.
 
