@@ -23,13 +23,19 @@ You want a longer speach? Skip to the Overview section.
 Currently, pakit can't handle dependencies so anything you build has to have
 dependencies met already. Work in progress.
 
-Step 1: Install dependencies to system.
+**Install Dependencies**
+
+Set up the user build environment to build ag & git. Pakit only really depends
+on the commands a recipe needs to execute.
 
 ```bash
 sudo apt-get install build-essential automake git python-pip liblzma-dev libevent-dev ncurses-dev
 ```
 
-Step 2: Get Pakit From Github & Put On $PATH
+**Get Pakit From Github & Put On $PATH**
+
+We get the source code from git and put it on the path.
+Since we aren't installing from pip, we must manually install those packages.
 
 ```bash
 git clone https://github.com/starcraftman/pakit.git
@@ -37,17 +43,19 @@ export PATH=$(pwd)/pakit/bin:$PATH
 sudo pip install argparse PyYAML
 ```
 
-Note: If you installed from pip, above step wouldn ot be needed.
+Note: If you installed from pip, above step is not needed.
 
-Step 3:: Put Install Location on $PATH
-by default `/tmp/pakit/link/bin` has all binaries. To use programs put it on PATH.:
+**Put Install Location On $PATH**
+
+Pakit will install everthing under `/tmp` by default, so don't worry about conflicts.
+All binaries will be under `/tmp/pakit/link/bin` by default, so we will put it on $PATH.
 
 ```bash
 export PATH=/tmp/pakit/links/bin:$PATH
 ```
 
-**IMPORTANT**: If you like pakit, you will have to make above exports permanent
-by adding to your shell configuration, usually `.bashrc` or `.bash_aliases`.
+**IMPORTANT**: If you like pakit, you will have to make the above exports permanent.
+Do this by adding them to your shell configuration, usually `.bashrc` or `.bash_aliases`.
 
 ### Run Commands
 
@@ -159,7 +167,7 @@ From inside the pakit source folder:
 
 ### Dev Setup
 
-To install all needed pip packages: `python setup.py deps`
+Install all development packages: `python setup.py deps`
 
 To run the test suite: `tox`
 
