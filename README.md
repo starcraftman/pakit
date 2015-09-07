@@ -16,7 +16,7 @@ It is a small, python based package manage that builds from source.
 
 You want a longer speach? Skip to the Overview section.
 
-## Pakit In 5 Minutes
+## Try Pakit In 5 Minutes
 
 ### Install
 
@@ -153,7 +153,7 @@ This command should list a different hash than before. You may have to scroll up
 pakit -l
 ```
 
-### More Information
+## More Information
 
 From inside the pakit source folder:
 
@@ -165,7 +165,7 @@ From inside the pakit source folder:
 
 * See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
 
-### Dev Setup
+## Dev Setup
 
 Install all development packages: `python setup.py deps`
 
