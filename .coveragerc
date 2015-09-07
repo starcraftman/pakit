@@ -8,6 +8,7 @@ exclude_lines =
   argv = sys.argv
   raise NotImplementedError
   task.run()
+  logging.getLogger
 
 show_missing = True
 ; vim:set ft=dosini et sw=2 ts=2 sts=2:

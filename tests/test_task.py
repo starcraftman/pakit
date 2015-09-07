@@ -127,9 +127,6 @@ class TestTask(TestTaskBase):
 
 
 class TestTaskRecipe(TestTaskBase):
-    def test_recipe_str(self):
-        assert RecipeTask(self.recipe).recipe is self.recipe
-
     def test_recipe_object(self):
         assert RecipeTask(self.recipe).recipe is self.recipe
 
@@ -139,7 +136,7 @@ class TestTaskRecipe(TestTaskBase):
         assert InstallTask('ag') != InstallTask('vim')
 
     def test__str__(self):
-        expect = 'RecipeTask: ag           Grep like tool optimized for speed'
+        expect = 'RecipeTask: ag'
         task = RecipeTask(self.recipe)
         print(task)
         assert expect == str(task)

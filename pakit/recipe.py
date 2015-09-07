@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
 import glob
+import logging
 import os
 import sys
 
@@ -164,6 +165,7 @@ class Recipe(object):
 
         # TODO: Later, pickup opts from config & extend with prefix.
         cmd_str = cmd_str.format(**self.opts)
+        logging.getLogger('pakit').info('Executing: %s', cmd_str)
         cmd = Command(cmd_str, cmd_dir)
         cmd.wait()
 

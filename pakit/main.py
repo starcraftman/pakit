@@ -121,6 +121,15 @@ def init_logging(log_file):
     stream.setFormatter(my_fmt)
     root.addHandler(stream)
 
+    # Logger for informing user
+    pak_fmt = 'pakit: %(asctime)s %(message)s'
+    pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
+    stream_i = logging.StreamHandler()
+    stream_i.setFormatter(pak_info)
+    pak = logging.getLogger('pakit')
+    pak.setLevel(logging.INFO)
+    pak.addHandler(stream_i)
+
 
 def args_parser():
     """
@@ -212,6 +221,7 @@ def main(argv=None):
             sys.exit(1)
 
         for task in tasks:
+            logging.getLogger('pakit').info('Running: %s', str(task))
             task.run()
     except PakitError as exc:
         logging.error(exc)

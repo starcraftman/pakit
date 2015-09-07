@@ -18,6 +18,7 @@ from pakit.shell import Command
 
 IDB = None
 PREFIX = '\n  '
+USER = logging.getLogger('pakit')
 
 
 def walk_and_link(src, dst):
@@ -125,7 +126,7 @@ class RecipeTask(Task):
 
     def __str__(self):
         return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
-                                        recipe=self.recipe)
+                                        recipe=self.recipe.name)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -169,6 +170,7 @@ class InstallTask(RecipeTask):
         Args:
             exc: The exception that was raised.
         """
+        USER.info('Rolling Back Build: %s', self.recipe.name)
         cascade = False
         if isinstance(exc, AssertionError):
             logging.error('Error during verify() of %s', self.recipe.name)
@@ -200,9 +202,13 @@ class InstallTask(RecipeTask):
             return
 
         try:
+            USER.info('Downloading From: %s', str(self.recipe.repo))
             self.recipe.repo.get_it()
+            USER.info('Building Source: %s', self.recipe.name)
             self.recipe.build()
+            USER.info('Linking Program: %s', self.recipe.name)
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
+            USER.info('Verifying Program: %s', self.recipe.name)
             self.recipe.verify()
             IDB.add(self.recipe)
             self.recipe.repo.clean()
@@ -251,6 +257,7 @@ class UpdateTask(RecipeTask):
             - Move the installation to a backup location.
             - Remove the IDB entry.
         """
+        USER.info('Saving Old Install: %s', self.recipe.name)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         self.old_entry = IDB.get(self.recipe.name)
         IDB.remove(self.recipe.name)
@@ -260,6 +267,7 @@ class UpdateTask(RecipeTask):
         """
         The update failed, reverse the actions of save_old_install.
         """
+        USER.info('Restoring Old Install: %s', self.recipe.name)
         shutil.move(self.back_dir, self.recipe.install_dir)
         IDB.set(self.recipe.name, self.old_entry)
         walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
@@ -270,6 +278,7 @@ class UpdateTask(RecipeTask):
         """
         logging.debug('Updating: %s', self.recipe.name)
 
+        USER.info('Checking For Updates: %s', self.recipe.name)
         if IDB.get(self.recipe.name)['hash'] == self.recipe.repo.src_hash:
             return
 
