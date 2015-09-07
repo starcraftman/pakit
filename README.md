@@ -18,7 +18,7 @@ Want a longer explanation? Skip to the [Overview](https://github.com/starcraftma
 
 ## Try Pakit In 5 Minutes
 
-See the [demo](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
+### [CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
 
 ## More Information
 
