@@ -6,9 +6,9 @@
 * You should be able to simply copy & paste into a terminal the commands put
 inside code boxes. These commands are based on my Ubuntu machine.
 
-## Install
+## Build Environment
 
-Currently, pakit can't handle dependencies so anything you build has to have
+Currently, pakit can't handle recipe dependencies so anything you build has to have
 dependencies met by the system. 
 
 **Install Dependencies**
@@ -19,31 +19,6 @@ on the commands a recipe needs to execute. On Ubuntu you would need:
 ```bash
 sudo apt-get install build-essential automake git python-pip liblzma-dev libevent-dev ncurses-dev
 ```
-
-**Get Pakit From Github & Put On $PATH**
-
-We get the source code from git and put it on the path.
-Since we aren't installing from pip, we must manually install those packages.
-
-```bash
-git clone https://github.com/starcraftman/pakit.git
-export PATH=$(pwd)/pakit/bin:$PATH
-sudo pip install argparse PyYAML
-```
-
-Note: If you installed from pip, above step is not needed.                                                        
-
-**Put Install Location On $PATH**
-
-Pakit will install everthing under `/tmp` by default, so don't worry about conflicts.
-All binaries will be under `/tmp/pakit/link/bin` by default, so we will put it on $PATH.
-
-```bash
-export PATH=/tmp/pakit/links/bin:$PATH
-```
-
-**IMPORTANT**: If you like pakit, you will have to make the above exports permanent.
-Do this by adding them to your shell configuration, usually `.bashrc` or `.bash_aliases`.
 
 ## Run Commands
 

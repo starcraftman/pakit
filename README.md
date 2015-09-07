@@ -16,7 +16,45 @@ It is a small, python based package manage that builds from source.
 
 Want a longer explanation? Skip to the [Overview](https://github.com/starcraftman/pakit#overview) section.
 
+## Install Pakit
+
+To install pakit, use the **pip** or the **Github** method. Then modify your **PATH**.
+
+**Github**
+
+Fetch the latest from the source. Works unless the build badge says failing.
+
+```bash
+git clone https://github.com/starcraftman/pakit.git
+export PATH=$(pwd)/pakit/bin:$PATH
+sudo pip install argparse PyYAML
+```
+
+**pip**
+
+Install the latest stable pip release. It might be old but working.
+
+```bash
+sudo pip install pakit
+```
+
+**PATH**
+
+By default, pakit will install programs into `paths.prefix`.
+The default value is: `/tmp/pakit/links`.
+So all binaries will be in: `/tmp/pakit/links/bin`.
+To use the built programs you must put them on your $PATH.
+
+```bash
+export PATH=/tmp/pakit/links/bin:$PATH
+```
+
+The above exports will only last for the terminal session.
+To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
+
 ## Try Pakit In 5 Minutes
+
+After having installed, follow the demo.
 
 ### [CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
 
@@ -28,15 +66,13 @@ From inside the pakit source folder:
 
 * Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
 
-* Read `DESIGN.md` for details on design. A bit out of date.
+* Install all development packages: `python setup.py deps`
+
+* Run the test suite: `tox`
 
 * See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
 
-## Dev Setup
-
-Install all development packages: `python setup.py deps`
-
-To run the test suite: `tox`
+* Read `DESIGN.md` for details on design. A bit out of date.
 
 ## Overview
 
