@@ -54,9 +54,11 @@ To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
 
 ## Try Pakit In 5 Minutes
 
-After having installed, follow the demo.
+After having installed PakIt, try a simple demo.
 
-### [CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
+![PakIt Demo](http://cdn.makeagif.com/media/9-08-2015/-3StlV.gif)
+
+### [FOR DEMO STEPS CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
 
 ## More Information
 
