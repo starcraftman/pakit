@@ -85,6 +85,19 @@ def global_init(config_file):
         pass
     pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
+    # setup man during init
+    src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
+    dst = os.path.join(config.get('paths.link'), 'share', 'man',
+                       'man1', 'pakit.1')
+    try:
+        os.makedirs(os.path.dirname(dst))
+    except OSError:
+        pass
+    try:
+        os.symlink(src, dst)
+    except OSError:
+        pass
+
     return config
 
 

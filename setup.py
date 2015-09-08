@@ -9,6 +9,7 @@ import glob
 import os
 import pakit
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -60,6 +61,7 @@ class ReleaseCommand(Command):
         pass
 
     def run(self):
+        self.copy_files()
         cmds = [
             'make -C ./docs man',
             'python setup.py sdist --formats=gztar,zip',
@@ -67,6 +69,22 @@ class ReleaseCommand(Command):
         ]
         for cmd in cmds:
             subprocess.call(shlex.split(cmd))
+
+    def copy_files(self):
+        target = os.path.join('pakit', 'extra')
+        to_target = ['CHANGELOG.txt', 'DEMO.md', 'LICENSE.txt', 'README.md',
+                     'share/man/man1/pakit.1']
+
+        try:
+            shutil.rmtree(target)
+        except OSError:
+            pass
+        try:
+            os.makedirs(target)
+        except OSError:
+            pass
+        for path in to_target:
+            shutil.copy(path, target)
 
 
 class InstallDeps(Command):
@@ -166,9 +184,10 @@ setup(
     # # If there are data files included in your packages that need to be
     # # installed, specify them here.  If using Python 2.6 or less, then these
     # # have to be included in MANIFEST.in as well.
-    # package_data={
-        # 'sample': ['package_data.dat'],
-    # },
+    package_data={
+        'pakit': ['extra/CHANGELOG.txt', 'extra/DEMO.md', 'extra/LICENSE.txt',
+                  'extra/README.md', 'extra/pakit.1'],
+    },
 
     # # Although 'package_data' is the preferred approach, in some case you may
     # # need to place data files outside of your packages. See:

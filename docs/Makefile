@@ -131,8 +131,9 @@ man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
-	mkdir -p ../share/man/man1
+	mkdir -p ../share/man/man1 ../pakit/extra
 	cp -f $(BUILDDIR)/man/pakit.1 ../share/man/man1
+	cp -f $(BUILDDIR)/man/pakit.1 ../pakit/extra
 
 texinfo:
 	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo

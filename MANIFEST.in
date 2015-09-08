@@ -2,6 +2,9 @@ include CHANGELOG.txt
 include DESIGN.md
 include LICENSE.txt
 include README.md
-include tox.ini
-include .coveragerc
-include .pylintrc
+include share/man/man1/pakit.1
+include extra/pakit.1
+include extra/CHANGELOG.txt
+include extra/DESIGN.md
+include extra/LICENSE.txt
+include extra/README.md

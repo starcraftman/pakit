@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import time
-import yaml
+import yaml  # pylint: disable=F0401
 
 TEMPLATE = {
     'defaults': {
