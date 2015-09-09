@@ -179,7 +179,7 @@ def args_parser():
                         default=os.path.expanduser('~/.pakit.yaml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
-                        help='(over)write the config to CONF')
+                        help='write the default config to CONF')
     parser.add_argument('-d', '--display', nargs='+', metavar='PROG',
                         help='show detailed information on recipe')
     mut1.add_argument('-i', '--install', nargs='+',
@@ -194,6 +194,34 @@ def args_parser():
                       help='update installed programs')
 
     return parser
+
+
+def write_config(config):
+    """
+    Writes the DEFAULT config to the config file.
+    Overwrites the file if present.
+
+    Raises:
+        PakitError: File exists and is a directory.
+        PakitError: File could not be written to.
+    """
+    user = logging.getLogger('pakit')
+
+    try:
+        os.remove(config.filename)
+    except OSError:
+        if os.path.isdir(config.filename):
+            raise PakitError('Config path is a directory.')
+    try:
+        config.reset()
+        config.write()
+        msg = 'Wrote default config to: ' + config.filename
+        logging.debug(msg)
+        user.info(msg)
+    except (IOError, OSError):
+        raise PakitError('Failed to write to ' + config.filename)
+    finally:
+        sys.exit(0)
 
 
 # TODO: Path modification during operation by os.environ
@@ -220,11 +248,7 @@ def main(argv=None):
     logging.debug('CLI: %s', args)
 
     if args.create_conf:
-        config.write()
-        msg = 'Wrote config to: ' + args.conf
-        logging.debug(msg)
-        print(msg)
-        sys.exit(0)
+        write_config(config)
 
     try:
         tasks = parse_tasks(args)

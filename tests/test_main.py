@@ -8,7 +8,7 @@ import os
 import pytest
 
 from pakit.exc import PakitError
-from pakit.main import args_parser, main, parse_tasks
+from pakit.main import args_parser, main, parse_tasks, write_config
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
@@ -16,6 +16,35 @@ from pakit.task import (
 )
 import pakit.task
 import tests.common as tc
+
+
+class TestWriteConfig(object):
+    def setup(self):
+        self.config = tc.env_setup()
+        self.conf_file = os.path.join(tc.STAGING, 'conf.yaml')
+
+    def teardown(self):
+        tc.delete_it(self.conf_file)
+
+    @mock.patch('pakit.main.sys')
+    def test_write_config(self, mock_sys):
+        assert not os.path.exists(self.conf_file)
+        main(['pakit', '--conf', self.conf_file, '--create-conf'])
+        assert os.path.exists(self.conf_file)
+        assert mock_sys.exit.called
+
+    def test_write_config_dir(self):
+        os.mkdir(self.conf_file)
+        self.config.filename = self.conf_file
+        with pytest.raises(PakitError):
+            write_config(self.config)
+
+    @mock.patch('pakit.main.sys')
+    def test_write_config_perms(self, mock_sys):
+        self.conf_file = '/ttt.yaml'
+        with pytest.raises(PakitError):
+            main(['pakit', '--conf', self.conf_file, '--create-conf'])
+        assert mock_sys.exit.called
 
 
 class TestArgs(object):
@@ -141,11 +170,3 @@ class TestMain(object):
     def test_recipe_not_found(self):
         with pytest.raises(PakitError):
             main(['pakit', '-i', 'iiiii'])
-
-    @mock.patch('pakit.main.sys')
-    def test_write_config(self, mock_sys):
-        conf_file = './conf.yaml'
-        assert not os.path.exists(conf_file)
-        main(['pakit', '--conf', conf_file, '--create-conf'])
-        assert os.path.exists(conf_file)
-        os.remove(conf_file)
