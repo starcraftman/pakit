@@ -161,13 +161,19 @@ class TestArchive(object):
         assert os.path.join(self.test_dir, 'README')
 
     def test_hash(self):
-        self.archive.download()
         assert self.archive.src_hash == self.archive.actual_hash
 
     def test_clean(self):
         self.archive.download()
         self.archive.clean()
         assert not os.path.exists(self.archive.arc_file)
+        assert not os.path.exists(self.archive.target)
+
+    def test_clean_extracted(self):
+        self.archive.get_it()
+        self.archive.clean()
+        assert not os.path.exists(self.archive.arc_file)
+        assert not os.path.exists(self.archive.target)
 
 
 class TestGit(object):
