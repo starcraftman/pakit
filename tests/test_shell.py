@@ -343,10 +343,13 @@ class TestCommand(object):
         cmd.terminate()
         assert not cmd.alive
 
-    def test_cmd_failed(self):
-        cmd = Command('false')
+    def test_cmd_not_available(self):
         with pytest.raises(PakitCmdError):
-            cmd.wait()
+            Command('not_a_command_anywhere').wait()
+
+    def test_cmd_rcode_not_zero(self):
+        with pytest.raises(PakitCmdError):
+            Command('grep --aaaaa').wait()
 
     def test_cmd_timeout(self):
         cmd = Command('sleep 10')

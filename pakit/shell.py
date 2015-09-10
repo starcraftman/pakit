@@ -731,11 +731,14 @@ class Command(object):
         self.stdout = NamedTemporaryFile(mode='wb', delete=False,
                                          dir=TMP_DIR, prefix='cmd',
                                          suffix='.log')
-        self._proc = sub.Popen(
-            self._cmd, cwd=self._cmd_dir,
-            stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT,
-            preexec_fn=os.setsid
-        )
+        try:
+            self._proc = sub.Popen(
+                self._cmd, cwd=self._cmd_dir,
+                stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT,
+                preexec_fn=os.setsid
+            )
+        except OSError:
+            raise PakitCmdError('Command not available: ' + self._cmd[0])
 
     def __del__(self):
         """
@@ -780,7 +783,7 @@ class Command(object):
         Returns:
             A list of lines from the output of the command.
         """
-        if self._proc is None:
+        if self._proc is None or not os.path.exists(self.stdout.name):
             return []  # pragma: no cover
 
         with open(self.stdout.name, 'r') as out:
@@ -811,13 +814,13 @@ class Command(object):
             PakitCmdTimeout: When stdout stops getting output for max_time.
             PakitCmdError: When return code is not 0.
         """
-        def thrd_func(*args, **_):
+        def thrd_func(proc):
             """
             Just wait infinitely on subprocess.
             """
-            args[0].wait()
+            proc.wait()
 
-        thrd = thr.Thread(target=thrd_func, args=(self._proc))
+        thrd = thr.Thread(target=thrd_func, args=(self._proc,))
         thrd.start()
         while self._proc.poll() is None:
             thrd.join(0.5)
