@@ -19,6 +19,7 @@ import signal
 import subprocess as sub
 import sys
 from tempfile import NamedTemporaryFile
+import threading as thr
 import time
 
 import hashlib
@@ -810,8 +811,16 @@ class Command(object):
             PakitCmdTimeout: When stdout stops getting output for max_time.
             PakitCmdError: When return code is not 0.
         """
+        def thrd_func(*args, **_):
+            """
+            Just wait infinitely on subprocess.
+            """
+            args[0].wait()
+
+        thrd = thr.Thread(target=thrd_func, args=(self._proc))
+        thrd.start()
         while self._proc.poll() is None:
-            time.sleep(0.25)
+            thrd.join(0.5)
             interval = time.time() - os.path.getmtime(self.stdout.name)
             if interval > max_time:
                 self.terminate()
