@@ -1,7 +1,12 @@
-NEXT
-  - Add man page.
-  - Command timeout & input file.
+0.2.0
+  - Add Doxygen build recipe.
+  - Add simple to follow demo & gif.
+  - Pakit now comes with a man page.
+  - Commands now have proper timeout & stdin support.
+  - Archives now support local URI as a path on system.
+  - Improved RecipeDB & added back user recipe support via `paths.recipes`.
   - Add Archive support for tar.xz, rar and 7z
+  - Large testing overhaul & speedup with caching.
   - Fix Bug: Not all Archive temp files cleaned.
 
 0.1.4

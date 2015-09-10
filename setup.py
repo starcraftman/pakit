@@ -119,6 +119,13 @@ class PyTest(TestCommand):
         sys.exit(pytest.main(self.test_args))
 
 
+LONG_DESC = """PakIt is a package manager that builds directly off source.
+
+For More Information: https://github.com/starcraftman/pakit/
+
+Change Log:
+{change}
+""".format(change=get_changelog()),
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 RUN_DEPS = ['argparse', 'PyYAML']
@@ -127,7 +134,7 @@ setup(
     name='pakit',
     version=pakit.__version__,
     description='Build and manage programs simply',
-    long_description=get_changelog(),
+    long_description=LONG_DESC,
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
     author_email=MY_EMAIL,
