@@ -14,11 +14,13 @@ import subprocess
 import sys
 
 
-def get_changelog():
+def get_long_desc():
     """ Fetches the latest changelog for pypi """
+    base_desc = 'PakIt is a package manager that builds directly off source.\n\
+For More Information: https://github.com/starcraftman/pakit/'
     with open('CHANGELOG.txt') as fin:
         lines = fin.readlines()
-    return '\nChange Log:\n' + ''.join(lines)
+    return base_desc + '\nChange Log:\n' + ''.join(lines)
 
 
 def rec_search(wildcard):
@@ -119,13 +121,6 @@ class PyTest(TestCommand):
         sys.exit(pytest.main(self.test_args))
 
 
-LONG_DESC = """PakIt is a package manager that builds directly off source.
-
-For More Information: https://github.com/starcraftman/pakit/
-
-Change Log:
-{change}
-""".format(change=get_changelog()),
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 RUN_DEPS = ['argparse', 'PyYAML']
@@ -134,7 +129,7 @@ setup(
     name='pakit',
     version=pakit.__version__,
     description='Build and manage programs simply',
-    long_description=LONG_DESC,
+    long_description=get_long_desc(),
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
     author_email=MY_EMAIL,
