@@ -87,7 +87,7 @@ class YamlMixin(object):
         """
         with open(self.filename, 'w') as fout:
             yaml.dump(obj, fout, default_flow_style=False)
-            logging.debug('Config written to: %s', self.filename)
+            logging.info('Config written to: %s', self.filename)
 
 
 class Config(YamlMixin, object):

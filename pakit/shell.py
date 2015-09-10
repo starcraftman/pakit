@@ -356,14 +356,31 @@ class Archive(Fetchable):
         return os.path.exists(self.target) and \
             len(os.listdir(self.target)) != 0
 
+    def clean(self):
+        """
+        Guarantee no trace of archive file or source target.
+        """
+        try:
+            os.remove(self.arc_file)
+        except OSError:
+            pass
+        super(Archive, self).clean()
+
     def download(self):
         """
-        Retrieves code from the remote, may require additional steps
+        Retrieves the archive from the remote URI.
+
+        If the URI is a local file, simply copy it.
         """
-        resp = ulib.urlopen(self.uri)
-        with open(self.arc_file, 'wb') as fout:
-            fout.write(resp.read())
+        if not os.path.isfile(self.uri):
+            resp = ulib.urlopen(self.uri)
+            with open(self.arc_file, 'wb') as fout:
+                fout.write(resp.read())
+        elif self.uri != self.arc_file:
+            shutil.copy(self.uri, self.arc_file)
+
         if self.actual_hash != self.src_hash:
+            os.remove(self.arc_file)
             raise PakitError('Hash mismatch on archive')
 
     def get_it(self):

@@ -153,12 +153,12 @@ class TestTaskInstall(TestTaskBase):
         assert os.path.exists(link_bin)
         assert os.path.realpath(link_bin) == build_bin
 
-    @mock.patch('pakit.task.logging')
+    @mock.patch('pakit.task.USER')
     def test_is_installed(self, mock_log):
         task = InstallTask(self.recipe)
         task.run()
         task.run()
-        assert mock_log.error.called is True
+        assert mock_log.info.called is True
 
 
 class TestTaskRollback(object):
@@ -213,11 +213,11 @@ class TestTaskRollback(object):
 
 
 class TestTaskRemove(TestTaskBase):
-    @mock.patch('pakit.task.logging')
+    @mock.patch('pakit.task.USER')
     def test_is_not_installed(self, mock_log):
         task = RemoveTask(self.recipe)
         task.run()
-        mock_log.error.assert_called_with('Not Installed: ag')
+        mock_log.info.assert_called_with('%s: Not Installed', 'ag')
 
     def test_is_installed(self):
         InstallTask(self.recipe).run()

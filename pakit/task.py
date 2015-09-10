@@ -170,7 +170,7 @@ class InstallTask(RecipeTask):
         Args:
             exc: The exception that was raised.
         """
-        USER.info('Rolling Back Build: %s', self.recipe.name)
+        USER.info('%s: Rolling Back Failed Build', self.recipe.name)
         cascade = False
         if isinstance(exc, AssertionError):
             logging.error('Error during verify() of %s', self.recipe.name)
@@ -193,22 +193,21 @@ class InstallTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        logging.debug('Installing: %s', self.recipe.name)
-
         entry = IDB.get(self.recipe.name)
         if entry is not None:
-            logging.error('\nInstalled: %s\n  Built On: %s\n  Hash: %s',
-                          self.recipe.name, entry['date'], entry['hash'])
+            USER.info('%s: Already Installed\n  Built On: %s\n  Hash: %s',
+                      self.recipe.name, entry['date'], entry['hash'])
             return
 
         try:
-            USER.info('Downloading From: %s', str(self.recipe.repo))
+            USER.info('%s: Downloading: %s', self.recipe.name,
+                      str(self.recipe.repo))
             self.recipe.repo.get_it()
-            USER.info('Building Source: %s', self.recipe.name)
+            USER.info('%s: Building Source', self.recipe.name)
             self.recipe.build()
-            USER.info('Linking Program: %s', self.recipe.name)
+            USER.info('%s: Symlinking Program', self.recipe.name)
             walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
-            USER.info('Verifying Program: %s', self.recipe.name)
+            USER.info('%s: Verifying Program', self.recipe.name)
             self.recipe.verify()
             IDB.add(self.recipe)
             self.recipe.repo.clean()
@@ -230,10 +229,8 @@ class RemoveTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        logging.debug('Removing: %s', self.recipe.name)
-
         if IDB.get(self.recipe.name) is None:
-            logging.error('Not Installed: ' + self.recipe.name)
+            USER.info('%s: Not Installed', self.recipe.name)
             return
 
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
@@ -257,7 +254,7 @@ class UpdateTask(RecipeTask):
             - Move the installation to a backup location.
             - Remove the IDB entry.
         """
-        USER.info('Saving Old Install: %s', self.recipe.name)
+        USER.info('%s: Saving Old Install', self.recipe.name)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         self.old_entry = IDB.get(self.recipe.name)
         IDB.remove(self.recipe.name)
@@ -267,7 +264,7 @@ class UpdateTask(RecipeTask):
         """
         The update failed, reverse the actions of save_old_install.
         """
-        USER.info('Restoring Old Install: %s', self.recipe.name)
+        USER.info('%s: Restoring Old Install', self.recipe.name)
         shutil.move(self.back_dir, self.recipe.install_dir)
         IDB.set(self.recipe.name, self.old_entry)
         walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
@@ -276,9 +273,7 @@ class UpdateTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        logging.debug('Updating: %s', self.recipe.name)
-
-        USER.info('Checking For Updates: %s', self.recipe.name)
+        USER.info('%s: Checking For Updates', self.recipe.name)
         if IDB.get(self.recipe.name)['hash'] == self.recipe.repo.src_hash:
             return
 

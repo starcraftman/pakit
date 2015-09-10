@@ -24,6 +24,7 @@ ARCS = 'https://github.com/pakit/arc_fmts'
 GIT = 'https://github.com/ggreer/the_silver_searcher'
 HG = 'https://bitbucket.org/sjl/hg-prompt/'
 TAR = 'https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz'
+TMUX = os.path.join(STAGING, 'tmux.tar.gz')
 CONF = None
 PATHS = [STAGING]
 
@@ -52,7 +53,7 @@ def env_setup():
         sub.call(shlex.split(cmd))
 
     resp = ulib.urlopen(TAR)
-    with open(pjoin(STAGING, 'tmux.tar.gz'), 'wb') as fout:
+    with open(TMUX, 'wb') as fout:
         fout.write(resp.read())
 
     RecipeDB().index(pjoin(os.path.dirname(TEST_CONFIG), 'formula'))

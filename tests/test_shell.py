@@ -16,11 +16,8 @@ import pakit.shell
 import tests.common as tc
 
 
-TAR_URL = 'https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz'
-
-
 def test_find_arc_name():
-    assert find_arc_name(TAR_URL)[0] == 'tmux-2.0.tar.gz'
+    assert find_arc_name(tc.TAR)[0] == 'tmux-2.0.tar.gz'
 
 
 def test_find_arc_name_fail():
@@ -39,7 +36,7 @@ def test_get_extract_func_not_found():
 
 def test_hash_archive_sha1():
     expect_hash = '977871e7433fe054928d86477382bd5f6794dc3d'
-    arc = Archive(TAR_URL, target='./temp', hash=expect_hash)
+    arc = Archive(tc.TAR, target='./temp', hash=expect_hash)
     arc.download()
     assert hash_archive(arc.arc_file, 'sha1') == expect_hash
     os.remove(arc.arc_file)
@@ -131,50 +128,52 @@ class TestExtractFuncs(object):
 class TestArchive(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_arc = 'tmux-2.0.tar.gz'
-        self.test_dir = './temp'
-        self.archive = Archive(TAR_URL, target=self.test_dir,
+        self.test_dir = os.path.join(self.config.get('paths.source'), 'tmux')
+        self.archive = Archive(tc.TMUX, target=self.test_dir,
                                hash='977871e7433fe054928d86477382bd5f6794dc3d')
 
     def teardown(self):
-        tc.delete_it(self.test_arc)
+        tc.delete_it(self.archive.arc_file)
         tc.delete_it(self.test_dir)
 
     def test__str__(self):
         expect = 'Archive: ' + self.archive.uri
         assert str(self.archive) == expect
 
-    def test_download(self):
+    def test_download_remote(self):
+        self.archive.uri = tc.TAR
         self.archive.download()
-        assert os.path.exists(self.test_arc)
+        assert os.path.exists(self.archive.arc_file)
+
+    def test_download_local(self):
+        self.archive.download()
+        assert os.path.exists(self.archive.arc_file)
 
     def test_download_bad_hash(self):
-        archive = Archive(TAR_URL, target=self.test_dir,
-                          hash='bad hash')
+        self.archive = Archive(tc.TMUX, target=self.test_dir, hash='bad hash')
         with pytest.raises(PakitError):
-            archive.download()
+            self.archive.download()
 
     def test_extract(self):
         self.archive.get_it()
         assert os.path.exists(self.test_dir)
         assert len(os.listdir(self.test_dir)) != 0
+        assert os.path.join(self.test_dir, 'README')
 
     def test_hash(self):
-        self.archive.get_it()
+        self.archive.download()
         assert self.archive.src_hash == self.archive.actual_hash
-        expect_hash = '977871e7433fe054928d86477382bd5f6794dc3d'
-        assert self.archive.actual_hash == expect_hash
 
     def test_clean(self):
         self.archive.download()
         self.archive.clean()
-        assert not os.path.exists(self.archive.target)
+        assert not os.path.exists(self.archive.arc_file)
 
 
 class TestGit(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_dir = './temp'
+        self.test_dir = os.path.join(self.config.get('paths.source'), 'git')
         git_url = os.path.join(tc.STAGING, 'git')
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
 
@@ -255,7 +254,7 @@ class TestGit(object):
 class TestHg(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_dir = './temp'
+        self.test_dir = os.path.join(self.config.get('paths.source'), 'hg')
         hg_url = os.path.join(tc.STAGING, 'hg')
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
 
