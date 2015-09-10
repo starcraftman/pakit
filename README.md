@@ -130,17 +130,22 @@ Just a rough guess of what I should be implementing when.
 - [x] Add list & searching support.
 - [x] Python 3 support
 - [x] Better error handling, rollback
-- [ ] Improve Command, timeout & input file
-- [ ] Investigate alternatives/improvements to RecipeDB
+- [x] Improve Command, timeout & input file
+- [x] Investigate alternatives/improvements to RecipeDB
 
 ### 0.3
+- [ ] Make a website and promote. Maybe use github pages.
 - [ ] Dependency logic between recipes tasks.
+  - [ ] Research best approach & do small design.
+  - [ ] Create Digraph Structure (likely required).
+  - [ ] Create Recipe specification & implement.
+  - [ ] Create ready/blocked task lists. Tasks blocked unless dependencies resolved.
+- [ ] Handle missing commands inside recipes. For example, recipe needs git but git unavailable.
+- [ ] Separate recipes from pakit core.
+- [ ] Move to pakit/pakit. [pakit](https://github.com/pakit)
 
 ### 0.4
 - [ ] Parallelism, envisioned as some task based dependency.
 
 ### Beyond
-- [x] Make an organization. [pakit](https://github.com/pakit)
-- [ ] Formulas go to separate repo.
 - [ ] Create tool to convert homebrew ruby formula. Maybe?
-- [ ] Make a simple io website & promote?
