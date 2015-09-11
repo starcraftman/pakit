@@ -17,10 +17,10 @@ import sys
 def get_long_desc():
     """ Fetches the latest changelog for pypi """
     base_desc = 'PakIt is a package manager that builds directly off source.\n\
-For More Information: https://github.com/starcraftman/pakit/'
+For More Information: https://github.com/starcraftman/pakit/\n'
     with open('CHANGELOG.txt') as fin:
         lines = fin.readlines()
-    return base_desc + '\nChange Log:\n' + ''.join(lines)
+    return base_desc + '\nChange Log:\n\n' + ''.join(lines)
 
 
 def rec_search(wildcard):

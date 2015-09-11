@@ -1,3 +1,7 @@
+0.2.1
+  - Bumping to ensure pip release works.
+  - README updated roadmap.
+
 0.2.0
   - Add Doxygen build recipe.
   - Add simple to follow demo & gif.
