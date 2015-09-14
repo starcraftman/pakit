@@ -802,7 +802,7 @@ class Command(object):
             os.killpg(self._proc.pid, signal.SIGTERM)
             self._proc.wait()
 
-    def wait(self, max_time=30):
+    def wait(self, max_time=60):
         """
         Block here until the command is done.
 
