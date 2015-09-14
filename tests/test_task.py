@@ -303,8 +303,9 @@ class TestTaskQuery(TestTaskBase):
         assert results[1:] == ['vim']
 
     def test_search_desc(self):
-        results = SearchTask(RecipeDB().names(desc=True), ['grep']).run()
-        assert results[1:] == [str(self.recipe)]
+        ack = RecipeDB().get('ack')
+        results = SearchTask(RecipeDB().names(desc=True), [ack.desc]).run()
+        assert results[1:] == [str(ack)]
 
     def test_display_info(self):
         results = DisplayTask(self.recipe).run()
