@@ -9,7 +9,8 @@ class Cmake(Recipe):
         self.desc = 'A cross-platform build tool for C++'
         self.homepage = 'www.cmake.org'
         self.repos = {
-            'stable': Archive('http://www.cmake.org/files/v3.3/cmake-3.3.1.tar.gz',
+            'stable': Archive('http://www.cmake.org/files/v3.3/'
+                              'cmake-3.3.1.tar.gz',
                               hash='799aff559e9f330fefc60e6509f1d025fc3d9c8c'),
             'unstable': Git('git://cmake.org/cmake.git '),
         }

@@ -8,7 +8,8 @@ class Hg(Recipe):
         super(Hg, self).__init__()
         self.desc = 'The distributed version control system'
         self.homepage = 'https://mercurial.selenic.com'
-        repo = Archive('http://mercurial.selenic.com/release/mercurial-3.5.1.tar.gz',
+        repo = Archive('http://mercurial.selenic.com/release/'
+                       'mercurial-3.5.1.tar.gz',
                        hash='fbe9c64dd4c065dbc9330aff4533fa1631d75c79')
         self.repos = {
             'stable': repo,

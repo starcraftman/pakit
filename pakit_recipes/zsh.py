@@ -9,8 +9,8 @@ class Zsh(Recipe):
         self.desc = 'The zshell, a powerful interactive shell'
         self.homepage = 'http://zsh.sourceforge.net/'
         self.repos = {
-            'stable': Archive('http://sourceforge.net/projects/zsh/files/zsh/5.0.7/' \
-                              'zsh-5.0.7.tar.bz2/download',
+            'stable': Archive('http://sourceforge.net/projects/zsh/files/'
+                              'zsh/5.0.7/zsh-5.0.7.tar.bz2/download',
                               hash='1500191d16af8a71aec4f719a92775a074682096'),
             'unstable': Git('git://git.code.sf.net/p/zsh/code'),
         }

@@ -17,7 +17,8 @@ class Libjsoncpp(Recipe):
         }
 
     def build(self):
-        self.cmd('cmake -DCMAKE_INSTALL_PREFIX={prefix} -DCMAKE_BUILD_TYPE=release '
+        self.cmd('cmake -DCMAKE_INSTALL_PREFIX={prefix} '
+                 '-DCMAKE_BUILD_TYPE=release '
                  '-DJSONCPP_LIB_BUILD_SHARED=ON .')
         self.cmd('make install')
 

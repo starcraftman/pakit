@@ -2,6 +2,7 @@
 from pakit import Archive, Recipe
 from pakit import Git as GitRepo
 
+
 class Git(Recipe):
     """ The version control system """
     def __init__(self):
@@ -9,7 +10,8 @@ class Git(Recipe):
         self.desc = 'The version control system'
         self.homepage = 'https://git-scm.com'
         self.repos = {
-            'stable': Archive('https://www.kernel.org/pub/software/scm/git/git-2.5.2.tar.xz',
+            'stable': Archive('https://www.kernel.org/pub/software/scm/git/'
+                              'git-2.5.2.tar.xz',
                               hash='5078512c7dba1db2d98814c1abe7550dc18507c9'),
             'unstable': GitRepo('https://github.com/git/git'),
         }
