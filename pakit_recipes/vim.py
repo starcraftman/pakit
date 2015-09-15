@@ -10,7 +10,7 @@ class Vim(Recipe):
         self.src = 'https://github.com/vim/vim.git'
         self.homepage = 'www.vim.org'
         self.repos = {
-            'stable': Git(self.src),
+            'stable': Git(self.src, tag='v7.4.865'),
             'unstable': Git(self.src),
         }
 

@@ -1,4 +1,4 @@
-""" Formula for building ag """
+""" Formula for building libjsoncpp """
 import os
 
 from pakit import Git, Recipe
