@@ -18,15 +18,16 @@ except ImportError:
 from pakit.main import global_init
 from pakit.recipe import RecipeDB
 
-TEST_CONFIG = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
 STAGING = '/tmp/staging'
-ARCS = 'https://github.com/pakit/arc_fmts'
+TEST_CONFIG = pjoin(os.path.dirname(__file__), 'pakit.yaml')
+ARCS_URL = 'https://github.com/pakit/arc_fmts'
+ARCS = pjoin(STAGING, 'arcs')
 GIT = 'https://github.com/ggreer/the_silver_searcher'
 HG = 'https://bitbucket.org/sjl/hg-prompt/'
 TAR = 'https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz'
-TMUX = os.path.join(STAGING, 'tmux.tar.gz')
-CONF = None
+TAR_FILE = pjoin(STAGING, 'tmux.tar.gz')
 PATHS = [STAGING]
+CONF = None
 
 
 def env_setup():
@@ -44,8 +45,7 @@ def env_setup():
 
     delete_it(STAGING)
     cmds = [
-        'git clone --recursive {0} {1}'.format(ARCS, pjoin(STAGING,
-                                               'archive')),
+        'git clone --recursive {0} {1}'.format(ARCS_URL, ARCS),
         'git clone --recursive {0} {1}'.format(GIT, pjoin(STAGING, 'git')),
         'hg clone {0} {1}'.format(HG, pjoin(STAGING, 'hg')),
     ]
@@ -53,7 +53,7 @@ def env_setup():
         sub.call(shlex.split(cmd))
 
     resp = ulib.urlopen(TAR)
-    with open(TMUX, 'wb') as fout:
+    with open(TAR_FILE, 'wb') as fout:
         fout.write(resp.read())
 
     RecipeDB().index(pjoin(os.path.dirname(TEST_CONFIG), 'formula'))

@@ -9,7 +9,7 @@ import tests.common as tc
 
 def test_env_setup():
     tc.env_setup()
-    expect = ['archive', 'git', 'hg', 'tmux.tar.gz']
+    expect = ['arcs', 'git', 'hg', 'tmux.tar.gz']
     assert sorted(os.listdir(tc.STAGING)) == expect
 
 

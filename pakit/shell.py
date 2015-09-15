@@ -135,13 +135,15 @@ def extract_tar_xz(filename, tmp_dir):
     """
     Extracts a tar.xz archive to a temp dir
     """
-    os.makedirs(tmp_dir)
-    shutil.move(filename, tmp_dir)
-    new_arc = os.path.join(tmp_dir, os.path.basename(filename))
-    Command('xz -d ' + new_arc).wait()
-    tar_file = new_arc[:new_arc.rindex('.t')] + '.tar'
-    extract_tar_gz(tar_file, tmp_dir)
-    shutil.move(tar_file, filename)
+    try:
+        os.makedirs(tmp_dir)
+    except OSError:
+        pass
+    try:
+        # Note: Requires GNU tar 1.22, released 2009
+        Command('tar -C {0} -xvf {1}'.format(tmp_dir, filename)).wait()
+    except PakitCmdError:
+        logging.error("System tar doesn't support `xz`.")
 
 
 @wrap_extract

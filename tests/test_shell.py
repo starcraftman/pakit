@@ -66,15 +66,11 @@ def test_cmd_cleanup_raises():
 class TestExtractFuncs(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.arc_dir = 'arcs'
-        self.target = 'temp'
+        self.arc_dir = tc.ARCS
+        self.target = os.path.join(tc.STAGING, 'extract')
         self.expect_file = os.path.join(self.target, 'example.txt')
-        cmd = Command('git clone https://github.com/pakit/arc_fmts.git '
-                      + self.arc_dir)
-        cmd.wait()
 
     def teardown(self):
-        tc.delete_it(self.arc_dir)
         tc.delete_it(self.target)
 
     def arc_file(self, ext):
@@ -129,7 +125,7 @@ class TestArchive(object):
     def setup(self):
         self.config = tc.env_setup()
         self.test_dir = os.path.join(self.config.get('paths.source'), 'tmux')
-        self.archive = Archive(tc.TMUX, target=self.test_dir,
+        self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
                                hash='977871e7433fe054928d86477382bd5f6794dc3d')
 
     def teardown(self):
@@ -150,7 +146,8 @@ class TestArchive(object):
         assert os.path.exists(self.archive.arc_file)
 
     def test_download_bad_hash(self):
-        self.archive = Archive(tc.TMUX, target=self.test_dir, hash='bad hash')
+        self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
+                               hash='bad hash')
         with pytest.raises(PakitError):
             self.archive.download()
 
