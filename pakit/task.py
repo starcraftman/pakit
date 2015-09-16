@@ -202,15 +202,14 @@ class InstallTask(RecipeTask):
         try:
             USER.info('%s: Downloading: %s', self.recipe.name,
                       str(self.recipe.repo))
-            self.recipe.repo.get_it()
-            USER.info('%s: Building Source', self.recipe.name)
-            self.recipe.build()
-            USER.info('%s: Symlinking Program', self.recipe.name)
-            walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
-            USER.info('%s: Verifying Program', self.recipe.name)
-            self.recipe.verify()
-            IDB.add(self.recipe)
-            self.recipe.repo.clean()
+            with self.recipe.repo:
+                USER.info('%s: Building Source', self.recipe.name)
+                self.recipe.build()
+                USER.info('%s: Symlinking Program', self.recipe.name)
+                walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
+                USER.info('%s: Verifying Program', self.recipe.name)
+                self.recipe.verify()
+                IDB.add(self.recipe)
         except (AssertionError, PakitError) as exc:
             self.rollback(exc)
             raise
@@ -280,6 +279,7 @@ class UpdateTask(RecipeTask):
         try:
             self.save_old_install()
             InstallTask(self.recipe).run()
+            USER.info('%s: Deleting Old Install', self.recipe.name)
             Command('rm -rf ' + self.back_dir).wait()
         except (AssertionError, PakitError):
             self.restore_old_install()

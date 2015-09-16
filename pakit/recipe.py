@@ -47,12 +47,6 @@ class Recipe(object):
         self.repos = {}
         self.opts = None
 
-    def __enter__(self):
-        self.repo.get_it()
-
-    def __exit__(self, typ, value, traceback):
-        pass
-
     def __str__(self):
         """
         A one line summary of the recipe.

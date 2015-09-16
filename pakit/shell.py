@@ -76,7 +76,8 @@ def extract_rar(filename, tmp_dir):
                 pass
 
     if not success:
-        raise PakitCmdError('Could not extract rar: ' + filename)
+        raise PakitCmdError('Need `rar` or `unrar` command to extract: '
+                            + filename)
 
 
 def extract_tb2(filename, tmp_dir):
@@ -137,13 +138,19 @@ def extract_tar_xz(filename, tmp_dir):
     """
     try:
         os.makedirs(tmp_dir)
-    except OSError:
+    except OSError:  # pragma: no cover
         pass
     try:
         # Note: Requires GNU tar 1.22, released 2009
         Command('tar -C {0} -xvf {1}'.format(tmp_dir, filename)).wait()
-    except PakitCmdError:
-        logging.error("System tar doesn't support `xz`.")
+    except (OSError, PakitCmdError):
+        raise PakitCmdError('Need `tar --version` >= 1.22 to extract: '
+                            + filename)
+    finally:
+        try:
+            os.rmdir(tmp_dir)
+        except OSError:
+            pass
 
 
 @wrap_extract
@@ -160,7 +167,15 @@ def extract_7z(filename, tmp_dir):
     """
     Extracts a 7z archive
     """
-    Command('7z x -o{tmp} {file}'.format(file=filename, tmp=tmp_dir)).wait()
+    try:
+        Command('7z x -o{tmp} {file}'.format(file=filename,
+                                             tmp=tmp_dir)).wait()
+    except (OSError, PakitCmdError):
+        raise PakitCmdError('Need `7z` to extract: ' + filename)
+    try:
+        os.rmdir(tmp_dir)
+    except OSError:
+        pass
 
 
 def find_arc_name(uri):
@@ -174,7 +189,7 @@ def find_arc_name(uri):
         uri: A URI that stores the archive.
 
     Returns:
-        The archive filename.
+        A tuple of archive name & extension.
     """
     right = -1
     ext = None
@@ -256,10 +271,17 @@ class Fetchable(object):
         self.target = target
         self.uri = uri
 
-    @abstractproperty
-    def src_hash(self):
+    @abstractmethod
+    def __enter__(self):
         """
-        A hash that identifies the source snapshot
+        Guarantees that source is available at target
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Handles errors as needed
         """
         raise NotImplementedError
 
@@ -267,6 +289,13 @@ class Fetchable(object):
     def ready(self):
         """
         True iff the source code is available at target
+        """
+        raise NotImplementedError
+
+    @abstractproperty
+    def src_hash(self):
+        """
+        A hash that identifies the source snapshot
         """
         raise NotImplementedError
 
@@ -280,13 +309,6 @@ class Fetchable(object):
     def download(self):
         """
         Retrieves code from the remote, may require additional steps
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_it(self):
-        """
-        Guarantees that source is available at target
         """
         raise NotImplementedError
 
@@ -312,26 +334,31 @@ class Archive(Fetchable):
         self.__src_hash = kwargs.get('hash', '')
         self.__extract = get_extract_func(ext)
 
+    def __enter__(self):
+        """
+        Guarantees that source is available at target
+        """
+        # TODO: Cache archive?
+        if self.ready:
+            return
+
+        logging.info('Downloading %s', self.arc_file)
+        self.download()
+        logging.info('Extracting %s to %s', self.arc_file, self.target)
+        self.__extract(self.arc_file, self.target)
+        with open(os.path.join(self.target, '.archive'), 'wb') as fout:
+            fout.write(self.src_hash.encode())
+        os.remove(self.arc_file)
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Handles errors as needed
+        """
+        self.clean()
+
     def __str__(self):
         return '{name}: {uri}'.format(name=self.__class__.__name__,
                                       uri=self.uri)
-
-    @property
-    def arc_file(self):
-        """
-        The path to the downloaded archive.
-        """
-        target = self.target
-        if target.find('./') == 0:
-            target = target.replace('./', '')
-        return os.path.join(os.path.dirname(target), self.filename)
-
-    @property
-    def src_hash(self):
-        """
-        The expected hash of the archive.
-        """
-        return self.__src_hash
 
     @property
     def actual_hash(self):
@@ -352,12 +379,33 @@ class Archive(Fetchable):
         return hash_str
 
     @property
+    def arc_file(self):
+        """
+        The path to the downloaded archive.
+        """
+        target = self.target
+        if target.find('./') == 0:
+            target = target.replace('./', '')
+        return os.path.join(os.path.dirname(target), self.filename)
+
+    @property
     def ready(self):
         """
         True iff the source code is available at target
         """
-        return os.path.exists(self.target) and \
-            len(os.listdir(self.target)) != 0
+        try:
+            with open(os.path.join(self.target, '.archive'), 'rb') as fin:
+                file_hash = fin.readlines()[0].decode()
+            return file_hash == self.src_hash
+        except IOError:
+            return False
+
+    @property
+    def src_hash(self):
+        """
+        The expected hash of the archive.
+        """
+        return self.__src_hash
 
     def clean(self):
         """
@@ -386,17 +434,6 @@ class Archive(Fetchable):
             os.remove(self.arc_file)
             raise PakitError('Hash mismatch on archive')
 
-    def get_it(self):
-        """
-        Guarantees that source is available at target
-        """
-        if not self.ready:
-            logging.info('Downloading %s', self.arc_file)
-            self.download()
-            logging.info('Extracting %s to %s', self.arc_file, self.target)
-            self.__extract(self.arc_file, self.target)
-            os.remove(self.arc_file)
-
 
 class VersionRepo(Fetchable):
     """
@@ -423,6 +460,24 @@ class VersionRepo(Fetchable):
         else:
             self.__tag = kwargs.get('branch', None)
             self.on_branch = True
+
+    def __enter__(self):
+        """
+        Guarantees that the repo is downloaded and on the right commit.
+        """
+        if not self.ready:
+            self.clean()
+            self.download()
+        else:
+            self.checkout()
+            if self.on_branch:
+                self.update()
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Handles errors as needed
+        """
+        self.reset()
 
     def __str__(self):
         if self.on_branch:
@@ -464,17 +519,17 @@ class VersionRepo(Fetchable):
         self.__tag = new_tag
 
     @abstractproperty
-    def src_hash(self):
-        """
-        The hash of the current commit.
-        """
-        raise NotImplementedError
-
-    @abstractproperty
     def ready(self):
         """
         Returns true iff the repository is available and the
         right tag or branch is checked out.
+        """
+        raise NotImplementedError
+
+    @abstractproperty
+    def src_hash(self):
+        """
+        The hash of the current commit.
         """
         raise NotImplementedError
 
@@ -492,13 +547,12 @@ class VersionRepo(Fetchable):
         """
         raise NotImplementedError
 
-    def get_it(self):
+    @abstractmethod
+    def reset(self):
         """
-        Guarantees that the repo is downloaded and on right commit.
+        Clears away all build files from repo.
         """
-        if self.ready:
-            self.clean()
-        self.download()
+        raise NotImplementedError
 
     @abstractmethod
     def update(self):
@@ -515,6 +569,7 @@ class Git(VersionRepo):
     When a 'tag' is set, check out a specific revision of the repository.
     When a 'branch' is set, checkout out the latest commit on the branch of
     the repository.
+    If neither provided, will checkout 'master' branch.
     These two options are mutually exclusive.
 
     Attributes:
@@ -526,22 +581,8 @@ class Git(VersionRepo):
     """
     def __init__(self, uri, **kwargs):
         super(Git, self).__init__(uri, **kwargs)
-
-    @property
-    def src_hash(self):
-        """
-        Return the current hash of the repository.
-        """
-        clean_end = False
-        if not self.ready:
-            clean_end = True
-            self.get_it()
-        cmd = Command('git log -1 ', self.target)
-        cmd.wait()
-        hash_line = cmd.output()[0]
-        if clean_end:
-            self.clean()
-        return hash_line.split()[-1]
+        if self.on_branch and kwargs.get('tag') is None:
+            self.branch = 'master'
 
     @property
     def ready(self):
@@ -556,13 +597,22 @@ class Git(VersionRepo):
         cmd.wait()
         return self.uri in cmd.output()[1]
 
+    @property
+    def src_hash(self):
+        """
+        Return the current hash of the repository.
+        """
+        with self:
+            cmd = Command('git log -1 ', self.target)
+            cmd.wait()
+            hash_line = cmd.output()[0]
+            return hash_line.split()[-1]
+
     def checkout(self):
         """
         Checkout the right tag or branch.
         """
-        if self.tag is not None:
-            cmd = Command('git checkout ' + self.tag, self.target)
-            cmd.wait()
+        Command('git checkout ' + self.tag, self.target).wait()
 
     def download(self):
         """
@@ -573,11 +623,11 @@ class Git(VersionRepo):
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
-        if self.on_branch and self.tag is None:
-            cmd = Command('git branch', self.target)
-            cmd.wait()
-            lines = [line for line in cmd.output() if line.find('*') == 0]
-            self.branch = lines[0][2:]
+    def reset(self):
+        """
+        Clears away all build files from repo.
+        """
+        Command('git clean -f', self.target).wait()
 
     def update(self):
         """
@@ -597,6 +647,7 @@ class Hg(VersionRepo):
     When a 'tag' is set, check out a specific revision of the repository.
     When a 'branch' is set, checkout out the latest commit on the branch of
     the repository.
+    If neither provided, will checkout 'default' branch.
     These two options are mutually exclusive.
 
     Attributes:
@@ -608,22 +659,8 @@ class Hg(VersionRepo):
     """
     def __init__(self, uri, **kwargs):
         super(Hg, self).__init__(uri, **kwargs)
-
-    @property
-    def src_hash(self):
-        """
-        Return the current hash of the repository.
-        """
-        clean_end = False
-        if not self.ready:
-            clean_end = True
-            self.get_it()
-        cmd = Command('hg parents', self.target)
-        cmd.wait()
-        hash_line = cmd.output()[0]
-        if clean_end:
-            self.clean()
-        return hash_line.split()[-1]
+        if self.on_branch and kwargs.get('tag') is None:
+            self.branch = 'default'
 
     @property
     def ready(self):
@@ -643,13 +680,22 @@ class Hg(VersionRepo):
 
         return found
 
+    @property
+    def src_hash(self):
+        """
+        Return the current hash of the repository.
+        """
+        with self:
+            cmd = Command('hg parents', self.target)
+            cmd.wait()
+            hash_line = cmd.output()[0]
+            return hash_line.split()[-1]
+
     def checkout(self):
         """
         Checkout the right tag or branch.
         """
-        if self.tag is not None:
-            cmd = Command('hg update ' + self.tag, self.target)
-            cmd.wait()
+        Command('hg update ' + self.tag, self.target).wait()
 
     def download(self):
         """
@@ -660,10 +706,14 @@ class Hg(VersionRepo):
             tag=tag, uri=self.uri, target=self.target))
         cmd.wait()
 
-        if self.on_branch and self.tag is None:
-            cmd = Command('hg branch', self.target)
-            cmd.wait()
-            self.branch = cmd.output()[0]
+    def reset(self):
+        """
+        Clears away all build files from repo.
+        """
+        cmd = Command('hg status -un', self.target)
+        cmd.wait()
+        for path in cmd.output():
+            os.remove(os.path.join(self.target, path))
 
     def update(self):
         """
@@ -717,7 +767,7 @@ class Command(object):
             prev_cmd: Read the stdout of this command for stdin.
 
         Raises:
-            OSError: Usually could not find command on system.
+            PakitCmdError: Usually could not find command on system.
         """
         super(Command, self).__init__()
         if isinstance(cmd, list):
@@ -816,13 +866,8 @@ class Command(object):
             PakitCmdTimeout: When stdout stops getting output for max_time.
             PakitCmdError: When return code is not 0.
         """
-        def thrd_func(proc):
-            """
-            Just wait infinitely on subprocess.
-            """
-            proc.wait()
-
-        thrd = thr.Thread(target=thrd_func, args=(self._proc,))
+        thrd = thr.Thread(target=(lambda proc: proc.wait()),
+                          args=(self._proc,))
         thrd.start()
         while self._proc.poll() is None:
             thrd.join(0.5)

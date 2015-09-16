@@ -3,7 +3,6 @@ Test pakit.recipe
 """
 from __future__ import absolute_import, print_function
 
-import os
 import pytest
 
 from pakit.exc import PakitError
@@ -19,13 +18,6 @@ class TestRecipe(object):
     def test_repo_set_fail(self):
         with pytest.raises(KeyError):
             self.recipe.repo = 'hello'
-
-    def test_with_func(self):
-        with self.recipe:
-            assert os.path.exists(self.recipe.source_dir)
-            assert len(os.listdir(self.recipe.source_dir)) != 0
-            expect = self.recipe.repos.get('unstable').src_hash
-            assert self.recipe.repo.src_hash == expect
 
     def test__str__(self):
         print()

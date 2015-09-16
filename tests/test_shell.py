@@ -85,7 +85,7 @@ class TestExtractFuncs(object):
         self.__test_ext('rar')
 
     @mock.patch('pakit.shell.sub')
-    def test_rar_no_command(self, mock_sub):
+    def test_rar_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
             self.__test_ext('rar')
@@ -114,11 +114,23 @@ class TestExtractFuncs(object):
     def test_tar_xz(self):
         self.__test_ext('tar.xz')
 
+    @mock.patch('pakit.shell.sub')
+    def test_tar_xz_unavailable(self, mock_sub):
+        mock_sub.side_effect = PakitCmdError('No cmd.')
+        with pytest.raises(PakitCmdError):
+            self.__test_ext('tar.xz')
+
     def test_zip(self):
         self.__test_ext('zip')
 
     def test_7z(self):
         self.__test_ext('7z')
+
+    @mock.patch('pakit.shell.sub')
+    def test_7z_unavailable(self, mock_sub):
+        mock_sub.side_effect = PakitCmdError('No cmd.')
+        with pytest.raises(PakitCmdError):
+            self.__test_ext('7z')
 
 
 class TestArchive(object):
@@ -136,6 +148,15 @@ class TestArchive(object):
         expect = 'Archive: ' + self.archive.uri
         assert str(self.archive) == expect
 
+    def test_ready(self):
+        with self.archive:
+            assert self.archive.ready
+
+    def test_with_nested(self):
+        with self.archive:
+            with self.archive:
+                assert self.archive.ready
+
     def test_download_remote(self):
         self.archive.uri = tc.TAR
         self.archive.download()
@@ -152,10 +173,10 @@ class TestArchive(object):
             self.archive.download()
 
     def test_extract(self):
-        self.archive.get_it()
-        assert os.path.exists(self.test_dir)
-        assert len(os.listdir(self.test_dir)) != 0
-        assert os.path.join(self.test_dir, 'README')
+        with self.archive:
+            assert os.path.exists(self.test_dir)
+            assert len(os.listdir(self.test_dir)) != 0
+            assert os.path.join(self.test_dir, 'README')
 
     def test_hash(self):
         assert self.archive.src_hash == self.archive.actual_hash
@@ -167,10 +188,10 @@ class TestArchive(object):
         assert not os.path.exists(self.archive.target)
 
     def test_clean_extracted(self):
-        self.archive.get_it()
-        self.archive.clean()
-        assert not os.path.exists(self.archive.arc_file)
-        assert not os.path.exists(self.archive.target)
+        with self.archive:
+            self.archive.clean()
+            assert not os.path.exists(self.archive.arc_file)
+            assert not os.path.exists(self.archive.target)
 
 
 class TestGit(object):
@@ -210,11 +231,10 @@ class TestGit(object):
 
     def test_download_with_branch(self):
         repo = Git(self.repo.uri, target=self.test_dir)
-        assert repo.branch is None
-        repo.download()
-        assert os.path.exists(os.path.join(repo.target, '.git'))
-        assert repo.on_branch is True
-        assert repo.branch == 'master'
+        with repo:
+            assert os.path.exists(os.path.join(repo.target, '.git'))
+            assert repo.on_branch is True
+            assert repo.branch == 'master'
 
     def test_ready(self):
         assert not self.repo.ready
@@ -224,24 +244,39 @@ class TestGit(object):
     def test_checkout(self):
         self.repo.download()
         self.repo.tag = '0.20.0'
-        self.repo.checkout()
-        assert self.repo.src_hash == '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
+        tag_hash = '20d62b4e3f88c4e38fead73cc4030d8bb44c7259'
+        with self.repo:
+            assert self.repo.src_hash == tag_hash
+
+    def test_reset(self):
+        temp_file = os.path.join(self.repo.target, 'tempf')
+        with self.repo:
+            assert not os.path.exists(temp_file)
+            with open(temp_file, 'wb') as fout:
+                fout.write('hello'.encode())
+        assert not os.path.exists(temp_file)
 
     def test_update(self):
-        self.repo.branch = 'master'
-        self.repo.download()
+        def get_hash(target):
+            """
+            Required because with now forces right commit
+            """
+            cmd = Command('git log -1 ', target)
+            cmd.wait()
+            return cmd.output()[0].split()[-1]
 
-        # Lop off history to ensure updateable
-        latest_hash = self.repo.src_hash
-        cmd = Command('git reset --hard HEAD~3', self.repo.target)
-        cmd.wait()
-        assert self.repo.src_hash != latest_hash
-        self.repo.update()
-        assert self.repo.src_hash == latest_hash
+        self.repo.branch = 'master'
+        with self.repo:
+            # Lop off history to ensure updateable
+            latest_hash = self.repo.src_hash
+            Command('git reset --hard HEAD~3', self.repo.target).wait()
+            assert get_hash(self.repo.target) != latest_hash
+            self.repo.update()
+            assert get_hash(self.repo.target) == latest_hash
 
     def test__str__(self):
         uri = 'https://github.com/user/repo'
-        tag = 'default'
+        tag = 'master'
         repo_tag = Git(uri, tag=tag)
         repo_branch = Git(uri, branch=tag)
 
@@ -268,39 +303,55 @@ class TestHg(object):
         assert self.repo.src_hash == '80:a6ec48f03985'
 
     def test_download_with_tag(self):
-        self.repo.download()
-        assert os.path.exists(os.path.join(self.repo.target, '.hg'))
+        with self.repo:
+            assert os.path.exists(os.path.join(self.repo.target, '.hg'))
 
     def test_download_with_branch(self):
         repo = Hg(self.repo.uri, target=self.test_dir)
-        assert repo.branch is None
-        repo.download()
-        assert os.path.exists(os.path.join(repo.target, '.hg'))
-        assert repo.on_branch is True
-        assert repo.branch == 'default'
+        with repo:
+            assert os.path.exists(os.path.join(repo.target, '.hg'))
+            assert repo.on_branch is True
+            assert repo.branch == 'default'
 
     def test_ready(self):
         assert not self.repo.ready
-        self.repo.download()
-        assert self.repo.ready
+        with self.repo:
+            assert self.repo.ready
 
     def test_checkout(self):
-        self.repo.download()
-        self.repo.tag = '0.1'
-        self.repo.checkout()
-        assert self.repo.src_hash == '14:d390b5e27191'
+        repo = Hg('https://bitbucket.org/olauzanne/pyquery',
+                  target=self.test_dir)
+        repo.download()
+        repo.tag = 'manipulating'
+        with repo:
+            assert repo.src_hash == '12:3c7ab75c2eea'
+
+    def test_reset(self):
+        temp_file = os.path.join(self.repo.target, 'tempf')
+        with self.repo:
+            assert not os.path.exists(temp_file)
+            with open(temp_file, 'wb') as fout:
+                fout.write('hello'.encode())
+        assert not os.path.exists(temp_file)
 
     def test_update(self):
-        self.repo.branch = 'default'
-        self.repo.download()
+        def get_hash(target):
+            """
+            Required because with now forces right commit
+            """
+            cmd = Command('hg parents', target)
+            cmd.wait()
+            return cmd.output()[0].split()[-1]
 
-        # Lop off history to ensure updateable
-        latest_hash = self.repo.src_hash
-        cmd = Command('hg strip tip', self.repo.target)
-        cmd.wait()
-        assert self.repo.src_hash != latest_hash
-        self.repo.update()
-        assert self.repo.src_hash == latest_hash
+        self.repo.branch = 'default'
+        with self.repo:
+            # Lop off history to ensure updateable
+            latest_hash = self.repo.src_hash
+            cmd = Command('hg strip tip', self.repo.target)
+            cmd.wait()
+            assert get_hash(self.repo.target) != latest_hash
+            self.repo.update()
+            assert get_hash(self.repo.target) == latest_hash
 
 
 class TestCommand(object):
