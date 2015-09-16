@@ -38,13 +38,17 @@ def parse_tasks(args):
     if args.update:
         tasks.extend([UpdateTask(prog) for prog, _ in pakit.task.IDB])
     if args.available:
-        tasks.append(ListAvailable())
+        tasks.append(ListAvailable(False))
+    if args.available_short:
+        tasks.append(ListAvailable(True))
     if args.display:
         tasks.extend([DisplayTask(prog) for prog in args.display])
     if args.search:
         tasks.append(SearchTask(RecipeDB().names(desc=True), args.search))
     if args.list:
-        tasks.append(ListInstalled())
+        tasks.append(ListInstalled(False))
+    if args.list_short:
+        tasks.append(ListInstalled(True))
 
     return tasks
 
@@ -175,6 +179,9 @@ def args_parser():
                         version='pakit {0}\nALPHA!'.format(__version__))
     parser.add_argument('-a', '--available', default=False,
                         action='store_true', help='list available recipes')
+    parser.add_argument('--available-short', default=False,
+                        action='store_true',
+                        help='list available recipes, terse output')
     parser.add_argument('-c', '--conf',
                         default=os.path.expanduser('~/.pakit.yaml'),
                         help='yaml config file')
@@ -186,8 +193,10 @@ def args_parser():
                       metavar='PROG', help='install specified program(s)')
     mut1.add_argument('-k', '--search', nargs='+', metavar='WORD',
                       help='search names & descriptions for WORD')
-    parser.add_argument('-l', '--list', default=False, action='store_true',
-                        help='list installed programs')
+    parser.add_argument('-l', '--list', default=False,
+                        action='store_true', help='list installed programs')
+    parser.add_argument('--list-short', default=False, action='store_true',
+                        help='list installed recipes, terse output')
     mut1.add_argument('-r', '--remove', nargs='+',
                       metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',

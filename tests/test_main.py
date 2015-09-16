@@ -57,6 +57,9 @@ class TestArgs(object):
         assert args.remove is None
         assert args.update is False
         assert args.list is False
+        assert args.available is False
+        assert args.display is None
+        assert args.search is None
 
     def test_args_install(self):
         args = self.parser.parse_args('--install ag tmux'.split())
@@ -77,10 +80,20 @@ class TestArgs(object):
         args = parser.parse_args('--list'.split())
         assert args.list is True
 
+    def test_args_list_short(self):
+        parser = args_parser()
+        args = parser.parse_args('--list-short'.split())
+        assert args.list_short is True
+
     def test_args_available(self):
         parser = args_parser()
         args = parser.parse_args('--available'.split())
         assert args.available is True
+
+    def test_args_available_short(self):
+        parser = args_parser()
+        args = parser.parse_args('--available-short'.split())
+        assert args.available_short is True
 
     def test_args_display(self):
         parser = args_parser()
@@ -110,25 +123,39 @@ class TestParseTasks(object):
         assert tasks[0] == RemoveTask('ag')
         assert isinstance(tasks[0], RemoveTask)
 
+    # FIXME: Cloberring /tmp/pakit
     def test_parse_update(self):
         # Need yaml file to trick into thinking installed
         recipe = RecipeDB().get('ag')
         pakit.task.IDB.add(recipe)
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
-        assert tasks[0] == UpdateTask(recipe.name)
-        assert isinstance(tasks[0], UpdateTask)
+        assert UpdateTask(recipe.name) in tasks
         pakit.task.IDB.remove(recipe.name)
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], ListInstalled)
+        assert tasks[0].short is False
+
+    def test_parse_list_short(self):
+        args = self.parser.parse_args('--list-short'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], ListInstalled)
+        assert tasks[0].short is True
 
     def test_parse_available(self):
         args = self.parser.parse_args('--available'.split())
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], ListAvailable)
+        assert tasks[0].short is False
+
+    def test_parse_available_short(self):
+        args = self.parser.parse_args('--available-short'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], ListAvailable)
+        assert tasks[0].short is True
 
     def test_parse_display(self):
         args = self.parser.parse_args('--display ag'.split())

@@ -307,13 +307,18 @@ class ListInstalled(Task):
     """
     List all installed recipes.
     """
-    def __init__(self):
+    def __init__(self, short=False):
         super(ListInstalled, self).__init__()
+        self.short = short
 
     def run(self):
         """
         Execute a set of operations to perform the Task.
         """
+        if self.short:
+            print(' '.join(sorted([ent for ent, _ in IDB])))
+            return
+
         logging.debug('List Installed Programs')
         fmt = '{prog:10}   {date}   {hash}'
         installed = ['Program      Date                Hash or Version']
@@ -330,13 +335,18 @@ class ListAvailable(Task):
     """
     List all available recipes.
     """
-    def __init__(self):
+    def __init__(self, short=False):
         super(ListAvailable, self).__init__()
+        self.short = short
 
     def run(self):
         """
         Execute a set of operations to perform the Task.
         """
+        if self.short:
+            print(' '.join(RecipeDB().names(desc=False)))
+            return
+
         logging.debug('List Available Recipes')
         available = ['Program      Description']
         available.extend(RecipeDB().names(desc=True))

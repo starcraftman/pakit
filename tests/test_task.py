@@ -8,6 +8,7 @@ import logging
 import mock
 import os
 import pytest
+import sys
 
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import RecipeDB
@@ -289,6 +290,16 @@ class TestTaskQuery(TestTaskBase):
         assert len(out) == 3
         assert out[-1].find('  ' + self.recipe.name) == 0
 
+    def test_list_installed_short(self):
+        if sys.version[0] == '2':
+            print_mod = '__builtin__.print'
+        else:
+            print_mod = 'builtins.print'
+        with mock.patch(print_mod) as mock_print:
+            InstallTask(self.recipe).run()
+            ListInstalled().run()
+            mock_print.called_with('ag')
+
     def test_list_available(self):
         task = ListAvailable()
         out = task.run().split('\n')
@@ -297,6 +308,16 @@ class TestTaskQuery(TestTaskBase):
         print(out)
         assert out[0] == 'Available Recipes:'
         assert out[2:] == expect
+
+    def test_list_available_short(self):
+        if sys.version[0] == '2':
+            print_mod = '__builtin__.print'
+        else:
+            print_mod = 'builtins.print'
+        with mock.patch(print_mod) as mock_print:
+            ListAvailable(True).run()
+            expect = ' '.join(RecipeDB().names(desc=False))
+            mock_print.assert_called_with(expect)
 
     def test_search_names(self):
         results = SearchTask(RecipeDB().names(), ['vim']).run()
