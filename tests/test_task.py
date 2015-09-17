@@ -297,8 +297,8 @@ class TestTaskQuery(TestTaskBase):
             print_mod = 'builtins.print'
         with mock.patch(print_mod) as mock_print:
             InstallTask(self.recipe).run()
-            ListInstalled().run()
-            mock_print.called_with('ag')
+            ListInstalled(True).run()
+            mock_print.assert_called_with('ag')
 
     def test_list_available(self):
         task = ListAvailable()

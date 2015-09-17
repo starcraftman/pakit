@@ -1,3 +1,8 @@
+NEXT
+  - Implement source caching for VCS.
+  - Add bash completion for pakit command.
+  - Add recipes for: ack, cmake, ctags, git, hg, libjsoncpp, zsh.
+
 0.2.1
   - Bumping to ensure pip release works.
   - README updated roadmap.
