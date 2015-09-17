@@ -315,11 +315,11 @@ class ListInstalled(Task):
         """
         Execute a set of operations to perform the Task.
         """
+        logging.debug('List Installed Programs')
         if self.short:
             print(' '.join(sorted([ent for ent, _ in IDB])))
             return
 
-        logging.debug('List Installed Programs')
         fmt = '{prog:10}   {date}   {hash}'
         installed = ['Program      Date                Hash or Version']
         installed.extend([fmt.format(prog=prog, **entry)
@@ -343,11 +343,11 @@ class ListAvailable(Task):
         """
         Execute a set of operations to perform the Task.
         """
+        logging.debug('List Available Recipes')
         if self.short:
             print(' '.join(RecipeDB().names(desc=False)))
             return
 
-        logging.debug('List Available Recipes')
         available = ['Program      Description']
         available.extend(RecipeDB().names(desc=True))
 

@@ -18,7 +18,7 @@ import shutil
 import signal
 import subprocess as sub
 import sys
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile as TempFile
 import threading as thr
 import time
 
@@ -780,14 +780,12 @@ class Command(object):
             stdin = open(prev_cmd.stdout.name, 'r')
 
         logging.debug('CMD START: %s', self)
-        self.stdout = NamedTemporaryFile(mode='wb', delete=False,
-                                         dir=TMP_DIR, prefix='cmd',
-                                         suffix='.log')
         try:
+            self.stdout = TempFile(mode='wb', delete=False, dir=TMP_DIR,
+                                   prefix='cmd', suffix='.log')
             self._proc = sub.Popen(
-                self._cmd, cwd=self._cmd_dir,
-                stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT,
-                preexec_fn=os.setsid
+                self._cmd, cwd=self._cmd_dir, preexec_fn=os.setsid,
+                stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT
             )
         except OSError:
             raise PakitCmdError('Command not available: ' + self._cmd[0])
@@ -869,6 +867,14 @@ class Command(object):
         thrd = thr.Thread(target=(lambda proc: proc.wait()),
                           args=(self._proc,))
         thrd.start()
+        thread_not_started = True
+        while thread_not_started:
+            try:
+                thrd.join(0.1)
+                thread_not_started = False
+            except RuntimeError:
+                pass
+
         while self._proc.poll() is None:
             thrd.join(0.5)
             interval = time.time() - os.path.getmtime(self.stdout.name)
