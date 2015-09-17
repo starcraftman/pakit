@@ -87,6 +87,7 @@ class ReleaseCommand(Command):
             pass
         for path in to_target:
             shutil.copy(path, target)
+        shutil.copytree('completion', os.path.join(target, 'completion'))
 
 
 class InstallDeps(Command):
@@ -188,7 +189,9 @@ setup(
     # # have to be included in MANIFEST.in as well.
     package_data={
         'pakit': ['extra/CHANGELOG.txt', 'extra/DEMO.md', 'extra/LICENSE.txt',
-                  'extra/README.md', 'extra/pakit.1'],
+                  'extra/README.md', 'extra/pakit.1',
+                  'extra/completion/pakit-bash.sh',
+                  'extra/completion/README.md'],
     },
 
     # # Although 'package_data' is the preferred approach, in some case you may

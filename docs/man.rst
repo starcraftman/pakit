@@ -20,6 +20,9 @@ Options
 -a, --available
    List available recipes
 
+--available-short
+   List available recipes, output is very terse
+
 -c,  --conf CONF
    Use CONF file instead of default (~/.pakit.yaml)
 
@@ -41,6 +44,9 @@ Options
 -l, --list
    List installed recipes
 
+--list-short
+   List installed recipes, output is very terse
+
 -r, --remove RECIPE [RECIPE...]
    Removes the RECIPE(s) on the system
 
@@ -50,22 +56,10 @@ Options
 -v, --version
    Show the program version number
 
-Recipes
--------
-Recipes are defined in the **pakit_recipes** package inside pakit (for now).
-
-* Every recipe is defined in its own file.
-* The name of the recipe file, is the name pakit will use to invoke the recipe.
-* Each recipe file must contain at least 1 class that is the capitalized name of the recipe.
-* That class must inherit from **pakit.Recipe**.
-
-For example, for recipe **ag**.
-
-* The recipe is stored in: **pakit_recipes/ag.py**
-* The class is: **class Ag(Recipe): ...**
-* It can be installed by: **pakit -i ag**
-
-For recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
+Completion
+----------
+I have written a bash completion script. You can find it within the pakit module, inside the
+`extra/completion` folder. See that folder's `README.md` for further details.
 
 Config
 ------
@@ -128,3 +122,20 @@ ag
 ag.repo
    By setting this to **unstable**, you are instructing pakit to override the
    **defaults** setting and always get the latest version of ag from **unstable**.
+
+Recipes
+-------
+Recipes are defined in the **pakit_recipes** package inside pakit (for now).
+
+* Every recipe is defined in its own file.
+* The name of the recipe file, is the name pakit will use to invoke the recipe.
+* Each recipe file must contain at least 1 class that is the capitalized name of the recipe.
+* That class must inherit from **pakit.Recipe**.
+
+For example, for recipe **ag**.
+
+* The recipe is stored in: **pakit_recipes/ag.py**
+* The class is: **class Ag(Recipe): ...**
+* It can be installed by: **pakit -i ag**
+
+For recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
