@@ -74,8 +74,7 @@ class ReleaseCommand(Command):
 
     def copy_files(self):
         target = os.path.join('pakit', 'extra')
-        to_target = ['CHANGELOG.txt', 'DEMO.md', 'LICENSE.txt', 'README.md',
-                     'share/man/man1/pakit.1']
+        to_target = ['CHANGELOG.txt', 'DEMO.md', 'LICENSE.txt', 'README.md']
 
         try:
             shutil.rmtree(target)
