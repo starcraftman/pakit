@@ -872,7 +872,7 @@ class Command(object):
             try:
                 thrd.join(0.1)
                 thread_not_started = False
-            except RuntimeError:
+            except RuntimeError:  # pragma: no cover
                 pass
 
         while self._proc.poll() is None:
