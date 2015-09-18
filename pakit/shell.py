@@ -338,7 +338,6 @@ class Archive(Fetchable):
         """
         Guarantees that source is available at target
         """
-        # TODO: Cache archive?
         if self.ready:
             return
 

@@ -14,7 +14,6 @@ from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
-import pakit.task
 import tests.common as tc
 
 
@@ -107,7 +106,8 @@ class TestArgs(object):
 
 
 class TestParseTasks(object):
-    def setup(self):
+    def setup_class(self):
+        tc.CONF = None
         self.config = tc.env_setup()
         self.parser = args_parser()
 
@@ -123,9 +123,7 @@ class TestParseTasks(object):
         assert tasks[0] == RemoveTask('ag')
         assert isinstance(tasks[0], RemoveTask)
 
-    # FIXME: Cloberring /tmp/pakit
     def test_parse_update(self):
-        # Need yaml file to trick into thinking installed
         recipe = RecipeDB().get('ag')
         pakit.task.IDB.add(recipe)
         args = self.parser.parse_args('--update'.split())

@@ -157,7 +157,6 @@ class Recipe(object):
         if cmd_dir is None and os.path.exists(self.source_dir):
             cmd_dir = self.source_dir
 
-        # TODO: Later, pickup opts from config & extend with prefix.
         cmd_str = cmd_str.format(**self.opts)
         logging.getLogger('pakit').info('Executing: %s', cmd_str)
         cmd = Command(cmd_str, cmd_dir)

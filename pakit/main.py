@@ -244,8 +244,6 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    # TODO: Add recipe name completion
-    # Require at least one for now.
     parser = args_parser()
     if len(argv) == 1:
         logging.error('No arguments. What should I do?')
