@@ -194,9 +194,13 @@ class InstallTask(RecipeTask):
         Execute a set of operations to perform the Task.
         """
         entry = IDB.get(self.recipe.name)
-        if entry is not None:
-            USER.info('%s: Already Installed\n  Built On: %s\n  Hash: %s',
-                      self.recipe.name, entry['date'], entry['hash'])
+        if entry:
+            msg = '{name}: Already Installed{nl}Repo: {repo}'
+            msg += '{nl}Hash: {hash}{nl}Date: {date}'
+            msg = msg.format(name=self.recipe.name, repo=entry['repo'],
+                             hash=entry['hash'], date=entry['date'], nl=PREFIX)
+            logging.debug(msg)
+            print(msg)
             return
 
         try:
@@ -229,7 +233,7 @@ class RemoveTask(RecipeTask):
         Execute a set of operations to perform the Task.
         """
         if IDB.get(self.recipe.name) is None:
-            USER.info('%s: Not Installed', self.recipe.name)
+            print(self.recipe.name + ': Not Installed')
             return
 
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
@@ -320,9 +324,14 @@ class ListInstalled(Task):
             print(' '.join(sorted([ent for ent, _ in IDB])))
             return
 
-        fmt = '{prog:10}   {date}   {hash}'
-        installed = ['Program      Date                Hash or Version']
-        installed.extend([fmt.format(prog=prog, **entry)
+        nchars = 12
+        fmt = str(nchars).join(['{prog:', '}   {repo:',
+                                '}   {hash:', '}   {date}'])
+        installed = ['Program        Repo           Hash           Date']
+        installed.extend([fmt.format(prog=prog[0:nchars],
+                                     repo=entry['repo'][0:nchars],
+                                     date=entry['date'],
+                                     hash=entry['hash'][0:nchars])
                           for prog, entry in IDB])
 
         msg = 'Installed Programs:'

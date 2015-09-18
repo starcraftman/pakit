@@ -14,6 +14,7 @@ from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
+import pakit.task
 import tests.common as tc
 
 

@@ -214,11 +214,15 @@ class TestTaskRollback(object):
 
 
 class TestTaskRemove(TestTaskBase):
-    @mock.patch('pakit.task.USER')
-    def test_is_not_installed(self, mock_log):
-        task = RemoveTask(self.recipe)
-        task.run()
-        mock_log.info.assert_called_with('%s: Not Installed', 'ag')
+    def test_is_not_installed(self):
+        if sys.version[0] == '2':
+            print_mod = '__builtin__.print'
+        else:
+            print_mod = 'builtins.print'
+        with mock.patch(print_mod) as mock_print:
+            task = RemoveTask(self.recipe)
+            task.run()
+            mock_print.assert_called_with('ag: Not Installed')
 
     def test_is_installed(self):
         InstallTask(self.recipe).run()
