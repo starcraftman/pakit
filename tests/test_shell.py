@@ -395,6 +395,10 @@ class TestCommand(object):
         with pytest.raises(PakitCmdError):
             Command('not_a_command_anywhere').wait()
 
+    def test_cmd_dir_does_not_exist(self):
+        with pytest.raises(PakitCmdError):
+            Command('pwd', cmd_dir='/tmp/should_not_exist/at_all').wait()
+
     def test_cmd_rcode_not_zero(self):
         with pytest.raises(PakitCmdError):
             Command('grep --aaaaa').wait()

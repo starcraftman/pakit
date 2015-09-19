@@ -46,6 +46,7 @@ class Recipe(object):
         self.homepage = 'Project site'
         self.repos = {}
         self.opts = None
+        self.def_cmd_dir = None
 
     def __str__(self):
         """
@@ -143,26 +144,30 @@ class Recipe(object):
         """
         return self.opts.get('repo')
 
-    def cmd(self, cmd_str, cmd_dir=None):
+    def cmd(self, cmd, **kwargs):
         """
-        Execute a given cmd_str on the system.
+        Wrapper around pakit.shell.Command. Behaves the same except:
 
-        Args:
-            cmd_str: A string that will expand embedded dictionary markers.
-                For example 'ls {prefix}/bin' would expand to
-                'ls /tmp/pakit/builds/bin' before executing the command.
-            cmd_dir: The directory to execute in.
+        - Expand all dictionary markers in *cmd* against *self.opts*.
+            Arg *cmd* may be a string or a list of strings.
+        - If no *cmd_dir* in kwargs, use default from *def_cmd_dir*.
+
+        Returns:
+            Command object that is running in a subprocess.
         """
-        # FIXME: Temporary hack, need to refactor cmd function.
-        if cmd_dir is None and os.path.exists(self.source_dir):
-            cmd_dir = self.source_dir
+        if isinstance(cmd, type('')):
+            cmd = cmd.format(**self.opts)
+        else:
+            cmd = [word.format(**self.opts) for word in cmd]
 
-        cmd_str = cmd_str.format(**self.opts)
-        logging.getLogger('pakit').info('Executing: %s', cmd_str)
-        cmd = Command(cmd_str, cmd_dir)
+        if kwargs.get('cmd_dir') is None:
+            kwargs.update({'cmd_dir': self.def_cmd_dir})
+
+        logging.getLogger('pakit').info('Executing in %s: %s',
+                                        kwargs['cmd_dir'], cmd)
+        cmd = Command(cmd, **kwargs)
         cmd.wait()
-
-        return cmd.output()
+        return cmd
 
     @abstractmethod
     def build(self):

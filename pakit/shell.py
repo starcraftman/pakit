@@ -787,7 +787,11 @@ class Command(object):
                 stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT
             )
         except OSError:
-            raise PakitCmdError('Command not available: ' + self._cmd[0])
+            if cmd_dir and not os.path.exists(cmd_dir):
+                raise PakitCmdError('Command directory does not exist: '
+                                    + self._cmd_dir)
+            else:
+                raise PakitCmdError('Command not available: ' + self._cmd[0])
 
     def __del__(self):
         """

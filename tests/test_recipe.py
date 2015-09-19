@@ -3,7 +3,9 @@ Test pakit.recipe
 """
 from __future__ import absolute_import, print_function
 
+import os
 import pytest
+import shutil
 
 from pakit.exc import PakitError
 from pakit.recipe import Recipe, RecipeDB
@@ -41,9 +43,52 @@ class TestRecipe(object):
         ]
         assert self.recipe.info().split('\n') == expect
 
+    def test_install_dir(self):
+        self.recipe.install_dir == self.config.get('paths.prefix')
+
+    def test_link_dir(self):
+        self.recipe.link_dir == self.config.get('paths.link')
+
+    def test_source_dir(self):
+        self.recipe.source_dir == self.config.get('paths.source')
+
+    def test_repo_get(self):
+        self.recipe.repo == 'stable'
+
     def test_repo_set(self):
         with pytest.raises(KeyError):
             self.recipe.repo = 'aaaaa'
+
+    def test_cmd_str(self):
+        cmd = self.recipe.cmd('echo {prefix}')
+        expect = [os.path.join(self.config.get('paths.prefix'), 'ag')]
+        assert cmd.output() == expect
+
+    def test_cmd_list(self):
+        cmd = self.recipe.cmd('echo {prefix}'.split())
+        expect = [os.path.join(self.config.get('paths.prefix'), 'ag')]
+        assert cmd.output() == expect
+
+    def test_cmd_dir_default(self):
+        test_dir = '/tmp'
+        self.recipe.def_cmd_dir = test_dir
+        cmd = self.recipe.cmd('pwd')
+        assert cmd.output() == [test_dir]
+
+    def test_cmd_dir_arg(self):
+        try:
+            test_dir = os.path.join('/tmp', 'pakit_folder')
+            try:
+                os.makedirs(test_dir)
+            except OSError:
+                pass
+            cmd = self.recipe.cmd('pwd', cmd_dir=test_dir)
+            assert cmd.output() == [test_dir]
+        finally:
+            try:
+                shutil.rmtree(test_dir)
+            except OSError:
+                pass
 
 
 class TestRecipeDB(object):

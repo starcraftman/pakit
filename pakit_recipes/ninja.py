@@ -23,6 +23,6 @@ class Ninja(Recipe):
                    '{prefix}/bin/ninja'.format(**self.opts))
 
     def verify(self):
-        lines = self.cmd('{link}/bin/ninja --version')
+        lines = self.cmd('./bin/ninja --version').output()
         matcher = re.match(r'\d\.\d+\.\d+', lines[0])
         assert matcher is not None

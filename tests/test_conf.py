@@ -192,6 +192,15 @@ class TestInstalledConfig(object):
         self.idb.add(self.recipe)
         self.idb.write()
         self.idb.read()
+        self.idb = InstallDB(self.idb_file)
         entry = self.idb.get('ag')
+        assert entry is not None
+        assert entry['hash'] == self.recipe.repo.src_hash
+
+    def test_read_existing(self):
+        self.idb.add(self.recipe)
+        self.idb.write()
+        new_idb = InstallDB(self.idb.filename)
+        entry = new_idb.get('ag')
         assert entry is not None
         assert entry['hash'] == self.recipe.repo.src_hash

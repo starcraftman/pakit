@@ -24,5 +24,5 @@ class Build(Recipe):
         raise PakitCmdError
 
     def verify(self):
-        lines = self.cmd('{link}/bin/ag --version')
+        lines = self.cmd('./bin/ag --version').output()
         assert lines[0].find('ag version') != -1

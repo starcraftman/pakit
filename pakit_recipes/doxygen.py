@@ -35,6 +35,6 @@ class Doxygen(Recipe):
             raise PakitCmdError(exc)
 
     def verify(self):
-        lines = self.cmd('{link}/bin/doxygen --version')
+        lines = self.cmd('./bin/doxygen --version').output()
         matcher = re.match(r'\d\.\d+\.\d+', lines[0])
         assert matcher is not None

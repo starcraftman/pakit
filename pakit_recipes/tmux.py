@@ -25,5 +25,5 @@ class Tmux(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('{link}/bin/tmux -V')
+        lines = self.cmd('./bin/tmux -V').output()
         assert lines[0].find('tmux') != -1
