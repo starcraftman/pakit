@@ -329,8 +329,26 @@ class Archive(Fetchable):
         uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
+        """
+        Constructor for Archive. *uri* and *hash* are required.
+
+        Args:
+            uri: The URI to retrieve the archive from.
+
+        Kwargs:
+            filename: If filename detection fails,
+                pass in a name with right extension.
+            hash: The sha1 hash of the archive.
+            target: Path on system to extract to.
+        """
         super(Archive, self).__init__(uri, kwargs.get('target', None))
-        self.filename, ext = find_arc_name(self.uri)
+
+        filename = kwargs.get('filename')
+        if filename:
+            self.filename = filename
+            ext = filename[filename.find('.') + 1:]
+        else:
+            self.filename, ext = find_arc_name(self.uri)
         self.__src_hash = kwargs.get('hash', '')
         self.__extract = get_extract_func(ext)
 

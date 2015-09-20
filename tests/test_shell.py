@@ -157,6 +157,14 @@ class TestArchive(object):
             with self.archive:
                 assert self.archive.ready
 
+    def test_filename_argument(self):
+        self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
+                               filename='file.tar.gz',
+                               hash='977871e7433fe054928d86477382bd5f6794dc3d')
+        self.archive.download()
+        assert os.path.exists(self.archive.arc_file)
+        assert os.path.basename(self.archive.arc_file) == 'file.tar.gz'
+
     def test_download_remote(self):
         self.archive.uri = tc.TAR
         self.archive.download()
