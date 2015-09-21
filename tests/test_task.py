@@ -324,8 +324,8 @@ class TestTaskQuery(TestTaskBase):
             mock_print.assert_called_with(expect)
 
     def test_search_names(self):
-        results = SearchTask(RecipeDB().names(), ['vim']).run()
-        assert results[1:] == ['vim']
+        results = SearchTask(RecipeDB().names(), ['doxygen']).run()
+        assert results[1:] == ['doxygen']
 
     def test_search_desc(self):
         ack = RecipeDB().get('ack')
