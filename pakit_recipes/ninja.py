@@ -19,8 +19,9 @@ class Ninja(Recipe):
 
     def build(self):
         self.cmd('./configure.py --bootstrap')
-        os.renames('{source}/ninja'.format(**self.opts),
-                   '{prefix}/bin/ninja'.format(**self.opts))
+        bin_dir = os.path.join(self.opts['prefix'], 'bin')
+        self.cmd('mkdir -p ' + bin_dir)
+        self.cmd('mv ninja ' + bin_dir)
 
     def verify(self):
         lines = self.cmd('./bin/ninja --version').output()
