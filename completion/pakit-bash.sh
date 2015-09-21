@@ -35,7 +35,7 @@ _pakit() {
       return 0
       ;;
     # complete available programs
-    -i|--install)
+    -d|-i|--display|--install)
       COMPREPLY=( $(compgen -W "${avail}" -- "${cur}") )
       return 0
       ;;
@@ -46,7 +46,8 @@ _pakit() {
       return 0
       ;;
     # require args, no completion
-    -a|-h|-l|-u|-v|--available|--create-conf|--help|--list|--update|--version)
+    -a|-h|-k|-l|-u|-v|--available*|--create-conf|--help|--list*|\
+        --search|--update|--version)
       return 0
       ;;
   esac

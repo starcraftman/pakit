@@ -1,7 +1,11 @@
-NEXT
+0.2.2
   - Implement source caching for VCS.
   - Add bash completion for pakit command.
-  - Add recipes for: ack, cmake, ctags, git, hg, libjsoncpp, zsh.
+  - Smarter default cmd dir for recipes, during `build()` executes in `source`,
+    during `verify` executes in `link`
+  - `--list`: Shorten hash and list repo installed from.
+  - `--display` formatting fix.
+  - Added recipes: ack, cmake, ctags, git, hg, libjsoncpp, p7zip, unrar, zsh.
   - Fix: Rare Command Failure
 
 0.2.1

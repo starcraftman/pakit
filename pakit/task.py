@@ -304,7 +304,7 @@ class DisplayTask(RecipeTask):
         """
         logging.debug('Displaying Info: ' + self.recipe.name)
 
-        msg = self.recipe.info()
+        msg = PREFIX[1:] + PREFIX.join(self.recipe.info().split('\n'))
         print(msg)
         return msg
 

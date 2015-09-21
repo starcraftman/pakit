@@ -333,5 +333,7 @@ class TestTaskQuery(TestTaskBase):
         assert results[1:] == [str(ack)]
 
     def test_display_info(self):
+        prefix = pakit.task.PREFIX
         results = DisplayTask(self.recipe).run()
-        assert results == self.recipe.info()
+        expect = prefix[1:] + prefix.join(self.recipe.info().split('\n'))
+        assert results == expect

@@ -1,6 +1,4 @@
 """ Formula for building p7zip """
-import os
-
 from pakit import Archive, Recipe
 
 
@@ -19,11 +17,10 @@ class P7zip(Recipe):
 
     def build(self):
         self.cmd('cp -f makefile.linux_any_cpu makefile.machine')
-        self.cmd('make 7z')
-        man_dir = os.path.join('share', 'man', 'man1')
-        self.cmd('mkdir -p {prefix}/bin {prefix}/' + man_dir)
-        self.cmd('cp ./bin/7z {prefix}/bin')
-        self.cmd('cp ./man1/7z.1 {prefix}/' + man_dir)
+        self.cmd('make 7z 7za 7zr')
+        self.cmd('rm -rf DOC')
+        self.cmd('make DEST_HOME={prefix} install')
+        self.cmd('mv {prefix}/man {prefix}/share')
 
     def verify(self):
         lines = self.cmd('./bin/7z --help').output()
