@@ -40,10 +40,9 @@ sudo pip install pakit
 
 **PATH**
 
-By default, pakit will install programs into `paths.prefix`.
-The default value is: `/tmp/pakit/links`.
-So all binaries will be in: `/tmp/pakit/links/bin`.
-To use the built programs you must put them on your $PATH.
+By default, pakit will install programs under `paths.prefix` and link everything to `paths.link`.
+To use the built programs, `paths.link`/bin must be on your $PATH.
+So for example, with the default value of `paths.link`, you would need to:
 
 ```bash
 export PATH=/tmp/pakit/links/bin:$PATH
