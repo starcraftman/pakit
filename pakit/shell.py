@@ -873,7 +873,7 @@ class Command(object):
             os.killpg(self._proc.pid, signal.SIGTERM)
             self._proc.wait()
 
-    def wait(self, max_time=60):
+    def wait(self, max_time=120):
         """
         Block here until the command is done.
 
