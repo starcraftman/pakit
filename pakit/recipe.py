@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-from pakit.exc import PakitError
+from pakit.exc import PakitDBError
 from pakit.shell import Command
 
 
@@ -242,11 +242,11 @@ class RecipeDB(object):
         Get the recipe from the database.
 
         Raises:
-            PakitError: Could not find the recipe.
+            PakitDBError: Could not resolve the name to a recipe.
         """
         obj = self.__db.get(name)
         if obj is None:
-            raise PakitError('Database missing entry: ' + name)
+            raise PakitDBError('Missing recipe to build: ' + name)
         return obj
 
     def names(self, desc=False):

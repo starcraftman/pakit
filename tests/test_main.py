@@ -193,6 +193,8 @@ class TestMain(object):
         mock_argsys.exit.assert_called_with(2)
         mock_sys.exit.assert_called_with(1)
 
-    def test_recipe_not_found(self):
-        with pytest.raises(PakitError):
-            main(['pakit', '-i', 'iiiii'])
+    @mock.patch('pakit.main.PLOG')
+    def test_recipe_not_found(self, mock_plog):
+        expect = 'Missing recipe to build: iiiii'
+        main(['pakit', '-i', 'iiiii'])
+        mock_plog.info.assert_called_with(expect)

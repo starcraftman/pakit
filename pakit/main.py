@@ -14,12 +14,15 @@ import traceback
 
 from pakit import __version__
 from pakit.conf import Config, InstallDB
-from pakit.exc import PakitError
+from pakit.exc import PakitError, PakitDBError
 from pakit.recipe import RecipeDB
 from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
                         ListAvailable, DisplayTask, SearchTask)
 import pakit.shell
 import pakit.task
+
+
+PLOG = logging.getLogger('pakit')
 
 
 def parse_tasks(args):
@@ -265,8 +268,10 @@ def main(argv=None):
             sys.exit(1)
 
         for task in tasks:
-            logging.getLogger('pakit').info('Running: %s', str(task))
+            PLOG.info('Running: %s', str(task))
             task.run()
+    except PakitDBError as exc:
+        PLOG.info(str(exc))
     except PakitError as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())

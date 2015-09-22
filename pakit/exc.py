@@ -24,6 +24,13 @@ class PakitCmdTimeout(PakitError):
     pass
 
 
+class PakitDBError(PakitError):
+    """
+    A database error occured.
+    """
+    pass
+
+
 class PakitLinkError(PakitError):
     """
     An error occurred during linking.
