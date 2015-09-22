@@ -45,7 +45,7 @@ class TestYamlMixin(object):
     def test_read_from_file_invalid(self, mock_log):
         assert not os.path.exists(self.config.filename)
         self.config.read_from()
-        assert mock_log.error.called is True
+        assert mock_log.error.called
 
     def test_write_to(self):
         self.config.write_to({'hello': 'world'})

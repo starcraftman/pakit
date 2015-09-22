@@ -159,7 +159,7 @@ class TestTaskInstall(TestTaskBase):
         task = InstallTask(self.recipe)
         task.run()
         task.run()
-        assert mock_log.info.called is True
+        assert mock_log.info.called
 
 
 class TestTaskRollback(object):

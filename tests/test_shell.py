@@ -226,7 +226,7 @@ class TestGit(object):
     def test_branch(self):
         self.repo.branch = 'hello'
         assert self.repo.branch == 'hello'
-        assert self.repo.on_branch is True
+        assert self.repo.on_branch
 
     def test_clean(self):
         self.repo.download()
@@ -241,7 +241,7 @@ class TestGit(object):
         repo = Git(self.repo.uri, target=self.test_dir)
         with repo:
             assert os.path.exists(os.path.join(repo.target, '.git'))
-            assert repo.on_branch is True
+            assert repo.on_branch
             assert repo.branch == 'master'
 
     def test_ready(self):
@@ -318,7 +318,7 @@ class TestHg(object):
         repo = Hg(self.repo.uri, target=self.test_dir)
         with repo:
             assert os.path.exists(os.path.join(repo.target, '.hg'))
-            assert repo.on_branch is True
+            assert repo.on_branch
             assert repo.branch == 'default'
 
     def test_ready(self):

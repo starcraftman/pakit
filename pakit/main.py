@@ -262,14 +262,13 @@ def main(argv=None):
 
     try:
         tasks = parse_tasks(args)
-        if len(tasks) == 0:
-            logging.error('No tasks found. Check invocation.')
-            parser.print_usage()
-            sys.exit(1)
-
         for task in tasks:
             PLOG.info('Running: %s', str(task))
             task.run()
+
+        if len(tasks) == 0 and args.update:
+            PLOG.info('Nothing to update.')
+
     except PakitDBError as exc:
         PLOG.info(str(exc))
     except PakitError as exc:

@@ -18,10 +18,10 @@ def test_env_setup():
 def test_env_teardown(mock_delete_it, mock_shutil):
     tc.env_setup()
     tc.env_teardown()
-    assert mock_delete_it.called is True
+    assert mock_delete_it.called
     for path in tc.PATHS:
         assert mock_delete_it.called_with(path)
-    assert mock_shutil.move.called is True
+    assert mock_shutil.move.called
 
 
 def test_delete_it_file():
