@@ -3,10 +3,11 @@ from pakit import Archive, Recipe
 
 
 class Parallel(Recipe):
-    """ GNU parallel executes shell jobs in parallel """
+    """
+    GNU parallel executes shell jobs in parallel
+    """
     def __init__(self):
         super(Parallel, self).__init__()
-        self.desc = 'GNU parallel executes shell jobs in parallel'
         self.homepage = 'http://www.gnu.org/software/parallel'
         self.repos = {
             'stable': Archive('http://ftp.gnu.org/gnu/parallel/'

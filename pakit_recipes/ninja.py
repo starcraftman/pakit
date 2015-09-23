@@ -6,10 +6,11 @@ from pakit import Git, Recipe
 
 
 class Ninja(Recipe):
-    """ A small build system optimized for speed """
+    """
+    A small build system optimized for speed
+    """
     def __init__(self):
         super(Ninja, self).__init__()
-        self.desc = 'A small build system optimized for speed'
         self.src = 'https://github.com/martine/ninja.git'
         self.homepage = self.src
         self.repos = {

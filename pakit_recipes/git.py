@@ -4,10 +4,11 @@ from pakit import Git as GitRepo
 
 
 class Git(Recipe):
-    """ The version control system """
+    """
+    The git distributed version control system
+    """
     def __init__(self):
         super(Git, self).__init__()
-        self.desc = 'The version control system'
         self.homepage = 'https://git-scm.com'
         self.repos = {
             'stable': Archive('https://www.kernel.org/pub/software/scm/git/'

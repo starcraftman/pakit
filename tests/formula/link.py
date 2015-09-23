@@ -6,10 +6,11 @@ import tests.common as tc
 
 
 class Link(Recipe):
-    """ Formula that always errors on link """
+    """
+    Formula that always errors on link
+    """
     def __init__(self):
         super(Link, self).__init__()
-        self.desc = 'Recipe always fails on linking'
         self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {

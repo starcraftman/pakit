@@ -5,10 +5,11 @@ from pakit import Git, Recipe
 
 
 class Libjsoncpp(Recipe):
-    """ A json parser for c++ """
+    """
+    An open source JSON parser for C++
+    """
     def __init__(self):
         super(Libjsoncpp, self).__init__()
-        self.desc = 'A json parser for c++'
         self.src = 'https://github.com/open-source-parsers/jsoncpp'
         self.homepage = self.src
         self.repos = {

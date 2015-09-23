@@ -4,10 +4,11 @@ import os
 
 
 class Tmux(Recipe):
-    """ A modern screen replacement """
+    """
+    A modern GNU screen replacement
+    """
     def __init__(self):
         super(Tmux, self).__init__()
-        self.desc = 'The modern screen replacement'
         self.src = 'https://github.com/tmux/tmux'
         self.homepage = self.src
         self.repos = {

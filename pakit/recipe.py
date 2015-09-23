@@ -21,9 +21,14 @@ class Recipe(object):
     """
     A recipe to build some binary through a series of commands.
 
+    *description* and *more_infp* are based on the class's __doc__.
+        description: returns first non-empty line of __doc__. Should be short.
+        more_info: returns everything else from __doc__.
+
     Attributes:
-        desc: A short description that summarizes the recipe.
-            Keep it short, less than 50 chars.
+        description: A short description that summarizes the recipe.
+            Keep it short, less than 50 chars suggested.
+        more_info: A longer description, may take several lines.
         homepage: The website that hosts the project.
         repos: A dictionary that stores all possible methods to retrieve
             source code. By convention, should contain a *stable* and
@@ -41,7 +46,6 @@ class Recipe(object):
 
     def __init__(self):
         super(Recipe, self).__init__()
-        self.desc = 'Short description for the recipe.'
         self.src = 'Source code url, will build bleeding edge version.'
         self.homepage = 'Project site'
         self.repos = {}
@@ -52,12 +56,13 @@ class Recipe(object):
         """
         A one line summary of the recipe.
         """
-        return '{0:10}   {1}'.format(self.name[0:10], self.desc)
+        return '{0:10}   {1}'.format(self.name[0:10], self.description)
 
     def info(self):
         """
         A detailed description of the recipe.
         """
+        tab = '  '
         fmt = [
             '{name}',
             'Description: {desc}',
@@ -66,12 +71,15 @@ class Recipe(object):
         ]
         for name, repo in sorted(self.repos.items()):
             fmt += ['Repo "' + name + '":', '{tab}' + str(repo)]
+        if self.more_info:
+            fmt += ['More Information:']
+            fmt += [tab + line for line in self.more_info]
         fmt = '\n  '.join(fmt)
         info = fmt.format(name=self.name,
-                          desc=self.desc,
+                          desc=self.description,
                           home=self.homepage,
                           cur_repo=self.repo_name,
-                          tab='  ')
+                          tab=tab)
         return info.rstrip('\n')
 
     def set_config(self, config):
@@ -87,6 +95,46 @@ class Recipe(object):
         })
         for repo in self.repos.values():
             repo.target = self.source_dir
+
+    @property
+    def description(self):
+        """
+        Return a one line description of the program.
+        """
+        lines = [line for line in self.__doc__.split('\n') if line != '']
+
+        return lines[0].strip()
+
+    @property
+    def more_info(self):
+        """
+        Return a longer description of the program.
+        """
+        first_non_blank = True
+        rest = None
+        lines = self.__doc__.split('\n')
+
+        # Start at second non blank line
+        for num, line in enumerate(lines):
+            line = line.strip()
+            if line and first_non_blank:
+                first_non_blank = False
+                continue
+            if line:
+                rest = [sline.strip() for sline in lines[num:]]
+                break
+
+        # Remove trailing blank lines
+        if rest:
+            index = len(rest)
+            reversed_rest = list(reversed(rest))
+            for num, line in enumerate(reversed_rest):
+                if line:
+                    index = num
+                    break
+            rest = list(reversed(reversed_rest[index:]))
+
+        return rest
 
     @property
     def install_dir(self):

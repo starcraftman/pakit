@@ -9,10 +9,11 @@ from pakit.exc import PakitCmdError
 
 
 class Doxygen(Recipe):
-    """ The C++ documentation generator """
+    """
+    The C++ documentation generator
+    """
     def __init__(self):
         super(Doxygen, self).__init__()
-        self.desc = 'The C++ documentation generator'
         self.src = 'https://github.com/doxygen/doxygen.git'
         self.homepage = self.src
         self.repos = {

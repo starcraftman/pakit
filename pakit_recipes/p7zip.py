@@ -3,10 +3,11 @@ from pakit import Archive, Recipe
 
 
 class P7zip(Recipe):
-    """ p7zip is the Unix command-line port of 7-Zip """
+    """
+    The open source command-line implementation of 7-Zip
+    """
     def __init__(self):
         super(P7zip, self).__init__()
-        self.desc = 'p7zip is the Unix command-line port of 7-Zip'
         self.homepage = 'http://p7zip.sourceforge.net'
         self.repos = {
             'stable': Archive('http://sourceforge.net/projects/p7zip/files/'

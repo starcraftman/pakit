@@ -5,10 +5,11 @@ from pakit import Archive, Recipe
 
 
 class Unrar(Recipe):
-    """ Utility to extract rar files """
+    """
+    Command line program to extract rar files
+    """
     def __init__(self):
         super(Unrar, self).__init__()
-        self.desc = 'Utility to extract rar files'
         self.homepage = 'http://www.rarlab.com'
         self.repos = {
             'stable': Archive('http://www.rarlab.com/rar/'

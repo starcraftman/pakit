@@ -329,7 +329,8 @@ class TestTaskQuery(TestTaskBase):
 
     def test_search_desc(self):
         ack = RecipeDB().get('ack')
-        results = SearchTask(RecipeDB().names(desc=True), [ack.desc]).run()
+        results = SearchTask(RecipeDB().names(desc=True),
+                             [ack.description]).run()
         assert results[1:] == [str(ack)]
 
     def test_display_info(self):

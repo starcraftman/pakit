@@ -5,10 +5,11 @@ from pakit import Git, Recipe
 
 
 class Vimpager(Recipe):
-    """ Use vim as a command line pager """
+    """
+    Use vim as a command line pager
+    """
     def __init__(self):
         super(Vimpager, self).__init__()
-        self.desc = 'Use vim as a command line pager'
         self.src = 'https://github.com/rkitover/vimpager'
         self.homepage = self.src
         self.repos = {

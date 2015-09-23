@@ -3,10 +3,13 @@ from pakit import Git, Recipe
 
 
 class Vim(Recipe):
-    """ The classic mode based terminal editor """
+    """
+    The mode based terminal editor for programmers.
+
+    By default built with lua & python 2.x interpreters.
+    """
     def __init__(self):
         super(Vim, self).__init__()
-        self.desc = 'The classic mode based terminal editor'
         self.src = 'https://github.com/vim/vim.git'
         self.homepage = 'www.vim.org'
         self.repos = {

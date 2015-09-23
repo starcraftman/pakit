@@ -6,10 +6,11 @@ from pakit import Git, Recipe
 
 
 class Ack(Recipe):
-    """ Advanced grep tool based on perl """
+    """
+    Advanced grep tool based on perl
+    """
     def __init__(self):
         super(Ack, self).__init__()
-        self.desc = 'Advanced grep tool based on perl'
         self.src = 'https://github.com/petdance/ack2.git'
         self.homepage = self.src
         self.repos = {

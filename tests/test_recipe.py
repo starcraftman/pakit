@@ -43,6 +43,35 @@ class TestRecipe(object):
         ]
         assert self.recipe.info().split('\n') == expect
 
+    def test_info_strip_spaces(self):
+        print()
+        self.recipe.__doc__ = """
+        Grep like tool optimized for speed
+
+
+        Start of new text.
+
+        Second paragraph.
+
+        """
+        print(self.recipe.info())
+        uri = self.recipe.repo.uri
+        expect = [
+            'ag',
+            '  Description: Grep like tool optimized for speed',
+            '  Homepage: ' + uri,
+            '  Current Repo: "unstable"',
+            '  Repo "stable":',
+            '    Git: tag: 0.30.0, uri: ' + uri,
+            '  Repo "unstable":',
+            '    Git: branch: master, uri: ' + uri,
+            '  More Information:',
+            '    Start of new text.',
+            '    ',
+            '    Second paragraph.',
+        ]
+        assert self.recipe.info().split('\n') == expect
+
     def test_install_dir(self):
         self.recipe.install_dir == self.config.get('paths.prefix')
 

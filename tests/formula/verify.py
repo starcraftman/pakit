@@ -6,10 +6,11 @@ import tests.common as tc
 
 
 class Verify(Recipe):
-    """ Formula that always errors on verify """
+    """
+    Formula that always errors on verify
+    """
     def __init__(self):
         super(Verify, self).__init__()
-        self.desc = 'Recipe always fails on verify()'
         self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {

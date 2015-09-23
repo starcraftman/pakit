@@ -7,10 +7,11 @@ import tests.common as tc
 
 
 class Update(Recipe):
-    """ Formula that always errors on build """
+    """
+    Formula that always errors on build
+    """
     def __init__(self):
         super(Update, self).__init__()
-        self.desc = 'Recipe always fails on update'
         self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {

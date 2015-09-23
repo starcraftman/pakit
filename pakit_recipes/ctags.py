@@ -3,10 +3,11 @@ from pakit import Git, Recipe
 
 
 class Ctags(Recipe):
-    """ A source code indexing tool """
+    """
+    A source code indexing tool
+    """
     def __init__(self):
         super(Ctags, self).__init__()
-        self.desc = 'A source code indexing tool'
         self.src = 'https://github.com/universal-ctags/ctags'
         self.homepage = self.src
         self.repos = {

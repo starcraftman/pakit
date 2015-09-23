@@ -3,10 +3,11 @@ from pakit import Archive, Git, Recipe
 
 
 class Cmake(Recipe):
-    """ A cross-platform build tool for C++ """
+    """
+    A cross-platform build tool for C++
+    """
     def __init__(self):
         super(Cmake, self).__init__()
-        self.desc = 'A cross-platform build tool for C++'
         self.homepage = 'www.cmake.org'
         self.repos = {
             'stable': Archive('http://www.cmake.org/files/v3.3/'

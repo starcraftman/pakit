@@ -3,10 +3,11 @@ from pakit import Archive, Git, Recipe
 
 
 class Zsh(Recipe):
-    """ The zshell, a powerful interactive shell """
+    """
+    The zshell, a powerful interactive shell
+    """
     def __init__(self):
         super(Zsh, self).__init__()
-        self.desc = 'The zshell, a powerful interactive shell'
         self.homepage = 'http://zsh.sourceforge.net/'
         self.repos = {
             'stable': Archive('http://sourceforge.net/projects/zsh/files/'

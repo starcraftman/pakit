@@ -4,10 +4,11 @@ from pakit import Hg as HgRepo
 
 
 class Hg(Recipe):
-    """ The distributed version control system """
+    """
+    The mercurial distributed version control system
+    """
     def __init__(self):
         super(Hg, self).__init__()
-        self.desc = 'The distributed version control system'
         self.homepage = 'https://mercurial.selenic.com'
         self.repos = {
             'stable': Archive('http://mercurial.selenic.com/release/'
