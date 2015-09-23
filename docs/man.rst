@@ -63,7 +63,7 @@ I have written a bash completion script. You can find it within the pakit module
 
 Config
 ------
-Configuration is done by YAML file, default location is ``/.pakit.yaml``
+Configuration is done by YAML file, default location is ``~/.pakit.yaml``
 
 This is an example config:
 
