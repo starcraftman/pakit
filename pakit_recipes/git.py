@@ -12,7 +12,8 @@ class Git(Recipe):
         self.repos = {
             'stable': Archive('https://www.kernel.org/pub/software/scm/git/'
                               'git-2.5.2.tar.xz',
-                              hash='5078512c7dba1db2d98814c1abe7550dc18507c9'),
+                              hash='4b4760a90ede51accee703bd6815f1f79afef6'
+                              '8670acdcf3ea31dcc846a40c9b'),
             'unstable': GitRepo('https://github.com/git/git'),
         }
 

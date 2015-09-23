@@ -13,7 +13,8 @@ class Tmux(Recipe):
         self.repos = {
             'stable': Archive('https://github.com/tmux/tmux/releases/download'
                               '/2.0/tmux-2.0.tar.gz',
-                              hash='977871e7433fe054928d86477382bd5f6794dc3d'),
+                              hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade7'
+                              '10ebca4657dd879c35916ad362'),
             'unstable': Git(self.src),
         }
 

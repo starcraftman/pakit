@@ -11,7 +11,8 @@ class Parallel(Recipe):
         self.repos = {
             'stable': Archive('http://ftp.gnu.org/gnu/parallel/'
                               'parallel-20150822.tar.bz2',
-                              hash='befa48aac03fbac3f45b3500f2a072d1568eda6a')
+                              hash='ad9007530d87687160fd8def58721acdac244c'
+                              '151b6c007f35068909bb5c47c6')
         }
 
     def build(self):

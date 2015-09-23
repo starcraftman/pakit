@@ -12,7 +12,8 @@ class P7zip(Recipe):
             'stable': Archive('http://sourceforge.net/projects/p7zip/files/'
                               'p7zip/9.38.1/p7zip_9.38.1_src_all.tar.bz2/'
                               'download',
-                              hash='6b1eccf272d8b141a94758f80727ae633568ba69')
+                              hash='fd5019109c9a1bf34ad3257d37a6853eae8151'
+                              'ff50345f0a3ffba7d8c5fdb995')
         }
 
     def build(self):

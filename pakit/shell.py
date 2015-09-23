@@ -228,7 +228,7 @@ def get_extract_func(ext):
         raise PakitError('Unsupported Archive Format: extension ' + ext)
 
 
-def hash_archive(archive, hash_alg):
+def hash_archive(archive, hash_alg='sha256'):
     """
     Hash an archive.
 
@@ -241,17 +241,15 @@ def hash_archive(archive, hash_alg):
         The hex based hash of the archive, using hash_alg.
     """
     hasher = hashlib.new(hash_alg)
-    hash_str = None
-    blk_size = 2 ** 10
+    blk_size = 1024 ** 2
 
     with open(archive, 'rb') as fin:
         block = fin.read(blk_size)
         while block:
             hasher.update(block)
             block = fin.read(blk_size)
-        hash_str = hasher.hexdigest()
 
-    return hash_str
+    return hasher.hexdigest()
 
 
 class Fetchable(object):
@@ -378,24 +376,6 @@ class Archive(Fetchable):
                                       uri=self.uri)
 
     @property
-    def actual_hash(self):
-        """
-        The actual hash of the downloaded archive file.
-        """
-        # TODO: Support all hashlib.algorithms via config:
-        #   ('md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512')
-        arc_clean = False
-        if not os.path.exists(self.arc_file):
-            self.download()
-            arc_clean = True
-
-        hash_str = hash_archive(self.arc_file, 'sha1')
-
-        if arc_clean:
-            os.remove(self.arc_file)
-        return hash_str
-
-    @property
     def arc_file(self):
         """
         The path to the downloaded archive.
@@ -424,6 +404,21 @@ class Archive(Fetchable):
         """
         return self.__src_hash
 
+    def actual_hash(self):
+        """
+        The actual hash of the downloaded archive file.
+        """
+        arc_clean = False
+        if not os.path.exists(self.arc_file):
+            self.download()
+            arc_clean = True
+
+        hash_str = hash_archive(self.arc_file)
+
+        if arc_clean:
+            os.remove(self.arc_file)
+        return hash_str
+
     def clean(self):
         """
         Guarantee no trace of archive file or source target.
@@ -447,9 +442,12 @@ class Archive(Fetchable):
         elif self.uri != self.arc_file:
             shutil.copy(self.uri, self.arc_file)
 
-        if self.actual_hash != self.src_hash:
+        arc_hash = self.actual_hash()
+        if arc_hash != self.src_hash:
             os.remove(self.arc_file)
-            raise PakitError('Hash mismatch on archive')
+            raise PakitError('Hash mismatch on archive.\n  Expected: {exp}'
+                             '\n  Actual: {act}'.format(exp=self.src_hash,
+                                                        act=arc_hash))
 
 
 class VersionRepo(Fetchable):

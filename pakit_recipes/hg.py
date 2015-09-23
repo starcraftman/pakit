@@ -12,7 +12,8 @@ class Hg(Recipe):
         self.repos = {
             'stable': Archive('http://mercurial.selenic.com/release/'
                               'mercurial-3.5.1.tar.gz',
-                              hash='fbe9c64dd4c065dbc9330aff4533fa1631d75c79'),
+                              hash='997da45da303e399678c5bccd7be39b0fabf29'
+                              'c7e02fd3c8751c2ff88c8a259d'),
             'unstable': HgRepo('https://selenic.com/hg', branch='stable')
         }
 

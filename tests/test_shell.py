@@ -34,11 +34,12 @@ def test_get_extract_func_not_found():
         get_extract_func('tar.gzzz')
 
 
-def test_hash_archive_sha1():
-    expect_hash = '977871e7433fe054928d86477382bd5f6794dc3d'
+def test_hash_archive_sha256():
+    expect_hash = ('795f4b4446b0ea968b9201c25e8c1ef8a6ade710ebca4657dd879c'
+                   '35916ad362')
     arc = Archive(tc.TAR, target='./temp', hash=expect_hash)
     arc.download()
-    assert hash_archive(arc.arc_file, 'sha1') == expect_hash
+    assert hash_archive(arc.arc_file) == expect_hash
     os.remove(arc.arc_file)
 
 
@@ -138,7 +139,8 @@ class TestArchive(object):
         self.config = tc.env_setup()
         self.test_dir = os.path.join(self.config.get('paths.source'), 'tmux')
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
-                               hash='977871e7433fe054928d86477382bd5f6794dc3d')
+                               hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
+                               'ebca4657dd879c35916ad362')
 
     def teardown(self):
         tc.delete_it(self.archive.arc_file)
@@ -160,7 +162,8 @@ class TestArchive(object):
     def test_filename_argument(self):
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
                                filename='file.tar.gz',
-                               hash='977871e7433fe054928d86477382bd5f6794dc3d')
+                               hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
+                               'ebca4657dd879c35916ad362')
         self.archive.download()
         assert os.path.exists(self.archive.arc_file)
         assert os.path.basename(self.archive.arc_file) == 'file.tar.gz'
@@ -187,7 +190,7 @@ class TestArchive(object):
             assert os.path.join(self.test_dir, 'README')
 
     def test_hash(self):
-        assert self.archive.src_hash == self.archive.actual_hash
+        assert self.archive.src_hash == self.archive.actual_hash()
 
     def test_clean(self):
         self.archive.download()

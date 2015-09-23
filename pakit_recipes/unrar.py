@@ -14,7 +14,8 @@ class Unrar(Recipe):
             'stable': Archive('http://www.rarlab.com/rar/'
                               'unrarsrc-5.3.4.tar.gz',
                               filename='unrarsrc.tar.gz',
-                              hash='67a744b08c2ecf1d893bf0b0a7a51d486affb9a2')
+                              hash='ce4767b8532f0866c609ec99a0b4d21a2f6cb8'
+                              'a786b15092ddf608ec4904b874')
         }
 
     def build(self):

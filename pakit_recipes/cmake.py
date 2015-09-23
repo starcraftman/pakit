@@ -11,7 +11,8 @@ class Cmake(Recipe):
         self.repos = {
             'stable': Archive('http://www.cmake.org/files/v3.3/'
                               'cmake-3.3.1.tar.gz',
-                              hash='799aff559e9f330fefc60e6509f1d025fc3d9c8c'),
+                              hash='cd65022c6a0707f1c7112f99e9c981677fdd55'
+                              '18f7ddfa0f778d4cee7113e3d6'),
             'unstable': Git('git://cmake.org/cmake.git '),
         }
 
