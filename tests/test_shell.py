@@ -415,9 +415,8 @@ class TestCommand(object):
             Command('grep --aaaaa').wait()
 
     def test_cmd_timeout(self):
-        cmd = Command('sleep 10')
         with pytest.raises(PakitCmdTimeout):
-            cmd.wait(2)
+            Command('sleep 20').wait(2)
 
     def test_prev_cmd_stdin(self):
         cmd = Command('echo -e "Hello\nGoodbye!"')
