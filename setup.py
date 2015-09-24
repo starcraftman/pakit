@@ -18,7 +18,7 @@ def get_long_desc():
     """ Fetches the latest changelog for pypi """
     base_desc = 'PakIt is a package manager that builds directly off source.\n\
 For More Information: https://github.com/starcraftman/pakit/\n'
-    with open('CHANGELOG.txt') as fin:
+    with open('CHANGELOG') as fin:
         lines = fin.readlines()
     return base_desc + '\nChange Log:\n\n' + ''.join(lines)
 
@@ -74,7 +74,7 @@ class ReleaseCommand(Command):
 
     def copy_files(self):
         target = os.path.join('pakit', 'extra')
-        to_target = ['CHANGELOG.txt', 'DEMO.md', 'LICENSE.txt', 'README.md']
+        to_target = ['CHANGELOG', 'DEMO.md', 'LICENSE', 'README.md']
 
         try:
             shutil.rmtree(target)
@@ -187,7 +187,7 @@ setup(
     # # installed, specify them here.  If using Python 2.6 or less, then these
     # # have to be included in MANIFEST.in as well.
     package_data={
-        'pakit': ['extra/CHANGELOG.txt', 'extra/DEMO.md', 'extra/LICENSE.txt',
+        'pakit': ['extra/CHANGELOG', 'extra/DEMO.md', 'extra/LICENSE',
                   'extra/README.md', 'extra/pakit.1',
                   'extra/completion/pakit-bash.sh',
                   'extra/completion/README.md'],
