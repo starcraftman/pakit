@@ -12,7 +12,7 @@ import logging
 import os
 import shutil
 
-from pakit.exc import PakitError, PakitLinkError
+from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import Recipe, RecipeDB
 from pakit.shell import Command
 
@@ -175,19 +175,21 @@ class InstallTask(RecipeTask):
         if isinstance(exc, AssertionError):
             logging.error('Error during verify() of %s', self.recipe.name)
             cascade = True
-        if isinstance(exc, PakitLinkError) or cascade:
+        if cascade or isinstance(exc, PakitLinkError):
             if not cascade:
                 logging.error('Error during linking of %s', self.recipe.name)
             walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
             cascade = True
-        if (not isinstance(exc, PakitLinkError) and
-                not isinstance(exc, AssertionError)) or cascade:
+        if cascade or (not isinstance(exc, PakitLinkError) and
+                       not isinstance(exc, AssertionError)):
             if not cascade:
                 logging.error('Error during build() of %s', self.recipe.name)
-            if os.path.exists(self.recipe.repo.target):
-                prefix = os.path.join(self.path('prefix'), self.recipe.name)
-                Command('rm -rf ' + prefix).wait()
-        # In all cases, purge src tree to get a fresh build next time.
+            try:
+                Command('rm -rf ' + self.recipe.install_dir).wait()
+            except PakitCmdError:  # pragma: no cover
+                pass
+
+        # In all cases, remove the source code
         self.recipe.repo.clean()
 
     def run(self):
@@ -211,13 +213,16 @@ class InstallTask(RecipeTask):
                 USER.info('%s: Building Source', self.recipe.name)
                 self.recipe.def_cmd_dir = self.recipe.source_dir
                 self.recipe.build()
+
                 USER.info('%s: Symlinking Program', self.recipe.name)
                 walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
+
                 USER.info('%s: Verifying Program', self.recipe.name)
                 self.recipe.def_cmd_dir = self.recipe.link_dir
                 self.recipe.verify()
+
                 IDB.add(self.recipe)
-        except (AssertionError, PakitError) as exc:
+        except Exception as exc:  # pylint: disable=W0703
             self.rollback(exc)
             raise
 
@@ -288,7 +293,8 @@ class UpdateTask(RecipeTask):
             InstallTask(self.recipe).run()
             USER.info('%s: Deleting Old Install', self.recipe.name)
             Command('rm -rf ' + self.back_dir).wait()
-        except (AssertionError, PakitError):
+        except Exception as exc:  # pylint: disable=W0703
+            logging.error(exc)
             self.restore_old_install()
 
 
