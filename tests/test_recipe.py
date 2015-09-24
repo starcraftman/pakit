@@ -37,7 +37,7 @@ class TestRecipe(object):
             '  Homepage: ' + uri,
             '  Current Repo: "unstable"',
             '  Repo "stable":',
-            '    Git: tag: 0.30.0, uri: ' + uri,
+            '    Git: tag: 0.31.0, uri: ' + uri,
             '  Repo "unstable":',
             '    Git: branch: master, uri: ' + uri,
         ]
@@ -62,7 +62,7 @@ class TestRecipe(object):
             '  Homepage: ' + uri,
             '  Current Repo: "unstable"',
             '  Repo "stable":',
-            '    Git: tag: 0.30.0, uri: ' + uri,
+            '    Git: tag: 0.31.0, uri: ' + uri,
             '  Repo "unstable":',
             '    Git: branch: master, uri: ' + uri,
             '  More Information:',

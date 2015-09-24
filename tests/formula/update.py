@@ -15,7 +15,7 @@ class Update(Recipe):
         self.src = os.path.join(tc.STAGING, 'git')
         self.homepage = self.src
         self.repos = {
-            'stable': Git(self.src, tag='0.30.0'),
+            'stable': Git(self.src, tag='0.31.0'),
             'unstable': Git(self.src),
         }
 

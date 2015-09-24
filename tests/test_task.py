@@ -204,7 +204,7 @@ class TestTaskRollback(object):
 
         self.recipe.repo = 'stable'
         InstallTask(self.recipe).run()
-        expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
+        expect = 'd7193e13a7f8f9fe9732e1f546a39e45d3925eb3'
         assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
 
         self.recipe.repo = 'unstable'
@@ -256,7 +256,7 @@ class TestTaskUpdate(TestTaskBase):
 
         recipe.repo = 'stable'
         InstallTask(recipe).run()
-        expect = 'c81622c5c5313c05eab2da3b5eca6c118b74369e'
+        expect = 'd7193e13a7f8f9fe9732e1f546a39e45d3925eb3'
         assert pakit.task.IDB.get(recipe.name)['hash'] == expect
 
         recipe.repo = 'unstable'

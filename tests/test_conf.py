@@ -144,7 +144,7 @@ class TestInstalledConfig(object):
             'Contents:',
             '{',
             '  "ag": {',
-            '    "hash": "c81622c5c5313c05eab2da3b5eca6c118b74369e",',
+            '    "hash": "d7193e13a7f8f9fe9732e1f546a39e45d3925eb3",',
             '    "repo": "stable",',
             '  }',
             '}'
