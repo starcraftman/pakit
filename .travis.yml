@@ -24,13 +24,13 @@ matrix:
       env: TOXENV=pylint
     - python: 2.7
       env: TOXENV=coverage
-    - python: 3.2
+    - python: 3.5
       env: TOXENV=coverage
-    - python: 3.3
-      env: TOXENV=pytest
     - python: 3.4
       env: TOXENV=pytest
-    - python: 3.5
+    - python: 3.3
+      env: TOXENV=pytest
+    - python: 3.2
       env: TOXENV=pytest
 install: |
   sudo apt-get install unrar p7zip-full
