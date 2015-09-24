@@ -135,7 +135,7 @@ setup(
     author_email=MY_EMAIL,
     maintainer=MY_NAME,
     maintainer_email=MY_EMAIL,
-    license='MIT',
+    license='BSD',
     platforms=['any'],
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -144,7 +144,7 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX :: Linux',
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.

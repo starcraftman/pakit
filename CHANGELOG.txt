@@ -1,3 +1,10 @@
+NEXT
+  - Relicensed to BSD 3 clause.
+  - Python 3.5 testing.
+  - Use __doc__ in Recipes better for description and more info.
+  - Use sha256 hashing instead of sha1 on archives.
+  - Better exception handling towards user.
+
 0.2.2
   - Implement source caching for VCS.
   - Add bash completion for pakit command.
