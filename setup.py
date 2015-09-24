@@ -45,7 +45,7 @@ class CleanCommand(Command):
 
     def run(self):
         pycs = ' '.join(rec_search('*.pyc'))
-        eggs = ' '.join(glob.glob('*.egg-info'))
+        eggs = ' '.join(glob.glob('*.egg-info') + glob.glob('*.egg'))
         cmd = 'rm -vrf .eggs .tox build dist {0} {1}'.format(eggs, pycs)
         print('Executing: ' + cmd)
         if raw_input('OK? y/n  ').strip().lower()[0] == 'y':

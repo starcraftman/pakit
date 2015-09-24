@@ -5,12 +5,19 @@ python:
   - 3.3
   - 3.4
   - 3.5
+cache:
+  directories:
+    - $DEPS
 env:
-  # 'coverage' runs the regular test suite & reports to coveralls
-  - TOXENV=coverage
-  - TOXENV=flake8
-  - TOXENV=pylint
-  - TOXENV=pytest
+  global:
+    - DEPS=$HOME/deps
+    - PATH=$DEPS/bin:$PATH
+  matrix:
+    # 'coverage' runs the regular test suite & reports to coveralls
+    - TOXENV=coverage
+    - TOXENV=flake8
+    - TOXENV=pylint
+    - TOXENV=pytest
 matrix:
   exclude:
     - env: TOXENV=coverage
@@ -33,9 +40,18 @@ matrix:
     - python: 3.2
       env: TOXENV=pytest
 install: |
-  sudo apt-get install unrar p7zip-full
-  pip install coveralls tox
   cp -f ./tests/.hgrc $HOME
+  cp -f ./tests/pakit.yaml $HOME/.pakit.yaml
+  pip install coveralls tox
+
+  if [ "$TOXENV" = "pytest" -o "$TOXENV" = "coverage" ]; then
+    if [ -e "$DEPS/bin/7z" ]; then
+      echo "Using CACHE at $DEPS."
+    else
+      echo "Running travis installation."
+      bash ./tests/install.sh
+    fi
+  fi
 script: |
   tox
 after_success: |
