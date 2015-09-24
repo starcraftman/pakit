@@ -12,7 +12,7 @@ import logging
 import os
 import shutil
 
-from pakit.exc import PakitError, PakitCmdError, PakitLinkError
+from pakit.exc import PakitError, PakitLinkError
 from pakit.recipe import Recipe, RecipeDB
 from pakit.shell import Command
 
@@ -180,7 +180,8 @@ class InstallTask(RecipeTask):
                 logging.error('Error during linking of %s', self.recipe.name)
             walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
             cascade = True
-        if isinstance(exc, PakitCmdError) or cascade:
+        if (not isinstance(exc, PakitLinkError) and
+                not isinstance(exc, AssertionError)) or cascade:
             if not cascade:
                 logging.error('Error during build() of %s', self.recipe.name)
             if os.path.exists(self.recipe.repo.target):
