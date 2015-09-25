@@ -5,7 +5,7 @@ Man Page
 
 Description
 -----------
-PakIt provides:
+pakit provides:
 
 #. A Package Manager CLI to install, remove & update programs.
 #. A simple Recipe specification to build programs from source code.
@@ -24,7 +24,7 @@ Options
    List available recipes, output is very terse
 
 -c,  --conf CONF
-   Use CONF file instead of default (~/.pakit.yaml)
+   Use CONF file instead of default (~/.pakit.yml)
 
 --create-conf
    Write the default configuration to CONF
@@ -63,65 +63,74 @@ I have written a bash completion script. You can find it within the pakit module
 
 Config
 ------
-Configuration is done by YAML file, default location is ``~/.pakit.yaml``
+Configuration is done by YAML file, default location is ``~/.pakit.yml``
 
 This is an example config:
 
 .. code-block:: yaml
 
-   defaults:
-      repo: stable
-   log:
-      enabled: true
-      file: /tmp/pakit/main.log
-   paths:
-      link: /tmp/pakit/links
-      prefix: /tmp/pakit/builds
-      recipes: /home/username/.pakit/recipes
-      source: /tmp/pakit/src
+   pakit:
+     command:
+       timeout 120
+     defaults:
+       repo: stable
+     log:
+       enabled: true
+       file: /tmp/pakit/main.log
+       level: debug
+     paths:
+       link: /tmp/pakit/links
+       prefix: /tmp/pakit/builds
+       recipes: /home/starcraftman/.pakit/recipes
+       source: /tmp/pakit/src
    ag:
-      repo: unstable
+     repo: unstable
 
 Expalnation of Config:
 
-log.enabled
-   Toggles the file logger. Console errors always enabled.
+pakit.command.timeout
+   The timeout for commands, when no stdout produced for timeout kill process.
 
-log.file
-   Where the log file will be written to.
+pakit.log.enabled
+   Toggles the file logger. Console are errors always enabled.
 
-paths.link
-   Path that should be appended to your shell $PATH.
+pakit.log.file
+   Where the file log will be written to.
 
-paths.prefix
-   All recipes will be installed into this path.
-   Using the above config, the recipe **ag** would be installed to
-   **/tmp/pakit/builds/ag**.
+pakit.log.level
+   The level to write to the file log.
 
-paths.recipes
+pakit.paths.link
+   Path where all programs will be linked to. You should put the bin folder in
+   this folder on the **$PATH**. For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
+
+pakit.paths.prefix
+   All recipes will be installed into this path. Using the above config,
+   the recipe **ag** would be installed to **/tmp/pakit/builds/ag**.
+
+pakit.paths.recipes
    Path to a folder with user created recipes. Path must be a valid package
    name according to python rules. Importantly this means base folder
    can **NOT** be a hidden directory (leading '.').
 
-paths.source
+pakit.paths.source
    The path where source code will be downloaded & built.
 
-defaults
+pakit.defaults
    A dictionary of default options made available to all recipes.
    Anything in this, will be available inside recipes as **self.opts**.
 
-defaults.repo
+pakit.defaults.repo
    The default source repository to use.
    By convention, **stable** will always fetch a stable versioned release.
-   Whereas **unstable** is essentially building off the **master** branch of a project.
+   Whereas **unstable** should build from recent project commits, it may break.
 
 ag
    A recipe specific dictionary that will *override* keys of the same
-   name in **defaults**.
+   name in `pakit.defaults`.
 
 ag.repo
-   By setting this to **unstable**, you are instructing pakit to override the
-   **defaults** setting and always get the latest version of ag from **unstable**.
+   Setting **unstable** here overrides the value of `pakit.defaults.repo`.
 
 Recipes
 -------

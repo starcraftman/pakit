@@ -5,6 +5,8 @@ from __future__ import absolute_import, print_function
 
 import mock
 import os
+import pytest
+import subprocess as sub
 
 from pakit.conf import Config, InstallDB, YamlMixin
 from pakit.recipe import RecipeDB
@@ -61,7 +63,7 @@ class TestConfig(object):
         tc.env_setup()
 
     def setup(self):
-        self.config_file = os.path.join(tc.STAGING, 'pakit.yaml')
+        self.config_file = os.path.join(tc.STAGING, 'pakit.yml')
         self.config = Config(self.config_file)
 
     def teardown(self):
@@ -75,55 +77,79 @@ class TestConfig(object):
             'Config File: {0}'.format(self.config.filename),
             'Contents:',
             '{',
-            '  "defaults": {',
-            '    "repo": "stable"',
-            '  },',
-            '  "log": {',
-            '    "enabled": true,',
-            '    "file": "/tmp/pakit/main.log"',
-            '  },',
-            '  "paths": {',
-            '    "link": "/tmp/pakit/links",',
-            '    "prefix": "/tmp/pakit/builds",',
-            '    "recipes": "{0}",'.format(user_recs),
-            '    "source": "/tmp/pakit/src"',
+            '  "pakit": {',
+            '    "command": {',
+            '      "timeout": 120',
+            '    },',
+            '    "defaults": {',
+            '      "repo": "stable"',
+            '    },',
+            '    "log": {',
+            '      "enabled": true,',
+            '      "file": "/tmp/pakit/main.log",',
+            '      "level": "debug"',
+            '    },',
+            '    "paths": {',
+            '      "link": "/tmp/pakit/links",',
+            '      "prefix": "/tmp/pakit/builds",',
+            '      "recipes": "{0}",'.format(user_recs),
+            '      "source": "/tmp/pakit/src"',
+            '    }',
             '  }',
             '}',
         ]
         assert str(self.config).split('\n') == expect
 
     def test__contains__(self):
-        assert 'log' in self.config
-        assert 'moose' not in self.config
+        assert 'pakit' in self.config
+        assert 'pakit.paths' in self.config
+        assert 'pakit.paths.prefix' in self.config
+        assert 'beaver' not in self.config
+        assert 'canada.beaver' not in self.config
 
     def test_get(self):
-        assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
+        assert self.config.get('pakit.paths.prefix') == '/tmp/pakit/builds'
+
+    def test_get_missing_key(self):
+        self.config.write()
+        sub.call(['sed', '-i', '-e', '/command\\|timeout/d',
+                  self.config.filename])
+        with open(self.config.filename) as fin:
+            lines = fin.readlines()
+            assert 'command:' not in lines
+            assert 'timeout:' not in lines
+        config = Config(self.config_file)
+        assert config.get('pakit.command.timeout') == 120
+
+    def test_get_raises(self):
+        with pytest.raises(KeyError):
+            self.config.get('pakit.paths.prefixxx')
 
     def test_get_opts(self):
-        """ Requires the testing pakit.yaml. """
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yaml')
+        """ Requires the testing pakit.yml. """
+        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yml')
         config = Config(config_file)
         opts = config.get_opts('ag')
         assert opts.get('repo') == 'unstable'
         assert opts.get('prefix') == '/tmp/test_pakit/builds'
 
     def test_set(self):
-        self.config.set('paths.prefix', '/dev/null')
-        assert self.config.get('paths.prefix') == '/dev/null'
+        self.config.set('pakit.paths.prefix', '/dev/null')
+        assert self.config.get('pakit.paths.prefix') == '/dev/null'
 
         self.config.set('hello.world', True)
         assert self.config.get('hello.world') is True
 
     def test_write(self):
-        self.config.set('paths.install', 22)
+        self.config.set('pakit.paths.install', 22)
         self.config.write()
         self.config.read()
-        assert self.config.get('paths.install') == 22
+        assert self.config.get('pakit.paths.install') == 22
 
     def test_reset(self):
-        self.config.set('paths.prefix', 22)
+        self.config.set('pakit.paths.prefix', 22)
         self.config.reset()
-        assert self.config.get('paths.prefix') == '/tmp/pakit/builds'
+        assert self.config.get('pakit.paths.prefix') == '/tmp/pakit/builds'
 
 
 class TestInstalledConfig(object):

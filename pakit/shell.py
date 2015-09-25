@@ -29,6 +29,8 @@ try:
 except ImportError:
     import urllib.request as ulib  # pylint: disable=E0611,F0401
 import zipfile
+
+import pakit.conf
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 
 EXTS = None
@@ -320,9 +322,9 @@ class Archive(Fetchable):
     extract_zip function.
 
     Attributes:
-        actual_hash: The actual sha1 hash of the archive.
+        actual_hash: The actual sha256 hash of the archive.
         filename: The filename of the archive.
-        src_hash: The expected sha1 hash of the archive.
+        src_hash: The expected sha256 hash of the archive.
         target: The folder the source code should end up in.
         uri: The location of the source code.
     """
@@ -336,7 +338,7 @@ class Archive(Fetchable):
         Kwargs:
             filename: If filename detection fails,
                 pass in a name with right extension.
-            hash: The sha1 hash of the archive.
+            hash: The sha256 hash of the archive.
             target: Path on system to extract to.
         """
         super(Archive, self).__init__(uri, kwargs.get('target', None))
@@ -444,7 +446,7 @@ class Archive(Fetchable):
 
         arc_hash = self.actual_hash()
         if arc_hash != self.src_hash:
-            os.remove(self.arc_file)
+            self.clean()
             raise PakitError('Hash mismatch on archive.\n  Expected: {exp}'
                              '\n  Actual: {act}'.format(exp=self.src_hash,
                                                         act=arc_hash))
@@ -595,6 +597,19 @@ class Git(VersionRepo):
         uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
+        """
+        Constructor for a git repository.
+        By default checks out the default branch.
+        The *branch* and *tag* kwargs are mutually exclusive.
+
+        Args:
+            uri: The URI that hosts the repository.
+
+        Kwargs:
+            branch: A branch to checkout and track.
+            tag: Any fixed tag like a revision or tagged commit.
+            target: Path on system to clone to.
+        """
         super(Git, self).__init__(uri, **kwargs)
         if self.on_branch and kwargs.get('tag') is None:
             self.branch = 'master'
@@ -673,6 +688,19 @@ class Hg(VersionRepo):
         uri: The location of the source code.
     """
     def __init__(self, uri, **kwargs):
+        """
+        Constructor for a mercurial repository.
+        By default checks out the default branch.
+        The *branch* and *tag* kwargs are mutually exclusive.
+
+        Args:
+            uri: The URI that hosts the repository.
+
+        Kwargs:
+            branch: A branch to checkout and track.
+            tag: Any fixed tag like a revision or tagged commit.
+            target: Path on system to clone to.
+        """
         super(Hg, self).__init__(uri, **kwargs)
         if self.on_branch and kwargs.get('tag') is None:
             self.branch = 'default'
@@ -767,6 +795,8 @@ class Command(object):
         alive: True only if the command is still running.
         rcode: When the command finishes, is the return code.
     """
+    def_timeout = None
+
     def __init__(self, cmd, cmd_dir=None, prev_cmd=None):
         """
         Run a command on the system.
@@ -871,7 +901,7 @@ class Command(object):
             os.killpg(self._proc.pid, signal.SIGTERM)
             self._proc.wait()
 
-    def wait(self, max_time=120):
+    def wait(self, timeout=None):
         """
         Block here until the command is done.
 
@@ -883,6 +913,9 @@ class Command(object):
             PakitCmdTimeout: When stdout stops getting output for max_time.
             PakitCmdError: When return code is not 0.
         """
+        if not timeout:
+            timeout = pakit.conf.CONFIG.get('pakit.command.timeout')
+
         thrd = thr.Thread(target=(lambda proc: proc.wait()),
                           args=(self._proc,))
         thrd.start()
@@ -897,7 +930,7 @@ class Command(object):
         while self._proc.poll() is None:
             thrd.join(0.5)
             interval = time.time() - os.path.getmtime(self.stdout.name)
-            if interval > max_time:
+            if interval > timeout:
                 self.terminate()
                 raise PakitCmdTimeout('\n'.join(self.output(10)))
 

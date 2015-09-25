@@ -137,7 +137,8 @@ class TestExtractFuncs(object):
 class TestArchive(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('paths.source'), 'tmux')
+        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+                                     'tmux')
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
                                hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
                                'ebca4657dd879c35916ad362')
@@ -208,7 +209,8 @@ class TestArchive(object):
 class TestGit(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('paths.source'), 'git')
+        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+                                     'git')
         git_url = os.path.join(tc.STAGING, 'git')
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
 
@@ -303,7 +305,8 @@ class TestGit(object):
 class TestHg(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('paths.source'), 'hg')
+        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+                                     'hg')
         hg_url = os.path.join(tc.STAGING, 'hg')
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
 

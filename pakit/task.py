@@ -12,11 +12,11 @@ import logging
 import os
 import shutil
 
+import pakit.conf
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import Recipe, RecipeDB
 from pakit.shell import Command
 
-IDB = None
 PREFIX = '\n  '
 USER = logging.getLogger('pakit')
 
@@ -82,28 +82,17 @@ class Task(object):
     The 'run' method performs the requested task.
     """
     __metaclass__ = ABCMeta
-    config = None
 
     def __str__(self):
         return '{cls}: Config File {config}'.format(
-            cls=self.__class__.__name__,
-            config=Task.config.filename)
+            cls=self.name, config=pakit.conf.CONFIG.filename)
 
-    @classmethod
-    def set_config(cls, new_config):
+    @property
+    def name(self):
         """
-        Set the global config for all Tasks.
+        Just returns class name.
         """
-        cls.config = new_config
-
-    def path(self, name):
-        """
-        Fetch a path from the config file.
-
-        Args:
-            name: An entry in 'paths'.
-        """
-        return self.__class__.config.get('paths.' + name)
+        return self.__class__.__name__
 
     @abstractmethod
     def run(self):
@@ -125,7 +114,7 @@ class RecipeTask(Task):
             self.__recipe = RecipeDB().get(recipe)
 
     def __str__(self):
-        return '{cls}: {recipe}'.format(cls=self.__class__.__name__,
+        return '{cls}: {recipe}'.format(cls=self.name,
                                         recipe=self.recipe.name)
 
     def __eq__(self, other):
@@ -196,7 +185,7 @@ class InstallTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        entry = IDB.get(self.recipe.name)
+        entry = pakit.conf.IDB.get(self.recipe.name)
         if entry:
             msg = '{name}: Already Installed{nl}Repo: {repo}'
             msg += '{nl}Hash: {hash}{nl}Date: {date}'
@@ -221,7 +210,7 @@ class InstallTask(RecipeTask):
                 self.recipe.def_cmd_dir = self.recipe.link_dir
                 self.recipe.verify()
 
-                IDB.add(self.recipe)
+                pakit.conf.IDB.add(self.recipe)
         except Exception as exc:  # pylint: disable=W0703
             self.rollback(exc)
             raise
@@ -240,13 +229,13 @@ class RemoveTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        if IDB.get(self.recipe.name) is None:
+        if pakit.conf.IDB.get(self.recipe.name) is None:
             print(self.recipe.name + ': Not Installed')
             return
 
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         shutil.rmtree(self.recipe.install_dir)
-        IDB.remove(self.recipe.name)
+        pakit.conf.IDB.remove(self.recipe.name)
 
 
 class UpdateTask(RecipeTask):
@@ -263,12 +252,12 @@ class UpdateTask(RecipeTask):
         Before attempting an update of the program:
             - Unlink it.
             - Move the installation to a backup location.
-            - Remove the IDB entry.
+            - Remove the pakit.conf.IDB entry.
         """
         USER.info('%s: Saving Old Install', self.recipe.name)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
-        self.old_entry = IDB.get(self.recipe.name)
-        IDB.remove(self.recipe.name)
+        self.old_entry = pakit.conf.IDB.get(self.recipe.name)
+        pakit.conf.IDB.remove(self.recipe.name)
         shutil.move(self.recipe.install_dir, self.back_dir)
 
     def restore_old_install(self):
@@ -277,7 +266,7 @@ class UpdateTask(RecipeTask):
         """
         USER.info('%s: Restoring Old Install', self.recipe.name)
         shutil.move(self.back_dir, self.recipe.install_dir)
-        IDB.set(self.recipe.name, self.old_entry)
+        pakit.conf.IDB.set(self.recipe.name, self.old_entry)
         walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
 
     def run(self):
@@ -285,7 +274,8 @@ class UpdateTask(RecipeTask):
         Execute a set of operations to perform the Task.
         """
         USER.info('%s: Checking For Updates', self.recipe.name)
-        if IDB.get(self.recipe.name)['hash'] == self.recipe.repo.src_hash:
+        cur_hash = pakit.conf.IDB.get(self.recipe.name)['hash']
+        if cur_hash == self.recipe.repo.src_hash:
             return
 
         try:
@@ -330,7 +320,7 @@ class ListInstalled(Task):
         """
         logging.debug('List Installed Programs')
         if self.short:
-            print(' '.join(sorted([ent for ent, _ in IDB])))
+            print(' '.join(sorted([ent for ent, _ in pakit.conf.IDB])))
             return
 
         nchars = 12
@@ -341,7 +331,7 @@ class ListInstalled(Task):
                                      repo=entry['repo'][0:nchars],
                                      date=entry['date'],
                                      hash=entry['hash'][0:nchars])
-                          for prog, entry in IDB])
+                          for prog, entry in pakit.conf.IDB])
 
         msg = 'Installed Programs:'
         msg += PREFIX + PREFIX.join(installed)

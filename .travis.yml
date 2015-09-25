@@ -42,7 +42,7 @@ matrix:
 install: |
   cp -f ./tests/.hgrc $HOME
   cp -f ./tests/pakit.yaml $HOME/.pakit.yaml
-  pip install coveralls tox
+  pip install coveralls tox pyyaml
 
   if [ "$TOXENV" = "pytest" -o "$TOXENV" = "coverage" ]; then
     if [ -e "$DEPS/bin/7z" ]; then

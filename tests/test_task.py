@@ -10,6 +10,7 @@ import os
 import pytest
 import sys
 
+import pakit.conf
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import RecipeDB
 from pakit.task import (
@@ -17,7 +18,6 @@ from pakit.task import (
     Task, RecipeTask, InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
-import pakit.task
 import tests.common as tc
 
 
@@ -38,8 +38,9 @@ def test_substring_match():
 class TestLinking(object):
     def setup(self):
         config = tc.env_setup()
-        self.src = config.get('paths.prefix')
-        self.dst = config.get('paths.link')
+        paths = config.get('pakit.paths')
+        self.src = paths['prefix']
+        self.dst = paths['link']
         self.teardown()
 
         self.subdir = os.path.join(self.src, 'subdir')
@@ -148,8 +149,10 @@ class TestTaskInstall(TestTaskBase):
         task = InstallTask(self.recipe)
         task.run()
         name = self.recipe.name
-        build_bin = os.path.join(task.path('prefix'), name, 'bin', name)
-        link_bin = os.path.join(task.path('link'), 'bin', name)
+
+        paths = pakit.conf.CONFIG.get('pakit.paths')
+        build_bin = os.path.join(paths['prefix'], name, 'bin', name)
+        link_bin = os.path.join(paths['link'], 'bin', name)
         assert os.path.exists(build_bin)
         assert os.path.exists(link_bin)
         assert os.path.realpath(link_bin) == build_bin
@@ -205,11 +208,11 @@ class TestTaskRollback(object):
         self.recipe.repo = 'stable'
         InstallTask(self.recipe).run()
         expect = 'd7193e13a7f8f9fe9732e1f546a39e45d3925eb3'
-        assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
+        assert pakit.conf.IDB.get(self.recipe.name)['hash'] == expect
 
         self.recipe.repo = 'unstable'
         UpdateTask(self.recipe).run()
-        assert pakit.task.IDB.get(self.recipe.name)['hash'] == expect
+        assert pakit.conf.IDB.get(self.recipe.name)['hash'] == expect
         RemoveTask(self.recipe).run()
 
 
@@ -229,10 +232,11 @@ class TestTaskRemove(TestTaskBase):
         task = RemoveTask(self.recipe)
         task.run()
 
-        assert os.path.exists(task.path('prefix'))
-        globbed = glob.glob(os.path.join(task.path('prefix'), '*'))
-        assert globbed == [os.path.join(task.path('prefix'), 'installed.yaml')]
-        assert not os.path.exists(task.path('link'))
+        paths = pakit.conf.CONFIG.get('pakit.paths')
+        assert os.path.exists(paths['prefix'])
+        globbed = glob.glob(os.path.join(paths['prefix'], '*'))
+        assert globbed == [os.path.join(paths['prefix'], 'installed.yaml')]
+        assert not os.path.exists(paths['link'])
 
 
 class TestTaskUpdate(TestTaskBase):
@@ -243,11 +247,11 @@ class TestTaskUpdate(TestTaskBase):
     def test_is_current(self):
         recipe = self.recipe
         InstallTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
+        assert pakit.conf.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
         first_hash = recipe.repo.src_hash
 
         UpdateTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
+        assert pakit.conf.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
         assert first_hash == recipe.repo.src_hash
 
     def test_is_not_current(self):
@@ -257,11 +261,11 @@ class TestTaskUpdate(TestTaskBase):
         recipe.repo = 'stable'
         InstallTask(recipe).run()
         expect = 'd7193e13a7f8f9fe9732e1f546a39e45d3925eb3'
-        assert pakit.task.IDB.get(recipe.name)['hash'] == expect
+        assert pakit.conf.IDB.get(recipe.name)['hash'] == expect
 
         recipe.repo = 'unstable'
         UpdateTask(recipe).run()
-        assert pakit.task.IDB.get(recipe.name)['hash'] != expect
+        assert pakit.conf.IDB.get(recipe.name)['hash'] != expect
 
         recipe.repo = old_repo_name
 
@@ -270,7 +274,7 @@ class TestTaskUpdate(TestTaskBase):
         InstallTask(recipe).run()
         task = UpdateTask(recipe)
         task.save_old_install()
-        assert pakit.task.IDB.get(recipe.name) is None
+        assert pakit.conf.IDB.get(recipe.name) is None
         assert not os.path.exists(recipe.install_dir)
         assert os.path.exists(recipe.install_dir + '_bak')
 
@@ -280,7 +284,7 @@ class TestTaskUpdate(TestTaskBase):
         task = UpdateTask(recipe)
         task.save_old_install()
         task.restore_old_install()
-        assert pakit.task.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
+        assert pakit.conf.IDB.get(recipe.name)['hash'] == recipe.repo.src_hash
         assert os.path.exists(recipe.install_dir)
         assert not os.path.exists(recipe.install_dir + '_bak')
         recipe.verify()

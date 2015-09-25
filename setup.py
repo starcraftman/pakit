@@ -7,16 +7,22 @@ from setuptools.command.test import test as TestCommand
 import fnmatch
 import glob
 import os
-import pakit
 import shlex
 import shutil
 import subprocess
 import sys
+try:
+    import pakit
+except ImportError:
+    print('setup.py imports pakit for information, please install pyyaml.')
+    print('Execute:')
+    print('    sudo -H pip install argparse pyyaml')
+    sys.exit(1)
 
 
 def get_long_desc():
     """ Fetches the latest changelog for pypi """
-    base_desc = 'PakIt is a package manager that builds directly off source.\n\
+    base_desc = 'Pakit is a package manager that builds from source.\n\
 For More Information: https://github.com/starcraftman/pakit/\n'
     with open('CHANGELOG') as fin:
         lines = fin.readlines()

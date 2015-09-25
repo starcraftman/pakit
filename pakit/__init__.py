@@ -1,18 +1,20 @@
 """
-PakIt: Build and manage programs simply
+pakit: Build and manage programs simply.
 
-In short, Recipes are defined and put in the pakit_recipes directory. These
-recipes subclass Recipe, providing information on how to build a program.
-Pakit will dynamically import and instantiate the recipes at run time.
-For more information see pakit.recipe
+- A Package Manager CLI to install, remove & update programs.
+- A simple Recipe specification to build programs from source code.
+- Premade recipes for common programs under ``pakit_recipes``.
 
-Configuration is done by a YAML file in your HOME folder.
-The default is `~/.pakit.yaml`.
-Here you can tell pakit where to install and link programs.
-You can also set default and recipe specific options.
-For more information see pakit.conf
+See...
+- *pakit.conf* for information on configuration, including defaults.
+- *pakit.exc* for all exception classes.
+- *pakit.main* for all argument parsing and task running logic.
+- *pakit.recipe* for information on writing and extending Recipes.
+- *pakit.shell* for all code related to shell commands.
+- *pakit.task* for all high level tasks like installing and updating.
 
-All possible actions are defined under pakit.task.
+Configuration is done by YAML file in your $HOME folder.
+The default is `~/.pakit.yml`.
 """
 from __future__ import absolute_import
 

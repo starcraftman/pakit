@@ -73,13 +73,13 @@ class TestRecipe(object):
         assert self.recipe.info().split('\n') == expect
 
     def test_install_dir(self):
-        self.recipe.install_dir == self.config.get('paths.prefix')
+        self.recipe.install_dir == self.config.get('pakit.paths.prefix')
 
     def test_link_dir(self):
-        self.recipe.link_dir == self.config.get('paths.link')
+        self.recipe.link_dir == self.config.get('pakit.paths.link')
 
     def test_source_dir(self):
-        self.recipe.source_dir == self.config.get('paths.source')
+        self.recipe.source_dir == self.config.get('pakit.paths.source')
 
     def test_repo_get(self):
         self.recipe.repo == 'stable'
@@ -90,12 +90,12 @@ class TestRecipe(object):
 
     def test_cmd_str(self):
         cmd = self.recipe.cmd('echo {prefix}')
-        expect = [os.path.join(self.config.get('paths.prefix'), 'ag')]
+        expect = [os.path.join(self.config.get('pakit.paths.prefix'), 'ag')]
         assert cmd.output() == expect
 
     def test_cmd_list(self):
         cmd = self.recipe.cmd('echo {prefix}'.split())
-        expect = [os.path.join(self.config.get('paths.prefix'), 'ag')]
+        expect = [os.path.join(self.config.get('pakit.paths.prefix'), 'ag')]
         assert cmd.output() == expect
 
     def test_cmd_dir_default(self):

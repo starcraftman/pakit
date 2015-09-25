@@ -19,7 +19,7 @@ from pakit.main import global_init
 from pakit.recipe import RecipeDB
 
 STAGING = '/tmp/staging'
-TEST_CONFIG = pjoin(os.path.dirname(__file__), 'pakit.yaml')
+TEST_CONFIG = pjoin(os.path.dirname(__file__), 'pakit.yml')
 ARCS_URL = 'https://github.com/pakit/arc_fmts'
 ARCS = pjoin(STAGING, 'arcs')
 GIT = 'https://github.com/ggreer/the_silver_searcher'
@@ -40,8 +40,8 @@ def env_setup():
 
     CONF = global_init(TEST_CONFIG)
     logging.info('INIT ENV')
-    PATHS.append(CONF.get('log.file'))
-    PATHS.extend(list(CONF.get('paths').values()))
+    PATHS.append(CONF.get('pakit.log.file'))
+    PATHS.extend(list(CONF.get('pakit.paths').values()))
 
     delete_it(STAGING)
     cmds = [

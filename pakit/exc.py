@@ -19,7 +19,7 @@ class PakitCmdError(PakitError):
 
 class PakitCmdTimeout(PakitError):
     """
-    The Command timed out after writing no stdout for max_time.
+    The Command timed out after writing no stdout for a duration.
     """
     pass
 

@@ -18,8 +18,8 @@ from pakit.exc import PakitError, PakitDBError
 from pakit.recipe import RecipeDB
 from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
                         ListAvailable, DisplayTask, SearchTask)
+import pakit.conf
 import pakit.shell
-import pakit.task
 
 
 PLOG = logging.getLogger('pakit')
@@ -28,6 +28,9 @@ PLOG = logging.getLogger('pakit')
 def parse_tasks(args):
     """
     Parse the program arguments into a list of Tasks to execute
+
+    Args:
+        args: An argparse object to map onto tasks.
 
     Returns:
         A list of Tasks.
@@ -39,7 +42,7 @@ def parse_tasks(args):
     if args.remove:
         tasks.extend([RemoveTask(prog) for prog in args.remove])
     if args.update:
-        tasks.extend([UpdateTask(prog) for prog, _ in pakit.task.IDB])
+        tasks.extend([UpdateTask(prog) for prog, _ in pakit.conf.IDB])
     if args.available:
         tasks.append(ListAvailable(False))
     if args.available_short:
@@ -64,37 +67,43 @@ def global_init(config_file):
         - Read user configuration.
         - Initialize the logging system.
         - Populate the recipe database.
+        - Create configured folders.
+        - Setup pakit man page.
+
+    Args:
+        config_file: The YAML configuration filename.
 
     Returns:
         The loaded config object.
     """
     config = Config(config_file)
-    init_logging(config.get('log.file'))
+    pakit.conf.CONFIG = config
+    init_logging(config.get('pakit.log.file'))
     logging.debug('Global Config: %s', config)
 
-    for path in config.get('paths').values():
+    for path in config.get('pakit.paths').values():
         try:
             os.makedirs(path)
         except OSError:
             pass
 
-    prefix = config.get('paths.prefix')
+    prefix = config.get('pakit.paths.prefix')
+    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
+    logging.debug('InstallDB: %s', pakit.conf.IDB)
     pakit.shell.TMP_DIR = os.path.dirname(prefix)
-    pakit.task.Task.set_config(config)
 
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'pakit_recipes')
     recipes.index(default)
     try:
-        recipes.index(config.get('paths.recipes'))
+        recipes.index(config.get('pakit.paths.recipes'))
     except KeyError:
         pass
-    pakit.task.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
 
     # setup man during init
     src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
-    dst = os.path.join(config.get('paths.link'), 'share', 'man',
+    dst = os.path.join(config.get('pakit.paths.link'), 'share', 'man',
                        'man1', 'pakit.1')
     try:
         os.makedirs(os.path.dirname(dst))
@@ -160,17 +169,18 @@ def args_parser():
     """
     prog_name = os.path.basename(os.path.dirname(sys.argv[0]))
     mesg = """
-    {0} is a meta build tool providing a package manager like interface
+    {0} is a build tool providing a package manager like interface
     to build & install recipes into local paths.
 
     Alpha Notes:
-        `{0} --create-conf` will create the default config in $HOME/.pakit.yaml
+        `{0} --create-conf` will create the default config in $HOME/.pakit.yml
 
         Please see distributed man page & pydoc for more information.
         DESIGN.md might also have some of the information.
 
-        pakit_recipes/ag.py is an example recipe
+        See DEMO.md for a quick tour.
 
+        pakit_recipes/ag.py is an example recipe
         User recipes can be put in $HOME/.pakit/recipes by default.
         If two recipes have same name, last one in wins.
     """.format(prog_name)
@@ -186,7 +196,7 @@ def args_parser():
                         action='store_true',
                         help='list available recipes, terse output')
     parser.add_argument('-c', '--conf',
-                        default=os.path.expanduser('~/.pakit.yaml'),
+                        default=os.path.expanduser('~/.pakit.yml'),
                         help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='write the default config to CONF')

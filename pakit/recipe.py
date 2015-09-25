@@ -21,9 +21,9 @@ class Recipe(object):
     """
     A recipe to build some binary through a series of commands.
 
-    *description* and *more_infp* are based on the class's __doc__.
-        description: returns first non-empty line of __doc__. Should be short.
-        more_info: returns everything else from __doc__.
+    *description* and *more_info* are based on the class's __doc__ string.
+        description: The first non blank line in __doc__
+        more_info: The second non blank line to end of __doc__
 
     Attributes:
         description: A short description that summarizes the recipe.
@@ -46,11 +46,10 @@ class Recipe(object):
 
     def __init__(self):
         super(Recipe, self).__init__()
-        self.src = 'Source code url, will build bleeding edge version.'
-        self.homepage = 'Project site'
-        self.repos = {}
-        self.opts = None
         self.def_cmd_dir = None
+        self.homepage = None
+        self.opts = {}
+        self.repos = None
 
     def __str__(self):
         """

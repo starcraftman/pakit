@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# PakIt documentation build configuration file, created by
+# Pakit documentation build configuration file, created by
 # sphinx-quickstart on Sun Aug 30 13:33:23 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -50,7 +50,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PakIt'
+project = u'Pakit'
 copyright = u'2015, Jeremy Pallats/starcraft.man'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -183,7 +183,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PakItdoc'
+htmlhelp_basename = 'Pakitdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -203,7 +203,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'PakIt.tex', u'PakIt Documentation',
+  ('index', 'Pakit.tex', u'Pakit Documentation',
    u'Jeremy Pallats/starcraft.man', 'manual'),
 ]
 
@@ -247,8 +247,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'PakIt', u'PakIt Documentation',
-   u'Jeremy Pallats/starcraft.man', 'PakIt', 'One line description of project.',
+  ('index', 'Pakit', u'Pakit Documentation',
+   u'Jeremy Pallats/starcraft.man', 'Pakit', 'One line description of project.',
    'Miscellaneous'),
 ]
 

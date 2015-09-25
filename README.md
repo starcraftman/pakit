@@ -1,4 +1,4 @@
-# PakIt
+# Pakit
 
 [![Travis](https://travis-ci.org/starcraftman/pakit.svg?branch=master)](https://travis-ci.org/starcraftman/pakit)
 [![Coveralls](https://coveralls.io/repos/starcraftman/pakit/badge.svg?branch=master&service=github)](https://coveralls.io/github/starcraftman/pakit?branch=master)
@@ -53,9 +53,9 @@ To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
 
 ## Try Pakit In 5 Minutes
 
-After having installed PakIt, try a simple demo.
+After having installed Pakit, try a simple demo.
 
-![PakIt Demo](http://cdn.makeagif.com/media/9-08-2015/-3StlV.gif)
+![Pakit Demo](http://cdn.makeagif.com/media/9-08-2015/-3StlV.gif)
 
 ### [FOR DEMO STEPS CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
 
@@ -113,7 +113,7 @@ Just a rough guess of what I should be implementing when.
 ### 0.1
 - [x] Implement basic tasks to install & remove 'ag' program.
 - [x] Support Git & Hg repositories.
-- [x] Simple config from `.pakit.yaml`.
+- [x] Simple config from `.pakit.yml`.
 - [x] Upgrade logic.
 - [x] User defined recipe locations via config.
 - [x] Pick a license.

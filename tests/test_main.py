@@ -7,6 +7,7 @@ import mock
 import os
 import pytest
 
+import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import args_parser, main, parse_tasks, write_config
 from pakit.recipe import RecipeDB
@@ -14,7 +15,6 @@ from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
-import pakit.task
 import tests.common as tc
 
 
@@ -127,11 +127,11 @@ class TestParseTasks(object):
 
     def test_parse_update(self):
         recipe = RecipeDB().get('ag')
-        pakit.task.IDB.add(recipe)
+        pakit.conf.IDB.add(recipe)
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
         assert UpdateTask(recipe.name) in tasks
-        pakit.task.IDB.remove(recipe.name)
+        pakit.conf.IDB.remove(recipe.name)
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())
