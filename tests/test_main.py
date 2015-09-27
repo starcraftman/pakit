@@ -6,16 +6,104 @@ from __future__ import absolute_import
 import mock
 import os
 import pytest
+import shutil
 
 import pakit.conf
 from pakit.exc import PakitError
-from pakit.main import args_parser, main, parse_tasks, write_config
+from pakit.main import (
+    args_parser, main, link_man_page, parse_tasks, search_for_config,
+    write_config,
+)
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask
 )
 import tests.common as tc
+
+
+def test_link_man_page():
+    l_dir = os.path.join(tc.STAGING, 'links')
+    expected_link = os.path.join(tc.STAGING, 'links', 'share', 'man', 'man1',
+                                 'pakit.1')
+    link_man_page(l_dir)
+    assert os.path.islink(expected_link)
+    tc.delete_it(l_dir)
+
+
+class TestSearchConfig(object):
+    def setup(self):
+        self.orig_dir = os.getcwd()
+        self.test_dir = os.path.join(tc.STAGING, 'first')
+        self.first_conf = os.path.join(self.test_dir, '.pakit.yml')
+        self.second_conf = os.path.join(self.test_dir, 'second', 'pakit.yaml')
+        self.third_conf = os.path.join(self.test_dir, 'second', 'third',
+                                       'pakit.yml')
+        self.home_conf = os.path.join(os.path.expanduser('~'), '.pakit.yml')
+        self.home_pakit_conf = os.path.join(os.path.expanduser('~'), '.pakit',
+                                            '.pakit.yaml')
+
+        # Preserve these if they exist
+        self.home_conf_existed = False
+        if os.path.exists(self.home_conf):
+            self.home_conf_existed = True
+            shutil.move(self.home_conf, self.home_conf + '_bak')
+        self.home_pakit_conf_existed = False
+        if os.path.exists(self.home_pakit_conf):
+            self.home_pakit_conf_existed = True
+            shutil.move(self.home_pakit_conf, self.home_pakit_conf + '_bak')
+
+        os.makedirs(os.path.dirname(self.third_conf))
+        try:
+            os.makedirs(os.path.dirname(self.home_pakit_conf))
+        except OSError:
+            pass
+        for path in [self.first_conf, self.second_conf, self.third_conf,
+                     self.home_conf, self.home_pakit_conf]:
+            shutil.copy(tc.TEST_CONFIG, path)
+        os.chdir(os.path.dirname(self.third_conf))
+
+    def teardown(self):
+        os.chdir(self.orig_dir)
+        tc.delete_it(self.test_dir)
+        tc.delete_it(self.home_conf)
+        if self.home_conf_existed:
+            shutil.move(self.home_conf + '_bak', self.home_conf)
+        if self.home_pakit_conf_existed:
+            shutil.move(self.home_pakit_conf + '_bak', self.home_pakit_conf)
+
+    def test_search_config_cur_dir(self):
+        assert search_for_config() == self.third_conf
+
+    def test_search_config_one_up(self):
+        tc.delete_it(self.third_conf)
+        assert search_for_config() == self.second_conf
+
+    def test_search_config_two_up(self):
+        tc.delete_it(self.third_conf)
+        tc.delete_it(self.second_conf)
+        assert search_for_config() == self.first_conf
+
+    def test_search_config_home(self):
+        tc.delete_it(self.third_conf)
+        tc.delete_it(self.second_conf)
+        tc.delete_it(self.first_conf)
+        assert search_for_config() == self.home_conf
+
+    def test_search_config_home_pakit(self):
+        tc.delete_it(self.third_conf)
+        tc.delete_it(self.second_conf)
+        tc.delete_it(self.first_conf)
+        tc.delete_it(self.home_conf)
+        assert search_for_config() == self.home_pakit_conf
+
+    def test_search_config_default(self):
+        tc.delete_it(self.third_conf)
+        tc.delete_it(self.second_conf)
+        tc.delete_it(self.first_conf)
+        tc.delete_it(self.home_conf)
+        tc.delete_it(self.home_pakit_conf)
+        assert search_for_config(1) == 1
 
 
 class TestWriteConfig(object):
@@ -37,7 +125,7 @@ class TestWriteConfig(object):
         os.mkdir(self.conf_file)
         self.config.filename = self.conf_file
         with pytest.raises(PakitError):
-            write_config(self.config)
+            write_config(self.conf_file)
 
     @mock.patch('pakit.main.sys')
     def test_write_config_perms(self, mock_sys):

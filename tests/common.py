@@ -38,7 +38,7 @@ def env_setup():
     if CONF:
         return CONF
 
-    CONF = global_init(TEST_CONFIG)
+    CONF = global_init(TEST_CONFIG, False)
     logging.info('INIT ENV')
     PATHS.append(CONF.get('pakit.log.file'))
     PATHS.extend(list(CONF.get('pakit.paths').values()))

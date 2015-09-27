@@ -9,9 +9,10 @@ import pytest
 import shutil
 
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
-from pakit.shell import (Git, Hg, Command, Archive, find_arc_name,
-                         hash_archive, cmd_cleanup, get_extract_func,
-                         extract_tar_gz)
+from pakit.shell import (
+    Git, Hg, Command, Archive, find_arc_name, hash_archive, cmd_cleanup,
+    get_extract_func, extract_tar_gz
+)
 import pakit.shell
 import tests.common as tc
 

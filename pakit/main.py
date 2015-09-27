@@ -3,7 +3,7 @@ The main entry point for pakit.
 
 Acts as an intermediary between program arguments and pakit Tasks.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import argparse
 import logging
@@ -16,148 +16,15 @@ from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
 from pakit.recipe import RecipeDB
-from pakit.task import (InstallTask, RemoveTask, UpdateTask, ListInstalled,
-                        ListAvailable, DisplayTask, SearchTask)
+from pakit.task import (
+    InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
+    DisplayTask, SearchTask
+)
 import pakit.conf
 import pakit.shell
 
 
 PLOG = logging.getLogger('pakit')
-
-
-def parse_tasks(args):
-    """
-    Parse the program arguments into a list of Tasks to execute
-
-    Args:
-        args: An argparse object to map onto tasks.
-
-    Returns:
-        A list of Tasks.
-    """
-    tasks = []
-
-    if args.install:
-        tasks.extend([InstallTask(prog) for prog in args.install])
-    if args.remove:
-        tasks.extend([RemoveTask(prog) for prog in args.remove])
-    if args.update:
-        tasks.extend([UpdateTask(prog) for prog, _ in pakit.conf.IDB])
-    if args.available:
-        tasks.append(ListAvailable(False))
-    if args.available_short:
-        tasks.append(ListAvailable(True))
-    if args.display:
-        tasks.extend([DisplayTask(prog) for prog in args.display])
-    if args.search:
-        tasks.append(SearchTask(RecipeDB().names(desc=True), args.search))
-    if args.list:
-        tasks.append(ListInstalled(False))
-    if args.list_short:
-        tasks.append(ListInstalled(True))
-
-    return tasks
-
-
-def global_init(config_file):
-    """
-    Performs global configuration of pakit.
-
-    Must be called before using pakit. Will ...
-        - Read user configuration.
-        - Initialize the logging system.
-        - Populate the recipe database.
-        - Create configured folders.
-        - Setup pakit man page.
-
-    Args:
-        config_file: The YAML configuration filename.
-
-    Returns:
-        The loaded config object.
-    """
-    config = Config(config_file)
-    pakit.conf.CONFIG = config
-    init_logging(config.get('pakit.log.file'))
-    logging.debug('Global Config: %s', config)
-
-    for path in config.get('pakit.paths').values():
-        try:
-            os.makedirs(path)
-        except OSError:
-            pass
-
-    prefix = config.get('pakit.paths.prefix')
-    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
-    logging.debug('InstallDB: %s', pakit.conf.IDB)
-    pakit.shell.TMP_DIR = os.path.dirname(prefix)
-
-    recipes = RecipeDB(config)
-    default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                           'pakit_recipes')
-    recipes.index(default)
-    try:
-        recipes.index(config.get('pakit.paths.recipes'))
-    except KeyError:
-        pass
-
-    # setup man during init
-    src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
-    dst = os.path.join(config.get('pakit.paths.link'), 'share', 'man',
-                       'man1', 'pakit.1')
-    try:
-        os.makedirs(os.path.dirname(dst))
-    except OSError:
-        pass
-    try:
-        os.symlink(src, dst)
-    except OSError:
-        pass
-
-    return config
-
-
-def init_logging(log_file):
-    """
-    Setup project wide logging.
-
-    Specifically this will setup both file and console logging.
-    """
-    try:
-        os.makedirs(os.path.dirname(log_file))
-    except OSError:
-        pass
-
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
-    log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
-              '%(filename)s %(message)s'
-    my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
-
-    while len(root.handlers) != 0:
-        root.removeHandler(root.handlers[0])
-
-    max_size = 1024 ** 2
-    rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
-                                               maxBytes=max_size,
-                                               backupCount=4)
-    rot.setLevel(logging.DEBUG)
-    rot.setFormatter(my_fmt)
-    root.addHandler(rot)
-
-    stream = logging.StreamHandler()
-    stream.setLevel(logging.ERROR)
-    stream.setFormatter(my_fmt)
-    root.addHandler(stream)
-
-    # Logger for informing user
-    pak_fmt = 'pakit: %(asctime)s %(message)s'
-    pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
-    stream_i = logging.StreamHandler()
-    stream_i.setFormatter(pak_info)
-    pak = logging.getLogger('pakit')
-    pak.setLevel(logging.INFO)
-    pak.addHandler(stream_i)
 
 
 def args_parser():
@@ -218,7 +85,183 @@ def args_parser():
     return parser
 
 
-def write_config(config):
+def global_init(config_file, fallback_search=True):
+    """
+    Performs global configuration of pakit.
+
+    Must be called before using pakit. Will ...
+        - Read user configuration.
+        - Initialize the logging system.
+        - Populate the recipe database.
+        - Create configured folders.
+        - Setup pakit man page.
+
+    Args:
+        config_file: The YAML configuration filename.
+
+    Returns:
+        The loaded config object.
+    """
+    if not os.path.exists(config_file) and fallback_search:
+        config = Config(search_for_config(config_file))
+    else:
+        config = Config(config_file)
+    pakit.conf.CONFIG = config
+    log_init(config)
+    logging.debug('Global Config: %s', config)
+
+    for path in config.get('pakit.paths').values():
+        try:
+            os.makedirs(path)
+        except OSError:
+            pass
+
+    prefix = config.get('pakit.paths.prefix')
+    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
+    logging.debug('InstallDB: %s', pakit.conf.IDB)
+    pakit.shell.TMP_DIR = os.path.dirname(prefix)
+
+    recipes = RecipeDB(config)
+    default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'pakit_recipes')
+    recipes.index(default)
+    try:
+        recipes.index(config.get('pakit.paths.recipes'))
+    except KeyError:
+        pass
+
+    link_man_page(config.get('pakit.paths.link'))
+
+    return config
+
+
+def link_man_page(link_dir):
+    """
+    Silently links man page into link dir.
+    """
+    src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
+    dst = os.path.join(link_dir, 'share', 'man', 'man1', 'pakit.1')
+    try:
+        os.makedirs(os.path.dirname(dst))
+    except OSError:
+        pass
+    try:
+        os.symlink(src, dst)
+    except OSError:
+        pass
+
+
+def log_init(config):
+    """
+    Setup project wide logging.
+
+    Specifically this will setup both file and console logging.
+    """
+    log_file = config.get('pakit.log.file')
+    try:
+        os.makedirs(os.path.dirname(log_file))
+    except OSError:
+        pass
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    log_fmt = '%(levelname)s %(asctime)s %(threadName)s ' \
+              '%(filename)s %(message)s'
+    my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
+
+    while len(root.handlers) != 0:
+        root.removeHandler(root.handlers[0])
+
+    max_size = 1024 ** 2
+    rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
+                                               maxBytes=max_size,
+                                               backupCount=4)
+    rot.setLevel(logging.DEBUG)
+    rot.setFormatter(my_fmt)
+    root.addHandler(rot)
+
+    stream = logging.StreamHandler()
+    stream.setLevel(logging.ERROR)
+    stream.setFormatter(my_fmt)
+    root.addHandler(stream)
+
+    # Logger for informing user
+    pak_fmt = 'pakit: %(asctime)s %(message)s'
+    pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
+    stream_i = logging.StreamHandler()
+    stream_i.setFormatter(pak_info)
+    pak = logging.getLogger('pakit')
+    pak.setLevel(logging.INFO)
+    pak.addHandler(stream_i)
+
+
+def parse_tasks(args):
+    """
+    Parse the program arguments into a list of Tasks to execute
+
+    Args:
+        args: An argparse object to map onto tasks.
+
+    Returns:
+        A list of Tasks.
+    """
+    tasks = []
+
+    if args.install:
+        tasks.extend([InstallTask(prog) for prog in args.install])
+    if args.remove:
+        tasks.extend([RemoveTask(prog) for prog in args.remove])
+    if args.update:
+        tasks.extend([UpdateTask(prog) for prog, _ in pakit.conf.IDB])
+    if args.available:
+        tasks.append(ListAvailable(False))
+    if args.available_short:
+        tasks.append(ListAvailable(True))
+    if args.display:
+        tasks.extend([DisplayTask(prog) for prog in args.display])
+    if args.search:
+        tasks.append(SearchTask(RecipeDB().names(desc=True), args.search))
+    if args.list:
+        tasks.append(ListInstalled(False))
+    if args.list_short:
+        tasks.append(ListInstalled(True))
+
+    return tasks
+
+
+def search_for_config(default_config=None):
+    """
+    Search for the most relevant configuration file.
+
+    Will search from current dir upwards for config files of the name:
+        - .pakit.yml
+        - .pakit.yaml
+        - pakit.yml
+        - pakit.yaml
+
+    If nothing found, will search in reserved ~/.pakit.
+
+    Returns:
+        The config filename, or None if nothing found.
+    """
+    folders = [os.getcwd()]
+    cur_dir = os.path.dirname(os.getcwd())
+    while cur_dir != '/':
+        folders.append(cur_dir)
+        cur_dir = os.path.dirname(cur_dir)
+    folders.append(os.path.expanduser('~'))
+    folders.append(os.path.expanduser('~/.pakit'))
+
+    for folder in folders:
+        for conf in ['.pakit.yml', '.pakit.yaml', 'pakit.yml', 'pakit.yaml']:
+            config_file = os.path.join(folder, conf)
+            if os.path.exists(config_file):
+                return config_file
+
+    return default_config
+
+
+def write_config(config_file):
     """
     Writes the DEFAULT config to the config file.
     Overwrites the file if present.
@@ -227,8 +270,7 @@ def write_config(config):
         PakitError: File exists and is a directory.
         PakitError: File could not be written to.
     """
-    user = logging.getLogger('pakit')
-
+    config = Config(config_file)
     try:
         os.remove(config.filename)
     except OSError:
@@ -237,9 +279,7 @@ def write_config(config):
     try:
         config.reset()
         config.write()
-        msg = 'Wrote default config to: ' + config.filename
-        logging.debug(msg)
-        user.info(msg)
+        print('pakit: Wrote default config to: ' + config.filename)
     except (IOError, OSError):
         raise PakitError('Failed to write to ' + config.filename)
     finally:
@@ -264,11 +304,11 @@ def main(argv=None):
         sys.exit(1)
 
     args = parser.parse_args(argv[1:])
-    config = global_init(args.conf)
-    logging.debug('CLI: %s', args)
-
     if args.create_conf:
-        write_config(config)
+        write_config(args.conf)
+
+    global_init(args.conf)
+    logging.debug('CLI: %s', args)
 
     try:
         tasks = parse_tasks(args)
