@@ -84,8 +84,7 @@ class Task(object):
     __metaclass__ = ABCMeta
 
     def __str__(self):
-        return '{cls}: Config File {config}'.format(
-            cls=self.name, config=pakit.conf.CONFIG.filename)
+        return self.name
 
     @property
     def name(self):

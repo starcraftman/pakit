@@ -122,10 +122,9 @@ class DummyTask(Task):
 
 class TestTask(TestTaskBase):
     def test__str__(self):
-        expect = 'DummyTask: Config File ' + self.config.filename
         task = DummyTask()
         print(task)
-        assert str(task) == expect
+        assert str(task) == 'DummyTask'
 
 
 class TestTaskRecipe(TestTaskBase):

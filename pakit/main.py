@@ -307,8 +307,9 @@ def main(argv=None):
     if args.create_conf:
         write_config(args.conf)
 
-    global_init(args.conf)
+    config = global_init(args.conf)
     logging.debug('CLI: %s', args)
+    PLOG.info('Loading config from: ' + config.filename)
 
     try:
         tasks = parse_tasks(args)
