@@ -27,7 +27,7 @@ Fetch the latest from the source. Works unless the build badge says failing.
 ```bash
 git clone https://github.com/starcraftman/pakit.git
 export PATH=$(pwd)/pakit/bin:$PATH
-sudo pip install argparse PyYAML
+sudo -H pip install argparse PyYAML
 ```
 
 **pip**
@@ -35,7 +35,7 @@ sudo pip install argparse PyYAML
 Install the latest stable pip release. It might be old but working.
 
 ```bash
-sudo pip install pakit
+sudo -H pip install pakit
 ```
 
 **PATH**

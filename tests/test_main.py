@@ -195,9 +195,7 @@ class TestArgs(object):
 
 
 class TestParseTasks(object):
-    # TODO: I think I'll just convert this to same style as TestMain
     def setup_class(self):
-        tc.CONF = None
         self.config = tc.env_setup()
         self.parser = args_parser()
 
@@ -260,7 +258,7 @@ class TestMain(object):
     """ Test different argv's passed to main. """
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):
-        main(['pakit', '--conf', tc.TEST_CONFIG, '--list'])
+        main(['pakit', '--list'])
         assert mock_plog.info.called
 
     @mock.patch('pakit.main.sys')
@@ -277,7 +275,7 @@ class TestMain(object):
 
     @mock.patch('pakit.main.PLOG')
     def test_no_update_needed(self, mock_plog):
-        main(['pakit', '--conf', tc.TEST_CONFIG, '--update'])
+        main(['pakit', '--update'])
         mock_plog.info.assert_called_with('Nothing to update.')
 
     @mock.patch('pakit.main.parse_tasks')
@@ -289,5 +287,5 @@ class TestMain(object):
     @mock.patch('pakit.main.PLOG')
     def test_recipe_not_found(self, mock_plog):
         expect = 'Missing recipe to build: iiiii'
-        main(['pakit', '--conf', tc.TEST_CONFIG, '-i', 'iiiii'])
+        main(['pakit', '-i', 'iiiii'])
         mock_plog.info.assert_called_with(expect)

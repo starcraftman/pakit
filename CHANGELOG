@@ -1,9 +1,16 @@
-NEXT
+0.2.3
+  - Try to find best config by searching.
+  - Doc update.
+  - Build speedup with travis caching.
+  - Better rollback, any exception during Recipe's build() triggers it.
+  - Command timeout default configurable, Command.wait() takes timeout too.
   - Relicensed to BSD 3 clause.
-  - Python 3.5 testing.
+  - Python 3.5 works, testing it on travis.
   - Use __doc__ in Recipes better for description and more info.
   - Use sha256 hashing instead of sha1 on archives.
   - Better exception handling towards user.
+  - Fix: Ninja recipe was broken
+  - Add Recipes: GNU parallel & vimpager
 
 0.2.2
   - Implement source caching for VCS.

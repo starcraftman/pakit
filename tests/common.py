@@ -30,6 +30,28 @@ PATHS = [STAGING]
 CONF = None
 
 
+def env_config_setup():
+    """
+    Copies config to first position looked, `./.pakit.yml`
+
+    See pakit.main.search_for_config for details.
+    """
+    config_dst = '.pakit.yml'
+    if os.path.exists(config_dst):
+        shutil.move(config_dst, config_dst + '_bak')
+    shutil.copy(TEST_CONFIG, config_dst)
+
+
+def env_config_teardown():
+    """
+    Cleans up test config.
+    """
+    config_dst = '.pakit.yml'
+    delete_it(config_dst)
+    if os.path.exists(config_dst + '_bak'):
+        shutil.move(config_dst + '_bak', config_dst)
+
+
 def env_setup():
     '''
     Setup the testing environment.
@@ -38,7 +60,8 @@ def env_setup():
     if CONF:
         return CONF
 
-    CONF = global_init(TEST_CONFIG, False)
+    env_config_setup()
+    CONF = global_init(TEST_CONFIG)
     logging.info('INIT ENV')
     PATHS.append(CONF.get('pakit.log.file'))
     PATHS.extend(list(CONF.get('pakit.paths').values()))
@@ -76,8 +99,11 @@ def env_teardown():
         shutil.move(src_log, dst_log)
     except IOError:
         pass
+
     for path in PATHS:
         delete_it(path)
+
+    env_config_teardown()
 
 
 def delete_it(path):

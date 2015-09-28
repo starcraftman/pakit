@@ -39,17 +39,27 @@ def args_parser():
     {0} is a build tool providing a package manager like interface
     to build & install recipes into local paths.
 
-    Alpha Notes:
-        `{0} --create-conf` will create the default config in $HOME/.pakit.yml
+    First Time Run:
+        Run in shell: `{0} --create-conf`
+            This writes the default config to $HOME/.pakit.yml
 
-        Please see distributed man page & pydoc for more information.
-        DESIGN.md might also have some of the information.
+        Run in shell: `export PATH=/tmp/pakit/links/bin:$PATH`
+            This is where all programs eventually linked to by default.
+            See man page for more configuration information.
 
-        See DEMO.md for a quick tour.
+    For project development or to report bugs:
+        https://github.com/starcraftman/pakit
 
+    Additional Information:
+        - Man page, provided inside `pakit/extra/pakit.1`. It is automatically
+        available via `man pakit` if `paths.link` is on your shell $PATH.
+        - `pydoc pakit`
+        - See DEMO.md inside pakit site package.
+
+    Recipes:
         pakit_recipes/ag.py is an example recipe
-        User recipes can be put in $HOME/.pakit/recipes by default.
-        If two recipes have same name, last one in wins.
+        User made recipes can be put in $HOME/.pakit/recipes by default.
+        If two recipes have same name, last one in will be executed.
     """.format(prog_name)
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
@@ -85,7 +95,7 @@ def args_parser():
     return parser
 
 
-def global_init(config_file, fallback_search=True):
+def global_init(config_file):
     """
     Performs global configuration of pakit.
 
@@ -102,10 +112,7 @@ def global_init(config_file, fallback_search=True):
     Returns:
         The loaded config object.
     """
-    if not os.path.exists(config_file) and fallback_search:
-        config = Config(search_for_config(config_file))
-    else:
-        config = Config(config_file)
+    config = Config(search_for_config(config_file))
     pakit.conf.CONFIG = config
     log_init(config)
     logging.debug('Global Config: %s', config)
@@ -233,16 +240,22 @@ def search_for_config(default_config=None):
     """
     Search for the most relevant configuration file.
 
-    Will search from current dir upwards for config files of the name:
+    Will search from current dir upwards until root for config files matching:
         - .pakit.yml
         - .pakit.yaml
         - pakit.yml
         - pakit.yaml
 
-    If nothing found, will search in reserved ~/.pakit.
+    If nothing found, search in $HOME and then $HOME/.pakit for same files.
+
+    If still nothing found, return default_config.
+
+    Args:
+        default_config: The default config if nothing else present.
 
     Returns:
-        The config filename, or None if nothing found.
+        If a path existed, return found filename.
+        If no paths matched an existing file return the default_config.
     """
     folders = [os.getcwd()]
     cur_dir = os.path.dirname(os.getcwd())
