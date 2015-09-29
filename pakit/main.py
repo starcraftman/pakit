@@ -176,12 +176,12 @@ def log_init(config):
               '%(filename)s %(message)s'
     my_fmt = logging.Formatter(fmt=log_fmt, datefmt='[%d/%m %H%M.%S]')
 
-    while len(root.handlers) != 0:
+    while len(root.handlers):
         root.removeHandler(root.handlers[0])
 
-    max_size = 1024 ** 2
-    rot = logging.handlers.RotatingFileHandler(log_file, mode='a',
-                                               maxBytes=max_size,
+    rot = logging.handlers.RotatingFileHandler(log_file,
+                                               mode='a',
+                                               maxBytes=2 ** 22,
                                                backupCount=4)
     rot.setLevel(logging.DEBUG)
     rot.setFormatter(my_fmt)
@@ -193,13 +193,16 @@ def log_init(config):
     root.addHandler(stream)
 
     # Logger for informing user
+    pak = logging.getLogger('pakit')
+    while len(pak.handlers):
+        pak.removeHandler(pak.handlers[0])
+
+    pak.setLevel(logging.INFO)
     pak_fmt = 'pakit: %(asctime)s %(message)s'
     pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
-    stream_i = logging.StreamHandler()
-    stream_i.setFormatter(pak_info)
-    pak = logging.getLogger('pakit')
-    pak.setLevel(logging.INFO)
-    pak.addHandler(stream_i)
+    pak_stream = logging.StreamHandler()
+    pak_stream.setFormatter(pak_info)
+    pak.addHandler(pak_stream)
 
 
 def parse_tasks(args):
