@@ -14,11 +14,32 @@
 
 It is a small, python based package manager that builds from source.
 
+![Pakit Demo](https://github.com/pakit/demo/raw/master/demo.gif)
+
 Want a longer explanation? Skip to the [Overview](https://github.com/starcraftman/pakit#overview) section.
+
+**[Try the demo yourself after installing!](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)**
 
 ## Install Pakit
 
-To install pakit, use the **pip** or the **Github** method. Then modify your **PATH**.
+To use pakit:
+
+1. Ensure you have a **build environment** for compiling the programs.
+2. Fetch pakit via **pip** or **github**.
+3. Modify your **$PATH**.
+
+**Build Environment**
+
+For now, pakit relies on the users build environemnt. I recommend installing:
+* c++ build environment
+* git
+* mercurial
+* anything a package depends on
+
+For Ubuntu I recommend:
+```bash
+sudo apt-get install build-essential automake  python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
+```
 
 **Github**
 
@@ -51,17 +72,11 @@ export PATH=/tmp/pakit/links/bin:$PATH
 The above exports will only last for the terminal session.
 To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
 
-## Try Pakit In 5 Minutes
-
-After having installed Pakit, try a simple demo.
-
-![Pakit Demo](http://cdn.makeagif.com/media/9-08-2015/-3StlV.gif)
-
-### [FOR DEMO STEPS CLICK HERE](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
-
 ## More Information
 
 From inside the pakit source folder:
+
+* Help: `pakit --help`
 
 * Consult man: `man pakit`
 

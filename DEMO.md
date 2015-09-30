@@ -9,7 +9,7 @@ inside code boxes. These commands are based on my Ubuntu machine.
 ## Build Environment
 
 Currently, pakit can't handle recipe dependencies so anything you build has to have
-dependencies met by the system. 
+dependencies met by the system.
 
 **Install Dependencies**
 
@@ -23,12 +23,6 @@ sudo apt-get install build-essential automake git python-pip liblzma-dev libeven
 ## Run Commands
 
 Run these commands in order to demonstrate pakit.
-
-**Print Help**
-
-```bash
-pakit -h
-```
 
 **Write User Config**
 
@@ -44,7 +38,7 @@ Install two packages, the grep program `ag` and the screen replacement
 `tmux` to `paths.prefix` and link to `paths.link`. May take a while.
 
 ```bash
-pakit -i ag tmux
+pakit --install ag tmux
 ```
 
 **Check Programs**
@@ -52,7 +46,7 @@ pakit -i ag tmux
 Verify that installed programs work.
 
 * `which` should print out location of binary.
-* `ag` command will search your hidden shell files for `export` commands.                                         
+* `ag` command will search your hidden shell files for `export` commands.
 
 ```bash
 which ag
@@ -64,7 +58,7 @@ ag --hidden --depth 2 --shell export
 Simple remove, no trace will be left.
 
 ```bash
-pakit -r tmux
+pakit --remove tmux
 ```
 
 **List Available Recipes**
@@ -72,7 +66,7 @@ pakit -r tmux
 Prints out any recipe pakit can run.
 
 ```bash
-pakit -a
+pakit --available
 ```
 
 **List Installed Programs**
@@ -80,9 +74,9 @@ pakit -a
 Prints out recipes that have installed programs.
 
 ```bash
-pakit -l
+pakit --list
 ```
-                                                                                                                  
+
 **Edit Config**
 
 Now to demonstrate configuration, let us change `ag` from building from the
@@ -94,7 +88,7 @@ Edit your `~/.pakit.yml` file and add the following line at the end. Save and ex
 ag:
   repo: unstable
 ```
-  
+
 All recipes should have a `stable` and `unstable` source at least.
 This newly added `ag` section, overrides the `defaults` section only for the `ag` recipe.
 
@@ -105,7 +99,7 @@ been changed or the URI/archive has changed it should force a rebuild of the new
 At this time, `ag` will be rebuilt from the latest commit to its repostiory.
 
 ```bash
-pakit -u
+pakit --update
 ```
 
 **Verify Update Changed Ag**
@@ -113,5 +107,10 @@ pakit -u
 This command should list a different hash than before. You may have to scroll up to confirm.
 
 ```bash
-pakit -l
+pakit --list
 ```
+
+**For More Information**:
+* `pakit --help`
+* `man pakit`
+* `pydoc pakit`
