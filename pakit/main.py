@@ -72,9 +72,7 @@ def args_parser():
     parser.add_argument('--available-short', default=False,
                         action='store_true',
                         help='list available recipes, terse output')
-    parser.add_argument('-c', '--conf',
-                        default=os.path.expanduser('~/.pakit.yml'),
-                        help='yaml config file')
+    parser.add_argument('-c', '--conf', help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='write the default config to CONF')
     parser.add_argument('-d', '--display', nargs='+', metavar='PROG',
@@ -112,7 +110,7 @@ def global_init(config_file):
     Returns:
         The loaded config object.
     """
-    config = Config(search_for_config(config_file))
+    config = Config(config_file)
     pakit.conf.CONFIG = config
     log_init(config)
     logging.debug('Global Config: %s', config)
@@ -320,6 +318,8 @@ def main(argv=None):
         sys.exit(1)
 
     args = parser.parse_args(argv[1:])
+    if not args.conf:
+        args.conf = search_for_config(os.path.expanduser('~/.pakit.yml'))
     if args.create_conf:
         write_config(args.conf)
 
