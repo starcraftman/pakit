@@ -1,6 +1,3 @@
-# Provides bash completion for pakit
-# Just source it during shell init
-
 _pakit() {
   local cur prev prog split=false
   cur=$(_get_cword "=")
@@ -10,7 +7,7 @@ _pakit() {
 
   _expand || return 0
 
-  local avail opts
+  local avail mode opts
   if [ "${__COMP_CACHE_PAKIT}x" = "x" ]; then
     for i in $("$prog" --help); do
       i=${i%%=*}
@@ -19,11 +16,12 @@ _pakit() {
       fi
     done
     avail=$(pakit --available-short 2>/dev/null)
-    __COMP_CACHE_PAKIT=( "$opts" "$avail" )
+    __COMP_CACHE_PAKIT=( "$opts" "$avail" "" )
     export __COMP_CACHE_PAKIT
   else
     opts="${__COMP_CACHE_PAKIT[0]}"
     avail="${__COMP_CACHE_PAKIT[1]}"
+    mode="${__COMP_CACHE_PAKIT[2]}"
   fi
 
   _split_longopt && split=true
@@ -41,6 +39,10 @@ _pakit() {
       ;;
     # complete installed programs
     -r|--remove)
+      mode="remove"
+      __COMP_CACHE_PAKIT=( "$opts" "$avail" "$mode" )
+      export __COMP_CACHE_PAKIT
+
       installed=$(pakit --list-short 2>/dev/null)
       COMPREPLY=( $(compgen -W "${installed}" -- "${cur}") )
       return 0
@@ -52,6 +54,16 @@ _pakit() {
       ;;
   esac
 
+  # reset mode if not removing
+  case "${prev}" in
+    -r|--remove)
+      ;;
+    -*)
+      __COMP_CACHE_PAKIT=( "$opts" "$avail" "" )
+      export __COMP_CACHE_PAKIT
+      ;;
+  esac
+
   $split && return 0
 
   case "${cur}" in
@@ -60,7 +72,12 @@ _pakit() {
       return 0
       ;;
     *)
-      _filedir
+      if [ "$mode" = "remove" ]; then
+        installed=$(pakit --list-short 2>/dev/null)
+        COMPREPLY=( $(compgen -W "${installed}" -- "${cur}") )
+      else
+        COMPREPLY=( $(compgen -W "${avail}" -- "${cur}") )
+      fi
       return 0
       ;;
   esac
