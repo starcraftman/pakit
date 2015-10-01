@@ -51,8 +51,9 @@ Core logic implemented in pakit/recipe.py
 Aim is to have very short easily written recipes.
 
 Parts of standard recipe:
-* desc: A short description.
-* homepage: Where the project is hosted.
+* description: Short 1 line description. First non-empty line of __doc__.
+* more_info: Long as you want. second non-empty line of __doc__ to end.
+* homepage: Where people can get information on the project.
 * repos: A dict of possible source downloaders.
 * build(): A function that builds the source selectable by config.
 * verify(): A function that uses `assert` statements to verify build.
@@ -67,7 +68,6 @@ class Ag(Recipe):
     """ Grep like tool optimized for speed """
     def __init__(self):
         super(Ag, self).__init__()
-        self.desc = 'Grep like tool optimized for speed'
         self.src = 'https://github.com/ggreer/the_silver_searcher'
         self.homepage = self.src
         self.repos = {
@@ -83,3 +83,18 @@ class Ag(Recipe):
         lines = self.cmd('{link}/bin/ag --version')
         assert lines[0].find('ag version') != -1
 ```
+
+## Dependencies:
+
+For first attempt, implement simple dependency on 'stable' repos only.
+Recipe A depends on B & C, then InstallTasks would be (B C A) or (C B A).
+
+In Recipes Constructor to depend on Git and Hg:
+    self.requires = ['git', 'hg']
+
+To determine order, will have to make a directed graph  based on requirements requested.
+Then perform a sort or analysis to determine order.
+While pakit single threaded can return a list of tasks to be iterated in order.
+
+For multithreaded version, should make some queue like adapter for the DAG so that
+can lock and pop off one task at a time when requirements met. Else idle the worker.
