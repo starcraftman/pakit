@@ -120,8 +120,142 @@ class DiGraph(object):
             except ValueError:
                 pass
 
+    def reset_visited(self):
+        """
+        Reset all visited nodes to False.
+        """
+        for key in self.vertex_list:
+            self.vertex_list[key] = False
 
-class Graph(object):
+
+class Graph(DiGraph):
+    """
+    An undirected graph, small changes required.
+    """
+    def add_edge(self, key, depends_on):
+        """
+        Add an edge from key to the vert depends_on
+
+        Args:
+            key: The vertex name.
+            depends_on: A vertex name key depends on.
+        """
+        self.adj_list[key].append(depends_on)
+        self.adj_list[depends_on].append(key)
+
+    def add_edges(self, key, depends_on_all):
+        """
+        Add an edge from key to all verts in depends_on
+
+        Args:
+            key: The vertex name.
+            depends_on: A list of vertex names key depends on.
+        """
+        self.adj_list[key].extend(depends_on_all)
+        for dep in depends_on_all:
+            self.adj_list[dep].append(key)
+
+
+def bfs_search(graph, func, start_pos):
+    """
+    BFS Search, on unvisited nodes pass to func.
+
+    Args:
+        graph: A graph.Graph instance.
+        func: A function of form func(vertex)
+        start_pos: An index in the vertex_list of g.
+    """
+    queue = [start_pos]
+    func(start_pos)
+    graph.vertex_list[start_pos] = True
+
+    while len(queue):
+        adjacent = graph.get_unvisited_adjacent(queue[-1])
+        if adjacent:
+            queue.insert(0, adjacent)
+            func(adjacent)
+            graph.vertex_list[adjacent] = True
+        else:
+            queue.pop()
+
+
+def dfs_search(graph, func, start_pos):
+    """
+    DFS Search, on unvisited nodes pass to func.
+
+    Args:
+        graph: A graph.Graph instance.
+        func: A function of form func(vertex)
+        start_pos: An index in the vertex_list of g.
+    """
+    stack = [start_pos]
+    func(start_pos)
+    graph.vertex_list[start_pos] = True
+
+    while len(stack):
+        adjacent = graph.get_unvisited_adjacent(stack[-1])
+        if adjacent:
+            stack.append(adjacent)
+            func(adjacent)
+            graph.vertex_list[adjacent] = True
+        else:
+            stack.pop()
+
+
+def mst_search(graph, func, start_pos):
+    """
+    MST creation, prints edges needed for an MST.
+
+    Args:
+        graph: A graph.Graph instance.
+        func: A function of form func(vertex_a, vertex_b)
+        start_pos: An index in the vertex_list of g.
+    """
+    stack = [start_pos]
+    graph.vertex_list[start_pos] = True
+
+    while len(stack):
+        prev_vert = stack[-1]
+        adjacent = graph.get_unvisited_adjacent(stack[-1])
+        if adjacent:
+            stack.append(adjacent)
+            func(prev_vert, '->', adjacent)
+            graph.vertex_list[adjacent] = True
+        else:
+            stack.pop()
+
+
+def topo_list(graph):
+    """
+    Topological sort of graph.
+
+    Returns:
+        A list in sorted order.
+
+    Raises:
+        CycleInGraphError: The directed graph had a cycle.
+    """
+    t_list = []
+
+    last_len = graph.num_verts
+    while graph.num_verts:
+        for key in graph.adj_list:
+            if graph.adj_list[key] == []:
+                print('Select:', key)
+                t_list.append(key)
+                graph.remove(key)
+                break
+
+        new_len = len(graph.vertex_list)
+        if last_len == new_len:
+            print(graph)
+            raise CycleInGraphError
+        last_len = new_len
+
+    return t_list
+
+
+class OldGraph(object):
     """
     Repesents an undirected graph with adjacency list.
     """
@@ -198,108 +332,3 @@ class Graph(object):
                 pass
         del self.adj_list[v_index]
         del self.vertex_list[v_index]
-
-
-def bfs_search(graph, func, start_pos):
-    """
-    BFS Search, on unvisited nodes pass to func.
-
-    Args:
-        graph: A graph.Graph instance.
-        func: A function of form func(vertex)
-        start_pos: An index in the vertex_list of g.
-    """
-    queue = [start_pos]
-    vert = graph.vertex_list[start_pos]
-    func(vert)
-    vert.was_visited = True
-
-    while len(queue):
-        adjacent = graph.get_unvisited_adjacent(queue[-1])
-        if adjacent != -1:
-            queue.insert(0, adjacent)
-            vert = graph.vertex_list[adjacent]
-            func(vert)
-            vert.was_visited = True
-        else:
-            queue.pop()
-
-
-def dfs_search(graph, func, start_pos):
-    """
-    DFS Search, on unvisited nodes pass to func.
-
-    Args:
-        graph: A graph.Graph instance.
-        func: A function of form func(vertex)
-        start_pos: An index in the vertex_list of g.
-    """
-    stack = [start_pos]
-    vert = graph.vertex_list[start_pos]
-    func(vert)
-    vert.was_visited = True
-
-    while len(stack):
-        adjacent = graph.get_unvisited_adjacent(stack[-1])
-        if adjacent != -1:
-            stack.append(adjacent)
-            vert = graph.vertex_list[adjacent]
-            func(vert)
-            vert.was_visited = True
-        else:
-            stack.pop()
-
-
-def mst_search(graph, func, start_pos):
-    """
-    MST creation, prints edges needed for an MST.
-
-    Args:
-        graph: A graph.Graph instance.
-        func: A function of form func(vertex_a, vertex_b)
-        start_pos: An index in the vertex_list of g.
-    """
-    stack = [start_pos]
-    vert = graph.vertex_list[start_pos]
-    vert.was_visited = True
-
-    while len(stack):
-        prev_vert = graph.vertex_list[stack[-1]]
-        adjacent = graph.get_unvisited_adjacent(stack[-1])
-        if adjacent != -1:
-            stack.append(adjacent)
-            vert = graph.vertex_list[adjacent]
-            func(prev_vert.name, vert.name)
-            vert.was_visited = True
-        else:
-            stack.pop()
-
-
-def topo_list(graph):
-    """
-    Topological sort of graph.
-
-    Returns:
-        A list in sorted order.
-
-    Raises:
-        CycleInGraphError: The directed graph had a cycle.
-    """
-    t_list = []
-
-    last_len = graph.num_verts
-    while graph.num_verts:
-        for key in graph.adj_list:
-            if graph.adj_list[key] == []:
-                print('Select:', key)
-                t_list.append(key)
-                graph.remove(key)
-                break
-
-        new_len = len(graph.vertex_list)
-        if last_len == new_len:
-            print(graph)
-            raise CycleInGraphError
-        last_len = new_len
-
-    return t_list
