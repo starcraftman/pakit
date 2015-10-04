@@ -27,6 +27,100 @@ class Vertex(object):
         return self.name + ' was visited: ' + str(self.was_visited)
 
 
+class DiGraph(object):
+    """
+    Repesents a directed graph with adjacency lists.
+
+    Attributes:
+        adj_list: The adjacency list, key is a vertex key from vertex_list.
+        vertex_list: Stores whether a vertex was visited, default False.
+    """
+    def __init__(self):
+        self.vertex_list = {}
+        self.adj_list = {}
+
+    def __str__(self):
+        msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
+        msg += sorted(self.vertex_list.keys())
+        msg += ['The adjacency list is:']
+        msg += ['{0}: {1}'.format(key, ', '.join(self.adj_list[key])) for key
+                in sorted(self.adj_list)]
+        return '\n '.join(msg)
+
+    def __contains__(self, key):
+        return key in self.vertex_list
+
+    @property
+    def num_verts(self):
+        """
+        The number of vertices in the graph.
+        """
+        return len(self.vertex_list)
+
+    def add_vertex(self, key):
+        """
+        Add a vertex to the graph, optionally with data.
+        """
+        self.vertex_list[key] = False
+        self.adj_list[key] = []
+
+    def add_edge(self, key, depends_on):
+        """
+        Add an edge from key to the vert depends_on
+
+        Args:
+            key: The vertex name.
+            depends_on: A vertex name key depends on.
+        """
+        self.adj_list[key].append(depends_on)
+
+    def add_edges(self, key, depends_on_all):
+        """
+        Add an edge from key to all verts in depends_on
+
+        Args:
+            key: The vertex name.
+            depends_on: A list of vertex names key depends on.
+        """
+        self.adj_list[key].extend(depends_on_all)
+
+    def get_unvisited_adjacent(self, key):
+        """
+        Get first position connected to key that has NOT
+        been visited before.
+
+        Returns:
+            A position of a vertex in vertex_list, else None if not found.
+        """
+        for adj_key in self.adj_list[key]:
+            if not self.vertex_list[adj_key]:
+                return adj_key
+
+        return None
+
+    def is_connected(self, start, end):
+        """
+        Returns true iff start has an edge to end.
+        """
+        return end in self.adj_list[start]
+
+    def remove(self, key):
+        """
+        Remove a vertex from the graph.
+        Delete it from all adjacency lists as well.
+        """
+        try:
+            del self.vertex_list[key]
+            del self.adj_list[key]
+        except KeyError:
+            pass
+        for adj_key in self.adj_list:
+            try:
+                self.adj_list[adj_key].remove(key)
+            except ValueError:
+                pass
+
+
 class Graph(object):
     """
     Repesents an undirected graph with adjacency list.
@@ -104,17 +198,6 @@ class Graph(object):
                 pass
         del self.adj_list[v_index]
         del self.vertex_list[v_index]
-
-
-class DiGraph(Graph):
-    """
-    Directed graph.
-    """
-    def add_edge(self, start, end):
-        """
-        Start and end are positional indexes into vertex list.
-        """
-        self.adj_list[start].append(end)
 
 
 def bfs_search(graph, func, start_pos):
@@ -202,25 +285,17 @@ def topo_list(graph):
     Raises:
         CycleInGraphError: The directed graph had a cycle.
     """
-    # FIXME: Need to change adj_list to index on string keys.
-    #        When deleting, int positions become stale refs.
-    #        Works if I go from back for now.
     t_list = []
 
-    last_len = len(graph.vertex_list)
-    while len(graph.vertex_list) != 0:
-        print(graph)
-        for ind in range(graph.num_verts - 1, -1, -1):
-            vert = graph.vertex_list[ind]
-            adj_list = graph.adj_list[ind]
-
-            if len(adj_list) == 0:
-                print('Select:', vert, adj_list)
-                t_list.append(vert.name)
-                graph.remove(ind)
+    last_len = graph.num_verts
+    while graph.num_verts:
+        for key in graph.adj_list:
+            if graph.adj_list[key] == []:
+                print('Select:', key)
+                t_list.append(key)
+                graph.remove(key)
                 break
 
-        print(t_list)
         new_len = len(graph.vertex_list)
         if last_len == new_len:
             print(graph)
