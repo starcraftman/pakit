@@ -43,3 +43,10 @@ class PakitFetchError(PakitError):
     The source could not be retrieved.
     """
     pass
+
+
+class CycleInGraphError(PakitError):
+    """
+    There was a cycle in the graph.
+    """
+    pass

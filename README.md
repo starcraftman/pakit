@@ -149,11 +149,10 @@ Just a rough guess of what I should be implementing when.
 
 ### 0.3
 - [ ] Make a website and promote. Maybe use github pages.
-- [ ] Dependency logic between recipes tasks.
-  - [ ] Research best approach & do small design.
-  - [ ] Create Digraph Structure (likely required).
-  - [ ] Create Recipe specification & implement.
-  - [ ] Create ready/blocked task lists. Tasks blocked unless dependencies resolved.
+- [x] Dependency logic between recipes tasks.
+  - [x] Research best approach & do small design.
+  - [x] Create Digraph Structure (likely required).
+  - [x] Create Recipe specification & implement.
 - [ ] Handle missing commands inside recipes. For example, recipe needs git but git unavailable.
 - [ ] Separate recipes from pakit core.
 - [ ] Move to pakit/pakit. [pakit](https://github.com/pakit)

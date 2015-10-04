@@ -1,5 +1,5 @@
-""" Example formulas for this project. """
+"""
+Formulas for testing, test special recipe cases.
 
-# __all__ = glob.glob(os.path.join(os.path.dirname(__file__), '*.py'))
-# __all__ = [os.path.basename(fname)[0:-3] for fname in __all__]
-# __all__.remove('__init__')
+Will be available in RecipeDB after tests.common.env_setup() returns.
+"""

@@ -12,7 +12,7 @@ import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import (
     args_parser, main, link_man_page, parse_tasks, search_for_config,
-    write_config,
+    write_config, order_tasks
 )
 from pakit.recipe import RecipeDB
 from pakit.task import (
@@ -192,6 +192,26 @@ class TestArgs(object):
         parser = args_parser()
         args = parser.parse_args('--search ag vim'.split())
         assert args.search == ['ag', 'vim']
+
+
+class TestOrderTasks(object):
+    def setup_class(self):
+        tc.env_setup()
+
+    def test_no_requires(self):
+        tasks = order_tasks(['providesb'], InstallTask)
+        assert len(tasks) == 1
+        assert tasks[0] == InstallTask('providesb')
+
+    def test_requirements_possible(self):
+        tasks = order_tasks(['dependsonb'], InstallTask)
+        assert len(tasks) == 2
+        assert tasks[0] == InstallTask('providesb')
+        assert tasks[1] == InstallTask('dependsonb')
+
+    def test_requirements_impossible(self):
+        with pytest.raises(PakitError):
+            order_tasks(['cyclea'], InstallTask)
 
 
 class TestParseTasks(object):

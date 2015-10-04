@@ -16,6 +16,7 @@ class Vimpager(Recipe):
             'stable': Git(self.src, tag='2.06'),
             'unstable': Git(self.src),
         }
+        self.requires = ['vim']
 
     # TODO: Depends on `pandoc`
     def build(self):

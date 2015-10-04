@@ -313,6 +313,63 @@ class Fetchable(object):
         raise NotImplementedError
 
 
+class Dummy(Fetchable):
+    """
+    Creates the target directory when invoked.
+
+    This is a dummy repository, useful for testing and when a recipe
+    does NOT rely on a source repository or archive.
+    """
+    def __init__(self, uri=None, **kwargs):
+        """
+        Constructor for a Dummy repository.
+        Target must be specified before entering context.
+
+        Args:
+            uri: Default None, serves no purpose.
+
+        Kwargs:
+            target: Path that will be created on the system.
+        """
+        super(Dummy, self).__init__(uri, kwargs.get('target', None))
+
+    def __enter__(self):
+        """
+        Guarantees that source is available at target
+        """
+        try:
+            self.clean()
+            os.makedirs(self.target)
+        except OSError:
+            raise PakitError('Could not create folder: ' + self.target)
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Handles errors as needed
+        """
+        pass
+
+    @property
+    def ready(self):
+        """
+        True iff the source code is available at target
+        """
+        return os.path.isdir(self.target) and len(os.listdir(self.target)) == 0
+
+    @property
+    def src_hash(self):
+        """
+        A hash that identifies the source snapshot
+        """
+        return 'dummy_hash'
+
+    def download(self):
+        """
+        Retrieves code from the remote, may require additional steps
+        """
+        raise NotImplementedError
+
+
 class Archive(Fetchable):
     """
     Retrieve an archive from a remote URI and extract it to target.

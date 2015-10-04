@@ -19,8 +19,8 @@ The default is `~/.pakit.yml`.
 from __future__ import absolute_import
 
 from pakit.recipe import Recipe
-from pakit.shell import Archive, Git, Hg
+from pakit.shell import Archive, Dummy, Git, Hg
 
-__all__ = ['Archive', 'Git', 'Hg', 'Recipe']
+__all__ = ['Archive', 'Dummy', 'Git', 'Hg', 'Recipe']
 
 __version__ = '0.2.3'

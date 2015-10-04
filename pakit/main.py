@@ -15,6 +15,7 @@ import traceback
 from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
+from pakit.graph import DiGraph, topological_sort
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
@@ -203,6 +204,56 @@ def log_init(config):
     pak.addHandler(pak_stream)
 
 
+def add_deps_for(recipe_name, graph):
+    """
+    Recursively add a recipe_name and all reqirements to the graph.
+
+    NOTE: Cycles may be present in the graph when recursion terminates.
+    Even so, this function will NOT recurse endlessly.
+
+    Args:
+        graph: A directed graph.
+        recipe_name: A recipe in RecipeDB.
+
+    Raises:
+        PakitDBError: No matching recipe in RecipeDB.
+        CycleInGraphError: A cycle was detected in the recursion.
+    """
+    if recipe_name in graph:
+        return
+
+    recipe = RecipeDB().get(recipe_name)
+    graph.add_vertex(recipe_name)
+
+    requires = getattr(recipe, 'requires', [])
+    graph.add_edges(recipe_name, requires)
+    for requirement in requires:
+        add_deps_for(requirement, graph)
+
+
+def order_tasks(recipe_names, task_class):
+    """
+    Order the recipes so that all dependencies can be met.
+
+    Args:
+        recipe_names: List of recipe names.
+        task_class: The Task to be carried out on the recipes.
+
+    Returns:
+        A list of task_class instances ordered to meet dependencies.
+
+    Raises:
+        CycleInGraphError: The dependencies could not be resolved
+        as there was a cycle in the dependency graph.
+    """
+    graph = DiGraph()
+
+    for recipe_name in recipe_names:
+        add_deps_for(recipe_name, graph)
+
+    return [task_class(recipe_name) for recipe_name in topological_sort(graph)]
+
+
 def parse_tasks(args):
     """
     Parse the program arguments into a list of Tasks to execute
@@ -216,11 +267,12 @@ def parse_tasks(args):
     tasks = []
 
     if args.install:
-        tasks.extend([InstallTask(prog) for prog in args.install])
+        tasks.extend(order_tasks(args.install, InstallTask))
     if args.remove:
-        tasks.extend([RemoveTask(prog) for prog in args.remove])
+        tasks.extend([RemoveTask(recipe) for recipe in args.remove])
     if args.update:
-        tasks.extend([UpdateTask(prog) for prog, _ in pakit.conf.IDB])
+        recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
+        tasks.extend(order_tasks(recipes_to_update, UpdateTask))
     if args.available:
         tasks.append(ListAvailable(False))
     if args.available_short:

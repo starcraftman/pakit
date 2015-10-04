@@ -1,3 +1,7 @@
+NEXT
+  - Add basic dependency management.
+  - Add Dummy Fetchable for testing & simple recipes.
+
 0.2.3
   - Try to find best config by searching.
   - Doc update.
