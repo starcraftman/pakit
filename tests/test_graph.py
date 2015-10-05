@@ -3,13 +3,13 @@ Test pakit.graph
 """
 from __future__ import absolute_import, print_function
 
-import graph
+from pakit.graph import DiGraph, topological_sort
 import string
 
 
 class TestDiGraph(object):
     def setup(self):
-        self.graph = graph.DiGraph()
+        self.graph = DiGraph()
 
     def test_num_verts(self):
         self.graph.add_vertex('A')
@@ -54,7 +54,7 @@ class TestDiGraph(object):
 class TestTopologicalSort(object):
     def setup(self):
         max_verts = 8
-        self.graph = graph.DiGraph()
+        self.graph = DiGraph()
         for char in string.ascii_uppercase[0:max_verts]:
             self.graph.add_vertex(char)
 
@@ -69,4 +69,5 @@ class TestTopologicalSort(object):
 
     def test_topological_sort(self):
         print(self.graph)
-        assert len(graph.topological_sort(self.graph)) == 8
+        assert len(topological_sort(self.graph)) == 8
+        assert self.graph.num_verts == 0
