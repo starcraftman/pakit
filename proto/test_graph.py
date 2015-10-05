@@ -55,9 +55,9 @@ class TestDiGraph(object):
         self.g.add_vertex('C')
         self.g.add_edges('A', ['B', 'C'])
         assert self.g.get_unvisited_adjacent('A') == 'B'
-        self.g.vertex_list['B'] = True
+        self.g.verts['B'] = True
         assert self.g.get_unvisited_adjacent('A') == 'C'
-        self.g.vertex_list['C'] = True
+        self.g.verts['C'] = True
         assert self.g.get_unvisited_adjacent('A') is None
 
     def test_remove(self):
@@ -73,6 +73,15 @@ class TestDiGraph(object):
         assert 'C' not in self.g
         assert self.g.is_connected('A', 'B')
         assert not self.g.is_connected('A', 'C')
+
+    def test_graph_reset(self):
+        self.g.add_vertex('A')
+        self.g.add_vertex('B')
+        self.g.add_vertex('C')
+        assert self.g.verts['A'] is False
+        self.g.verts['A'] = True
+        self.g.reset_visited()
+        assert self.g.verts['A'] is False
 
 
 class TestSearchGraph(object):
@@ -163,9 +172,9 @@ class TestUndirectedGraph(object):
         self.g.add_edge('A', 'B')
         self.g.add_edge('A', 'C')
         assert self.g.get_unvisited_adjacent('A') == 'B'
-        self.g.vertex_list['B'] = True
+        self.g.verts['B'] = True
         assert self.g.get_unvisited_adjacent('A') == 'C'
-        self.g.vertex_list['C'] = True
+        self.g.verts['C'] = True
         assert self.g.get_unvisited_adjacent('A') is None
 
     def test_remove(self):
@@ -177,4 +186,4 @@ class TestUndirectedGraph(object):
         assert self.g.num_verts == 3
         self.g.remove('C')
         assert self.g.num_verts == 2
-        assert 'C' not in self.g.vertex_list
+        assert 'C' not in self.g.verts

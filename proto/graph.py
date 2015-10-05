@@ -32,36 +32,41 @@ class DiGraph(object):
     Repesents a directed graph with adjacency lists.
 
     Attributes:
-        adj_list: The adjacency list, key is a vertex key from vertex_list.
-        vertex_list: Stores whether a vertex was visited, default False.
+        adj_list: Dictionary that maps vertex name onto adjacent vertices
+                  stored in a list.
+        verts: Dictionary that maps vertex names onto booleans.
+               Boolean tracks if node visited for some algs.
     """
     def __init__(self):
-        self.vertex_list = {}
         self.adj_list = {}
+        self.verts = {}
 
     def __str__(self):
         msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
-        msg += sorted(self.vertex_list.keys())
+        msg += sorted(self.verts.keys())
         msg += ['The adjacency list is:']
         msg += ['{0}: {1}'.format(key, ', '.join(self.adj_list[key])) for key
                 in sorted(self.adj_list)]
         return '\n '.join(msg)
 
     def __contains__(self, key):
-        return key in self.vertex_list
+        """
+        True iff the key is present in the verts dictionary.
+        """
+        return key in self.verts
 
     @property
     def num_verts(self):
         """
         The number of vertices in the graph.
         """
-        return len(self.vertex_list)
+        return len(self.verts)
 
     def add_vertex(self, key):
         """
         Add a vertex to the graph, optionally with data.
         """
-        self.vertex_list[key] = False
+        self.verts[key] = False
         self.adj_list[key] = []
 
     def add_edge(self, key, depends_on):
@@ -76,7 +81,7 @@ class DiGraph(object):
 
     def add_edges(self, key, depends_on_all):
         """
-        Add an edge from key to all verts in depends_on
+        Add an edge from key to all verts in depends_on_all.
 
         Args:
             key: The vertex name.
@@ -90,10 +95,10 @@ class DiGraph(object):
         been visited before.
 
         Returns:
-            A position of a vertex in vertex_list, else None if not found.
+            A position of a vertex in verts, else None if not found.
         """
         for adj_key in self.adj_list[key]:
-            if not self.vertex_list[adj_key]:
+            if not self.verts[adj_key]:
                 return adj_key
 
         return None
@@ -110,7 +115,7 @@ class DiGraph(object):
         Delete it from all adjacency lists as well.
         """
         try:
-            del self.vertex_list[key]
+            del self.verts[key]
             del self.adj_list[key]
         except KeyError:
             pass
@@ -124,8 +129,8 @@ class DiGraph(object):
         """
         Reset all visited nodes to False.
         """
-        for key in self.vertex_list:
-            self.vertex_list[key] = False
+        for key in self.verts:
+            self.verts[key] = False
 
 
 class Graph(DiGraph):
@@ -163,18 +168,18 @@ def bfs_search(graph, func, start_pos):
     Args:
         graph: A graph.Graph instance.
         func: A function of form func(vertex)
-        start_pos: An index in the vertex_list of g.
+        start_pos: An index in the verts of graph.
     """
     queue = [start_pos]
     func(start_pos)
-    graph.vertex_list[start_pos] = True
+    graph.verts[start_pos] = True
 
     while len(queue):
         adjacent = graph.get_unvisited_adjacent(queue[-1])
         if adjacent:
             queue.insert(0, adjacent)
             func(adjacent)
-            graph.vertex_list[adjacent] = True
+            graph.verts[adjacent] = True
         else:
             queue.pop()
 
@@ -186,18 +191,18 @@ def dfs_search(graph, func, start_pos):
     Args:
         graph: A graph.Graph instance.
         func: A function of form func(vertex)
-        start_pos: An index in the vertex_list of g.
+        start_pos: An index in the verts of graph.
     """
     stack = [start_pos]
     func(start_pos)
-    graph.vertex_list[start_pos] = True
+    graph.verts[start_pos] = True
 
     while len(stack):
         adjacent = graph.get_unvisited_adjacent(stack[-1])
         if adjacent:
             stack.append(adjacent)
             func(adjacent)
-            graph.vertex_list[adjacent] = True
+            graph.verts[adjacent] = True
         else:
             stack.pop()
 
@@ -209,10 +214,10 @@ def mst_search(graph, func, start_pos):
     Args:
         graph: A graph.Graph instance.
         func: A function of form func(vertex_a, vertex_b)
-        start_pos: An index in the vertex_list of g.
+        start_pos: An index in the verts of graph.
     """
     stack = [start_pos]
-    graph.vertex_list[start_pos] = True
+    graph.verts[start_pos] = True
 
     while len(stack):
         prev_vert = stack[-1]
@@ -220,7 +225,7 @@ def mst_search(graph, func, start_pos):
         if adjacent:
             stack.append(adjacent)
             func(prev_vert, '->', adjacent)
-            graph.vertex_list[adjacent] = True
+            graph.verts[adjacent] = True
         else:
             stack.pop()
 
@@ -236,8 +241,8 @@ def topo_list(graph):
         CycleInGraphError: The directed graph had a cycle.
     """
     t_list = []
-
     last_len = graph.num_verts
+
     while graph.num_verts:
         for key in graph.adj_list:
             if graph.adj_list[key] == []:
@@ -246,11 +251,10 @@ def topo_list(graph):
                 graph.remove(key)
                 break
 
-        new_len = len(graph.vertex_list)
-        if last_len == new_len:
+        if last_len == graph.num_verts:
             print(graph)
             raise CycleInGraphError
-        last_len = new_len
+        last_len = graph.num_verts
 
     return t_list
 
