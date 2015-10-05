@@ -10,7 +10,7 @@ import shutil
 
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 from pakit.shell import (
-    Git, Hg, Command, Archive, find_arc_name, hash_archive, cmd_cleanup,
+    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive, cmd_cleanup,
     get_extract_func, extract_tar_gz
 )
 import pakit.shell
@@ -133,6 +133,28 @@ class TestExtractFuncs(object):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
             self.__test_ext('7z')
+
+
+class TestDummy(object):
+    def setup(self):
+        self.config = tc.env_setup()
+        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+                                     'dummy')
+        self.dummy = Dummy('dummy', target=self.test_dir)
+
+    def teardown(self):
+        tc.delete_it(self.test_dir)
+
+    def test__with__(self):
+        with self.dummy:
+            assert self.dummy.ready
+
+    def test_ready(self):
+        with self.dummy:
+            assert self.dummy.ready
+            with open(os.path.join(self.dummy.target, 'file'), 'w') as fout:
+                fout.write('Hello world.')
+            assert not self.dummy.ready
 
 
 class TestArchive(object):

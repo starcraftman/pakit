@@ -313,6 +313,63 @@ class Fetchable(object):
         raise NotImplementedError
 
 
+class Dummy(Fetchable):
+    """
+    Retrieves nothing from the URI.
+
+    This is a dummy repository, useful for testing and when a recipe
+    does NOT rely on a source repository or archive.
+    """
+    def __init__(self, uri, **kwargs):
+        """
+        Constructor for a Dummy repository. *uri* and *target* are required.
+
+        Args:
+            uri: Any old string, will be ignored.
+
+        Kwargs:
+            target: Path that will be created on the system.
+        """
+        super(Dummy, self).__init__(uri, kwargs.get('target', None))
+
+    def __enter__(self):
+        """
+        Guarantees that source is available at target
+        """
+        if not self.ready:
+            self.clean()
+            try:
+                os.makedirs(self.target)
+            except OSError:
+                pass
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Handles errors as needed
+        """
+        pass
+
+    @property
+    def ready(self):
+        """
+        True iff the source code is available at target
+        """
+        return os.path.isdir(self.target) and len(os.listdir(self.target)) == 0
+
+    @property
+    def src_hash(self):
+        """
+        A hash that identifies the source snapshot
+        """
+        return 'dummy_hash'
+
+    def download(self):
+        """
+        Retrieves code from the remote, may require additional steps
+        """
+        pass
+
+
 class Archive(Fetchable):
     """
     Retrieve an archive from a remote URI and extract it to target.
