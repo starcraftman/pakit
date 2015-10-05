@@ -1,15 +1,10 @@
 """
 Simple graph implementation.
-Uses a dictionary of adjacency lists for easy management.
+Uses a dictionary of adjacency lists for edge management.
 """
 from __future__ import absolute_import, print_function
 
-
-class CycleInGraphError(Exception):
-    """
-    There was a cycle in the graph.
-    """
-    pass
+from pakit.exc import CycleInGraphError
 
 
 class DiGraph(object):

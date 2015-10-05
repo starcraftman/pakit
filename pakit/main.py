@@ -15,6 +15,7 @@ import traceback
 from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
+from pakit.graph import DiGraph, topological_sort
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
@@ -203,6 +204,38 @@ def log_init(config):
     pak.addHandler(pak_stream)
 
 
+def handle_dependencies(recipe_names, task_class):
+    """
+    Order the recipes so that all dependencies can be met.
+
+    Args:
+        recipe_names: List of recipe names.
+        task_class: The Task to be carried out on the recipes.
+
+    Returns:
+        A list of task_class instances ordered to meet dependencies.
+
+    Raises:
+        CycleInGraphError: The dependencies could not be resolved
+        as there was a cycle in the dependency graph.
+    """
+    graph = DiGraph()
+
+    for recipe_name in recipe_names:
+        graph.add_vertex(recipe_name)
+        recipe = RecipeDB().get(recipe_name)
+        requires = getattr(recipe, 'requires', [])
+
+        for requirement in requires:
+            if requirement not in graph:
+                graph.add_vertex(requirement)
+
+        graph.add_edges(recipe_name, getattr(recipe, 'requires', []))
+
+    ordered_recipes = topological_sort(graph)
+    return [task_class(recipe_name) for recipe_name in ordered_recipes]
+
+
 def parse_tasks(args):
     """
     Parse the program arguments into a list of Tasks to execute
@@ -216,11 +249,12 @@ def parse_tasks(args):
     tasks = []
 
     if args.install:
-        tasks.extend([InstallTask(prog) for prog in args.install])
+        tasks.extend(handle_dependencies(args.install, InstallTask))
     if args.remove:
-        tasks.extend([RemoveTask(prog) for prog in args.remove])
+        tasks.extend(handle_dependencies(args.remove, RemoveTask))
     if args.update:
-        tasks.extend([UpdateTask(prog) for prog, _ in pakit.conf.IDB])
+        recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
+        tasks.extend(handle_dependencies(recipes_to_update, UpdateTask))
     if args.available:
         tasks.append(ListAvailable(False))
     if args.available_short:

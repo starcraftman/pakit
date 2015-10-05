@@ -194,6 +194,20 @@ class TestArgs(object):
         assert args.search == ['ag', 'vim']
 
 
+class TestHandleDependencies(object):
+    def setup(self):
+        pass
+
+    def test_no_requires(self):
+        pass
+
+    def test_requirements_possible(self):
+        pass
+
+    def test_requirements_impossible(self):
+        pass
+
+
 class TestParseTasks(object):
     def setup_class(self):
         self.config = tc.env_setup()
