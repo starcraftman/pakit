@@ -219,12 +219,11 @@ def add_deps_for(recipe_name, graph):
         PakitDBError: No matching recipe in RecipeDB.
         CycleInGraphError: A cycle was detected in the recursion.
     """
-    if graph.visited.get(recipe_name):
+    if recipe_name in graph:
         return
 
     recipe = RecipeDB().get(recipe_name)
     graph.add_vertex(recipe_name)
-    graph.visited[recipe_name] = True
 
     requires = getattr(recipe, 'requires', [])
     graph.add_edges(recipe_name, requires)

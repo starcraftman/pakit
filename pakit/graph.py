@@ -18,7 +18,6 @@ class DiGraph(object):
     """
     def __init__(self):
         self.adj_lists = {}
-        self.visited = {}
 
     def __str__(self):
         msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
@@ -66,7 +65,6 @@ class DiGraph(object):
         Add a vertex to the graph.
         """
         self.adj_lists[key] = []
-        self.visited[key] = False
 
     def is_connected(self, start, end):
         """
