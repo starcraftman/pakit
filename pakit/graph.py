@@ -2,7 +2,7 @@
 Simple graph implementation.
 Uses a dictionary of adjacency lists for edge management.
 """
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 from pakit.exc import CycleInGraphError
 
