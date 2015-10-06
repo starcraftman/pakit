@@ -20,8 +20,8 @@ class DiGraph(object):
         self.adj_lists = {}
 
     def __str__(self):
-        msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
-        msg += ['The adjacency list is:']
+        msg = ['There are ' + str(self.num_verts) + ' vertices.']
+        msg += ['The adjacency lists are:']
         msg += ['  ' + key + ': ' + ', '.join(sorted(self.adj_lists[key]))
                 for key in sorted(self.adj_lists)]
         return '\n' + '\n'.join(msg)
@@ -47,7 +47,7 @@ class DiGraph(object):
             key: The vertex name.
             depends_on: A vertex name key depends on.
         """
-        self.adj_lists[key] = list(set(self.adj_lists[key] + [depends_on]))
+        self.adj_lists[key].append(depends_on)
 
     def add_edges(self, key, depends_on_all):
         """
@@ -57,7 +57,7 @@ class DiGraph(object):
             key: The vertex name.
             depends_on: A list of vertex names key depends on.
         """
-        self.adj_lists[key] = list(set(self.adj_lists[key] + depends_on_all))
+        self.adj_lists[key].extend(depends_on_all)
 
     def add_vertex(self, key):
         """
@@ -80,11 +80,9 @@ class DiGraph(object):
             del self.adj_lists[key]
         except KeyError:
             pass
-        for adj_key in self.adj_lists:
-            try:
-                self.adj_lists[adj_key].remove(key)
-            except ValueError:
-                pass
+        for adj_list in self.adj_lists.values():
+            while adj_list.count(key):
+                adj_list.remove(key)
 
 
 def topological_sort(graph):

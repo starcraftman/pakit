@@ -11,6 +11,21 @@ class TestDiGraph(object):
     def setup(self):
         self.graph = DiGraph()
 
+    def test__str__(self):
+        self.graph.add_vertex('A')
+        self.graph.add_vertex('B')
+        self.graph.add_edge('A', 'B')
+        print (self.graph)
+        expect = [
+            '',
+            'There are 2 vertices.',
+            'The adjacency lists are:',
+            '  A: B',
+            '  B: ',
+        ]
+
+        assert str(self.graph).split('\n') == expect
+
     def test_num_verts(self):
         self.graph.add_vertex('A')
         self.graph.add_vertex('B')
@@ -27,6 +42,16 @@ class TestDiGraph(object):
         assert self.graph.is_connected('A', 'B')
         print(self.graph)
 
+    def test_add_edges(self):
+        self.graph.add_vertex('A')
+        self.graph.add_vertex('B')
+        self.graph.add_vertex('C')
+        self.graph.add_edges('A', ['B', 'C'])
+        assert len(self.graph.adj_lists['A']) == 2
+        assert self.graph.is_connected('A', 'B')
+        assert self.graph.is_connected('A', 'C')
+        print(self.graph)
+
     def test_is_connected(self):
         self.graph.add_vertex('A')
         self.graph.add_vertex('B')
@@ -34,7 +59,9 @@ class TestDiGraph(object):
         self.graph.add_edge('A', 'B')
         print(self.graph)
         assert self.graph.is_connected('A', 'B')
+        assert 'B' in self.graph.adj_lists['A']
         assert not self.graph.is_connected('A', 'C')
+        assert 'C' not in self.graph.adj_lists['A']
 
     def test_remove(self):
         self.graph.add_vertex('A')
