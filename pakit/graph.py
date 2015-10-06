@@ -21,11 +21,10 @@ class DiGraph(object):
 
     def __str__(self):
         msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
-        msg += sorted(self.adj_lists.keys())
         msg += ['The adjacency list is:']
-        msg += ['{0}: {1}'.format(key, ', '.join(self.adj_lists[key])) for key
-                in sorted(self.adj_lists)]
-        return '\n '.join(msg)
+        msg += ['  ' + key + ': ' + ', '.join(sorted(self.adj_lists[key]))
+                for key in sorted(self.adj_lists)]
+        return '\n' + '\n'.join(msg)
 
     def __contains__(self, key):
         """
