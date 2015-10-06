@@ -252,9 +252,7 @@ def order_tasks(recipe_names, task_class):
     for recipe_name in recipe_names:
         add_deps_for(recipe_name, graph)
 
-    print(graph)
-    ordered_recipes = topological_sort(graph)
-    return [task_class(recipe_name) for recipe_name in ordered_recipes]
+    return [task_class(recipe_name) for recipe_name in topological_sort(graph)]
 
 
 def parse_tasks(args):
