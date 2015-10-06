@@ -204,7 +204,35 @@ def log_init(config):
     pak.addHandler(pak_stream)
 
 
-def handle_dependencies(recipe_names, task_class):
+def add_deps_for(recipe_name, graph):
+    """
+    Recursively add a recipe_name and all reqirements to the graph.
+
+    NOTE: Cycles may be present in the graph when recursion terminates.
+    Even so, this function will NOT recurse endlessly.
+
+    Args:
+        graph: A directed graph.
+        recipe_name: A recipe in RecipeDB.
+
+    Raises:
+        PakitDBError: No matching recipe in RecipeDB.
+        CycleInGraphError: A cycle was detected in the recursion.
+    """
+    if graph.visited.get(recipe_name):
+        return
+
+    recipe = RecipeDB().get(recipe_name)
+    graph.add_vertex(recipe_name)
+    graph.visited[recipe_name] = True
+
+    requires = getattr(recipe, 'requires', [])
+    graph.add_edges(recipe_name, requires)
+    for requirement in requires:
+        add_deps_for(requirement, graph)
+
+
+def order_tasks(recipe_names, task_class):
     """
     Order the recipes so that all dependencies can be met.
 
@@ -222,16 +250,9 @@ def handle_dependencies(recipe_names, task_class):
     graph = DiGraph()
 
     for recipe_name in recipe_names:
-        graph.add_vertex(recipe_name)
-        recipe = RecipeDB().get(recipe_name)
-        requires = getattr(recipe, 'requires', [])
+        add_deps_for(recipe_name, graph)
 
-        for requirement in requires:
-            if requirement not in graph:
-                graph.add_vertex(requirement)
-
-        graph.add_edges(recipe_name, getattr(recipe, 'requires', []))
-
+    print(graph)
     ordered_recipes = topological_sort(graph)
     return [task_class(recipe_name) for recipe_name in ordered_recipes]
 
@@ -249,12 +270,12 @@ def parse_tasks(args):
     tasks = []
 
     if args.install:
-        tasks.extend(handle_dependencies(args.install, InstallTask))
+        tasks.extend(order_tasks(args.install, InstallTask))
     if args.remove:
-        tasks.extend(handle_dependencies(args.remove, RemoveTask))
+        tasks.extend([RemoveTask(recipe) for recipe in args.remove])
     if args.update:
         recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
-        tasks.extend(handle_dependencies(recipes_to_update, UpdateTask))
+        tasks.extend(order_tasks(recipes_to_update, UpdateTask))
     if args.available:
         tasks.append(ListAvailable(False))
     if args.available_short:

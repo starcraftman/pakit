@@ -12,38 +12,34 @@ class DiGraph(object):
     Repesents a directed graph with adjacency lists.
 
     Attributes:
-        adj_list: Dictionary that maps vertex name onto adjacent vertices
+        adj_lists: Dictionary that maps vertex name onto adjacent vertices
                   stored in a list.
+        visited: Dictionary that maps vertex name onto simple boolean.
     """
     def __init__(self):
-        self.adj_list = {}
+        self.adj_lists = {}
+        self.visited = {}
 
     def __str__(self):
         msg = ['The vertex list has: ' + str(self.num_verts) + ' elements.']
-        msg += sorted(self.adj_list.keys())
+        msg += sorted(self.adj_lists.keys())
         msg += ['The adjacency list is:']
-        msg += ['{0}: {1}'.format(key, ', '.join(self.adj_list[key])) for key
-                in sorted(self.adj_list)]
+        msg += ['{0}: {1}'.format(key, ', '.join(self.adj_lists[key])) for key
+                in sorted(self.adj_lists)]
         return '\n '.join(msg)
 
     def __contains__(self, key):
         """
-        True iff the key name is in the adj_list dictionary.
+        True iff the key name is in the adj_lists dictionary.
         """
-        return key in self.adj_list
+        return key in self.adj_lists
 
     @property
     def num_verts(self):
         """
         The number of vertices in the graph.
         """
-        return len(self.adj_list)
-
-    def add_vertex(self, key):
-        """
-        Add a vertex to the graph.
-        """
-        self.adj_list[key] = []
+        return len(self.adj_lists)
 
     def add_edge(self, key, depends_on):
         """
@@ -53,7 +49,7 @@ class DiGraph(object):
             key: The vertex name.
             depends_on: A vertex name key depends on.
         """
-        self.adj_list[key].append(depends_on)
+        self.adj_lists[key] = list(set(self.adj_lists[key] + [depends_on]))
 
     def add_edges(self, key, depends_on_all):
         """
@@ -63,13 +59,20 @@ class DiGraph(object):
             key: The vertex name.
             depends_on: A list of vertex names key depends on.
         """
-        self.adj_list[key].extend(depends_on_all)
+        self.adj_lists[key] = list(set(self.adj_lists[key] + depends_on_all))
+
+    def add_vertex(self, key):
+        """
+        Add a vertex to the graph.
+        """
+        self.adj_lists[key] = []
+        self.visited[key] = False
 
     def is_connected(self, start, end):
         """
         Returns true iff start has an edge to end.
         """
-        return end in self.adj_list[start]
+        return end in self.adj_lists[start]
 
     def remove(self, key):
         """
@@ -77,12 +80,12 @@ class DiGraph(object):
         Delete it from all adjacency lists as well.
         """
         try:
-            del self.adj_list[key]
+            del self.adj_lists[key]
         except KeyError:
             pass
-        for adj_key in self.adj_list:
+        for adj_key in self.adj_lists:
             try:
-                self.adj_list[adj_key].remove(key)
+                self.adj_lists[adj_key].remove(key)
             except ValueError:
                 pass
 
@@ -102,8 +105,8 @@ def topological_sort(graph):
     last_len = graph.num_verts
 
     while graph.num_verts:
-        for key in graph.adj_list:
-            if graph.adj_list[key] == []:
+        for key in graph.adj_lists:
+            if graph.adj_lists[key] == []:
                 t_list.append(key)
                 graph.remove(key)
                 break
