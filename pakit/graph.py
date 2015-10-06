@@ -1,6 +1,8 @@
 """
-Simple graph implementation.
-Uses a dictionary of adjacency lists for edge management.
+Implements graph logic for dependencies between Recipes.
+
+DiGraph: A directed graph with adjacency lists.
+topological_sort: Order vertices to meet edge dependencies.
 """
 from __future__ import absolute_import
 
@@ -14,7 +16,6 @@ class DiGraph(object):
     Attributes:
         adj_lists: Dictionary that maps vertex name onto adjacent vertices
                   stored in a list.
-        visited: Dictionary that maps vertex name onto simple boolean.
     """
     def __init__(self):
         self.adj_lists = {}
@@ -87,11 +88,11 @@ class DiGraph(object):
 
 def topological_sort(graph):
     """
-    Topological sort of graph.
+    Topological sort of a graph.
     Side Effect: Empties the graph.
 
     Returns:
-        A list in sorted order.
+        A list in sorted order to satisfy dependencies.
 
     Raises:
         CycleInGraphError: The directed graph had a cycle.

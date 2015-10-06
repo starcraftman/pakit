@@ -1,4 +1,5 @@
 NEXT
+  - Add relink command, remakes all symlinks for installed programs.
   - Add basic dependency management.
   - Add Dummy Fetchable for testing & simple recipes.
 

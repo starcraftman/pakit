@@ -155,14 +155,12 @@ class TestConfig(object):
 class TestInstalledConfig(object):
     def setup(self):
         self.config = tc.env_setup()
-        self.idb_file = os.path.join(tc.STAGING, 'installed.yaml')
+        self.idb_file = os.path.join(tc.STAGING, 'installed.yml')
         self.idb = InstallDB(self.idb_file)
         self.recipe = RecipeDB().get('ag')
-        self.recipe.repo = 'stable'
 
     def teardown(self):
         tc.delete_it(self.idb_file)
-        self.recipe.repo = 'unstable'
 
     def test__str__(self):
         expect = [
@@ -175,6 +173,7 @@ class TestInstalledConfig(object):
             '  }',
             '}'
         ]
+        self.recipe.repo = 'stable'
         self.idb.add(self.recipe)
         print(str(self.idb))
         lines = str(self.idb).split('\n')
@@ -186,6 +185,12 @@ class TestInstalledConfig(object):
         self.idb.set('ag', {'hello': 'world'})
         assert 'ag' in self.idb
         assert 'moose' not in self.idb
+
+    def test__iter__(self):
+        self.idb.set('ack', 'ack')
+        self.idb.set('ag', 'ag')
+        actual = sorted([key + obj for key, obj in self.idb])
+        assert actual == ['ackack', 'agag']
 
     def test_add(self):
         self.idb.add(self.recipe)

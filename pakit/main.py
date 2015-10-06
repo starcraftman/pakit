@@ -19,7 +19,7 @@ from pakit.graph import DiGraph, topological_sort
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
-    DisplayTask, SearchTask
+    DisplayTask, RelinkRecipes, SearchTask
 )
 import pakit.conf
 import pakit.shell
@@ -28,7 +28,7 @@ import pakit.shell
 PLOG = logging.getLogger('pakit')
 
 
-def args_parser():
+def create_args_parser():
     """
     Create the program argument parser.
 
@@ -86,6 +86,8 @@ def args_parser():
                         action='store_true', help='list installed programs')
     parser.add_argument('--list-short', default=False, action='store_true',
                         help='list installed recipes, terse output')
+    parser.add_argument('--relink', default=False, action='store_true',
+                        help='relink installed programs')
     mut1.add_argument('-r', '--remove', nargs='+',
                       metavar='PROG', help='remove specified program(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
@@ -123,7 +125,7 @@ def global_init(config_file):
             pass
 
     prefix = config.get('pakit.paths.prefix')
-    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yaml'))
+    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yml'))
     logging.debug('InstallDB: %s', pakit.conf.IDB)
     pakit.shell.TMP_DIR = os.path.dirname(prefix)
 
@@ -254,6 +256,87 @@ def order_tasks(recipe_names, task_class):
     return [task_class(recipe_name) for recipe_name in topological_sort(graph)]
 
 
+def parse_tasks_display(args):
+    """
+    Parse args for DisplayTasks.
+    """
+    if args.display:
+        return [DisplayTask(prog) for prog in args.display]
+    else:
+        return []
+
+
+def parse_tasks_install(args):
+    """
+    Parse args for InstallTask(s).
+    """
+    if args.install:
+        return order_tasks(args.install, InstallTask)
+    else:
+        return []
+
+
+def parse_tasks_list_available(args):
+    """
+    Parse args for  ListAvailable task.
+    """
+    if args.available or args.available_short:
+        return [ListAvailable(args.available_short)]
+    else:
+        return []
+
+
+def parse_tasks_list_installed(args):
+    """
+    Parse args for ListInstalled task.
+    """
+    if args.list or args.list_short:
+        return [ListInstalled(args.list_short)]
+    else:
+        return []
+
+
+def parse_tasks_relink(args):
+    """
+    Parse args for RelinkRecipes task.
+    """
+    if args.relink:
+        return [RelinkRecipes()]
+    else:
+        return []
+
+
+def parse_tasks_remove(args):
+    """
+    Parse args for RemoveTask(s).
+    """
+    if args.remove:
+        return [RemoveTask(recipe) for recipe in args.remove]
+    else:
+        return []
+
+
+def parse_tasks_search(args):
+    """
+    Parse args for DisplayTask(s).
+    """
+    if args.search:
+        return [SearchTask(RecipeDB().names(desc=True), args.search)]
+    else:
+        return []
+
+
+def parse_tasks_update(args):
+    """
+    Parse args for UpdateTask(s).
+    """
+    if args.update:
+        recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
+        return order_tasks(recipes_to_update, UpdateTask)
+    else:
+        return []
+
+
 def parse_tasks(args):
     """
     Parse the program arguments into a list of Tasks to execute
@@ -266,25 +349,11 @@ def parse_tasks(args):
     """
     tasks = []
 
-    if args.install:
-        tasks.extend(order_tasks(args.install, InstallTask))
-    if args.remove:
-        tasks.extend([RemoveTask(recipe) for recipe in args.remove])
-    if args.update:
-        recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
-        tasks.extend(order_tasks(recipes_to_update, UpdateTask))
-    if args.available:
-        tasks.append(ListAvailable(False))
-    if args.available_short:
-        tasks.append(ListAvailable(True))
-    if args.display:
-        tasks.extend([DisplayTask(prog) for prog in args.display])
-    if args.search:
-        tasks.append(SearchTask(RecipeDB().names(desc=True), args.search))
-    if args.list:
-        tasks.append(ListInstalled(False))
-    if args.list_short:
-        tasks.append(ListInstalled(True))
+    cur_module = sys.modules[__name__]
+    parsers = [getattr(cur_module, fname) for fname in dir(cur_module)
+               if fname.find('parse_tasks_') == 0]
+    for parser in parsers:
+        tasks.extend(parser(args))
 
     return tasks
 
@@ -363,7 +432,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    parser = args_parser()
+    parser = create_args_parser()
     if len(argv) == 1:
         logging.error('No arguments. What should I do?')
         parser.print_usage()

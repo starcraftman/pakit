@@ -2,12 +2,13 @@
 
 * `pakit --install tmux ag`       -- Install several programs
 * `pakit --update`                -- Update local programs
-* `pakit --remove tmux            -- Remove program
+* `pakit --remove tmux`           -- Remove program
 * `pakit --list`                  -- List installed programs
 * `pakit --available`             -- List ALL available formula
 * `pakit --search lib`            -- Display matching avilable recipes
 * `pakit --conf ./a.yaml -i ag`   -- Override default config
-* 'pakit --display vim ag`        -- Display package information
+* `pakit --display vim ag`        -- Display package information
+* `pakit --relink`                -- Relink all pakit programs
 
 Short opts in order: -i -u -r -l -a -s -c -d
 

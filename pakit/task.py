@@ -305,6 +305,31 @@ class DisplayTask(RecipeTask):
         return msg
 
 
+class RelinkRecipes(Task):
+    """
+    Relink all programs managed by pakit.
+
+    Useful if one Recipe adds something to another Recipe's install.
+    Should be avoided unless absolutely necessary.
+
+    For example, if you installed  python and used get-pip.py.
+    It would modify pakit's python install, but have to be relinked to be used.
+    """
+    def __init__(self):
+        super(RelinkRecipes, self).__init__()
+
+    def run(self):
+        """
+        Execute a set of operations to perform the Task.
+        """
+        logging.debug('Relinking All Programs')
+
+        dst = pakit.conf.CONFIG.get('pakit.paths.link')
+        Command('rm -rf ' + dst).wait()
+        for _, recipe in RecipeDB():
+            walk_and_link(recipe.install_dir, dst)
+
+
 class ListInstalled(Task):
     """
     List all installed recipes.

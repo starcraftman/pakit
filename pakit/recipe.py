@@ -259,6 +259,10 @@ class RecipeDB(object):
     def __contains__(self, name):
         return name in self.__db
 
+    def __iter__(self):
+        for key in sorted(self.__instance.__db):
+            yield (key, self.__instance.__db[key])
+
     def index(self, path):
         """
         Index all *Recipes* in the path.

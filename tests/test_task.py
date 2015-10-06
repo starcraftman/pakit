@@ -8,6 +8,7 @@ import logging
 import mock
 import os
 import pytest
+import shutil
 import sys
 
 import pakit.conf
@@ -16,7 +17,7 @@ from pakit.recipe import RecipeDB
 from pakit.task import (
     subseq_match, substring_match, walk_and_link, walk_and_unlink,
     Task, RecipeTask, InstallTask, RemoveTask, UpdateTask, DisplayTask,
-    ListInstalled, ListAvailable, SearchTask
+    ListInstalled, ListAvailable, SearchTask, RelinkRecipes
 )
 import tests.common as tc
 
@@ -106,7 +107,7 @@ class TestTaskBase(object):
         RemoveTask(self.recipe).run()
         try:
             os.remove(os.path.join(os.path.dirname(self.recipe.install_dir),
-                                   'installed.yaml'))
+                                   'installed.yml'))
         except OSError:
             pass
         try:
@@ -234,7 +235,7 @@ class TestTaskRemove(TestTaskBase):
         paths = pakit.conf.CONFIG.get('pakit.paths')
         assert os.path.exists(paths['prefix'])
         globbed = glob.glob(os.path.join(paths['prefix'], '*'))
-        assert globbed == [os.path.join(paths['prefix'], 'installed.yaml')]
+        assert globbed == [os.path.join(paths['prefix'], 'installed.yml')]
         assert not os.path.exists(paths['link'])
 
 
@@ -287,6 +288,17 @@ class TestTaskUpdate(TestTaskBase):
         assert os.path.exists(recipe.install_dir)
         assert not os.path.exists(recipe.install_dir + '_bak')
         recipe.verify()
+
+
+class TestTaskRelink(TestTaskBase):
+    def test_relink(self):
+        recipe = self.recipe
+        InstallTask(recipe).run()
+        shutil.rmtree(recipe.link_dir)
+        assert not os.path.exists(recipe.link_dir)
+        RelinkRecipes().run()
+        assert os.listdir(recipe.link_dir) == ['bin', 'share']
+        assert os.path.islink(os.path.join(recipe.link_dir, 'bin', 'ag'))
 
 
 class TestTaskQuery(TestTaskBase):

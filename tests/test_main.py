@@ -11,13 +11,13 @@ import shutil
 import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import (
-    args_parser, main, link_man_page, parse_tasks, search_for_config,
+    create_args_parser, main, link_man_page, parse_tasks, search_for_config,
     write_config, order_tasks
 )
 from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
-    ListInstalled, ListAvailable, SearchTask
+    ListInstalled, ListAvailable, SearchTask, RelinkRecipes
 )
 import tests.common as tc
 
@@ -137,7 +137,7 @@ class TestWriteConfig(object):
 
 class TestArgs(object):
     def setup(self):
-        self.parser = args_parser()
+        self.parser = create_args_parser()
 
     def test_no_args(self):
         args = self.parser.parse_args([])
@@ -154,43 +154,39 @@ class TestArgs(object):
         assert args.install == ['ag', 'tmux']
 
     def test_args_remove(self):
-        parser = args_parser()
-        args = parser.parse_args('--remove ag'.split())
+        args = self.parser.parse_args('--remove ag'.split())
         assert args.remove == ['ag']
 
     def test_args_update(self):
-        parser = args_parser()
-        args = parser.parse_args('--update'.split())
+        args = self.parser.parse_args('--update'.split())
         assert args.update
 
     def test_args_list(self):
-        parser = args_parser()
-        args = parser.parse_args('--list'.split())
+        args = self.parser.parse_args('--list'.split())
         assert args.list
 
     def test_args_list_short(self):
-        parser = args_parser()
-        args = parser.parse_args('--list-short'.split())
+        args = self.parser.parse_args('--list-short'.split())
         assert args.list_short
 
     def test_args_available(self):
-        parser = args_parser()
-        args = parser.parse_args('--available'.split())
+        args = self.parser.parse_args('--available'.split())
         assert args.available
 
     def test_args_available_short(self):
-        parser = args_parser()
-        args = parser.parse_args('--available-short'.split())
+        args = self.parser.parse_args('--available-short'.split())
         assert args.available_short
 
     def test_args_display(self):
-        parser = args_parser()
-        args = parser.parse_args('--display ag vim'.split())
+        args = self.parser.parse_args('--display ag vim'.split())
         assert args.display == ['ag', 'vim']
 
+    def test_args_relink(self):
+        args = self.parser.parse_args('--relink'.split())
+        assert args.relink
+
     def test_args_search(self):
-        parser = args_parser()
-        args = parser.parse_args('--search ag vim'.split())
+        args = self.parser.parse_args('--search ag vim'.split())
         assert args.search == ['ag', 'vim']
 
 
@@ -217,7 +213,7 @@ class TestOrderTasks(object):
 class TestParseTasks(object):
     def setup_class(self):
         self.config = tc.env_setup()
-        self.parser = args_parser()
+        self.parser = create_args_parser()
 
     def test_parse_install(self):
         args = self.parser.parse_args('--install ag'.split())
@@ -267,6 +263,11 @@ class TestParseTasks(object):
         args = self.parser.parse_args('--display ag'.split())
         tasks = parse_tasks(args)
         assert isinstance(tasks[0], DisplayTask)
+
+    def test_parse_relink(self):
+        args = self.parser.parse_args('--relink'.split())
+        tasks = parse_tasks(args)
+        assert isinstance(tasks[0], RelinkRecipes)
 
     def test_parse_search(self):
         args = self.parser.parse_args('--search ag'.split())

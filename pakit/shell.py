@@ -33,7 +33,6 @@ import zipfile
 import pakit.conf
 from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
 
-EXTS = None
 TMP_DIR = '/tmp/pakit'
 
 
@@ -195,7 +194,10 @@ def find_arc_name(uri):
     """
     right = -1
     ext = None
-    for ext in EXTS:
+    exts = [func.replace('extract_', '').replace('_', '.') for func
+            in dir(sys.modules[__name__]) if func.find('extract_') == 0]
+
+    for ext in exts:
         ext = '.' + ext
         right = uri.rfind(ext)
         if right != -1:
@@ -223,9 +225,9 @@ def get_extract_func(ext):
     Raises:
         PakitError: The extension can not be extracted.
     """
-    this_module = sys.modules[__name__]
     try:
-        return getattr(this_module, 'extract_' + ext.replace('.', '_'))
+        return getattr(sys.modules[__name__],
+                       'extract_' + ext.replace('.', '_'))
     except AttributeError:
         raise PakitError('Unsupported Archive Format: extension ' + ext)
 
@@ -993,7 +995,3 @@ class Command(object):
 
         if self.rcode != 0:
             raise PakitCmdError('\n'.join(self.output(10)))
-
-# Placed here on purpose, pick up any extract funcs before me
-EXTS = [func.replace('extract_', '').replace('_', '.') for func
-        in dir(sys.modules[__name__]) if func.find('extract_') == 0]

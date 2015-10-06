@@ -8,6 +8,7 @@ pakit: Build and manage programs simply.
 See...
 - *pakit.conf* for information on configuration, including defaults.
 - *pakit.exc* for all exception classes.
+- *pakit.graph* for all graphing code.
 - *pakit.main* for all argument parsing and task running logic.
 - *pakit.recipe* for information on writing and extending Recipes.
 - *pakit.shell* for all code related to shell commands.

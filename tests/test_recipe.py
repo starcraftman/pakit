@@ -132,6 +132,11 @@ class TestRecipeDB(object):
         assert 'ag' in RecipeDB()
         assert 'aaaa' not in RecipeDB()
 
+    def test__iter__(self):
+        actual = sorted([key for key, _ in RecipeDB()])
+        assert len(actual) != 0
+        assert 'ag' in actual
+
     def test_get_found(self):
         obj = RecipeDB().get('ag')
         assert isinstance(obj, Recipe)
