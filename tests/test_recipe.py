@@ -3,6 +3,7 @@ Test pakit.recipe
 """
 from __future__ import absolute_import, print_function
 
+import mock
 import os
 import pytest
 import shutil
@@ -118,6 +119,11 @@ class TestRecipe(object):
                 shutil.rmtree(test_dir)
             except OSError:
                 pass
+
+    @mock.patch('pakit.shell.Command.wait')
+    def test_cmd_timeout_arg(self, mock_cmd):
+        self.recipe.cmd('ls', timeout=1)
+        mock_cmd.assert_called_with(1)
 
 
 class TestRecipeDB(object):

@@ -17,10 +17,13 @@ class Ack(Recipe):
             'stable': Git(self.src, tag='2.14'),
             'unstable': Git(self.src),
         }
+        self.opts = {
+            'targets': 'ack-standalone manifypods',
+        }
 
     def build(self):
         self.cmd('perl Makefile.PL')
-        self.cmd('make ack-standalone manifypods')
+        self.cmd('make {targets}')
         ack_bin = os.path.join(self.opts['prefix'], 'bin', 'ack')
         man_dir = os.path.join(self.opts['prefix'], 'share',
                                'man', 'man1')

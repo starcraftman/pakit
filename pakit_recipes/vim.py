@@ -16,11 +16,12 @@ class Vim(Recipe):
             'stable': Git(self.src, tag='v7.4.865'),
             'unstable': Git(self.src),
         }
+        self.opts = {
+            'configure': '--with-features=huge --enable-pythoninterp'
+        }
 
     def build(self):
-        self.cmd('./configure --prefix={prefix} --with-features=huge '
-                 '--enable-cscope --enable-multibyte --enable-luainterp '
-                 '--enable-pythoninterp')
+        self.cmd('./configure --prefix={prefix} {configure}')
         self.cmd('make VIMRUNTIMEDIR={prefix}/share/vim/vim74')
         self.cmd('make install')
 

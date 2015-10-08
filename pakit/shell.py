@@ -965,8 +965,8 @@ class Command(object):
         Block here until the command is done.
 
         Args:
-            max_time: If stdout receives no text for this interval,
-                terminate the command and raise error.
+            timeout: If no stdout for this interval
+                     terminate the command and raise error.
 
         Raises:
             PakitCmdTimeout: When stdout stops getting output for max_time.

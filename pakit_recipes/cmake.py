@@ -16,10 +16,13 @@ class Cmake(Recipe):
                               '9779170bad7ffcb17463f2fc22'),
             'unstable': Git('git://cmake.org/cmake.git '),
         }
+        self.opts = {
+            'bootstrap': '--sphinx-html --sphinx-man'
+        }
 
     def build(self):
         self.cmd('./bootstrap --prefix={prefix} --mandir=share/man '
-                 '--sphinx-html --sphinx-man')
+                 '{bootstrap}')
         self.cmd('make')
         self.cmd('make install')
 

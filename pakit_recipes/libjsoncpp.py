@@ -16,11 +16,13 @@ class Libjsoncpp(Recipe):
             'stable': Git(self.src, tag='0.10.5'),
             'unstable': Git(self.src, branch='0.y.z'),
         }
+        self.opts = {
+            'cmake': '-DCMAKE_BUILD_TYPE=release '
+                     '-DJSONCPP_LIB_BUILD_SHARED=ON',
+        }
 
     def build(self):
-        self.cmd('cmake -DCMAKE_INSTALL_PREFIX={prefix} '
-                 '-DCMAKE_BUILD_TYPE=release '
-                 '-DJSONCPP_LIB_BUILD_SHARED=ON .')
+        self.cmd('cmake -DCMAKE_INSTALL_PREFIX={prefix} {cmake} .')
         self.cmd('make install')
 
     def verify(self):

@@ -87,7 +87,7 @@ class Recipe(object):
 
         Users should not be using this directly.
         """
-        self.opts = config.get_opts(self.name)
+        self.opts.update(config.get_opts(self.name))
         self.opts.update({
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
             'source': os.path.join(self.opts.get('source'), self.name)
@@ -197,23 +197,46 @@ class Recipe(object):
 
         - Expand all dictionary markers in *cmd* against *self.opts*.
             Arg *cmd* may be a string or a list of strings.
-        - If no *cmd_dir* in kwargs, use default from *def_cmd_dir*.
+        - If no *cmd_dir* in kwargs, execute cmd in *def_cmd_dir*.
+        - If no *timeout* in kwargs, use default pakit Command timeout.
+        - Command will block until completed or Exception raised.
+
+        Args:
+            cmd: A string or list of strings that forms the command.
+                 Dictionary markers like '{prefix}' will be expanded
+                 against self.opts.
+
+        Kwargs:
+            cmd_dir: The directory to execute command in.
+            prev_cmd: The previous Command, use it for stdin.
+            timeout: When no stdout/stderr recieved for timeout
+                     kill command and raise exception.
 
         Returns:
-            Command object that is running in a subprocess.
+            Command object that was running as a subprocess.
+
+        Raises:
+            PakitCmdError: The return code indicated failure.
+            PakitCmdTimeout: The timeout interval was reached.
         """
         if isinstance(cmd, type('')):
             cmd = cmd.format(**self.opts)
         else:
             cmd = [word.format(**self.opts) for word in cmd]
 
+        timeout = kwargs.pop('timeout', None)
         if kwargs.get('cmd_dir') is None:
             kwargs.update({'cmd_dir': self.def_cmd_dir})
 
         logging.getLogger('pakit').info('Executing in %s: %s',
                                         kwargs['cmd_dir'], cmd)
         cmd = Command(cmd, **kwargs)
-        cmd.wait()
+
+        if timeout:
+            cmd.wait(timeout)
+        else:
+            cmd.wait()
+
         return cmd
 
     @abstractmethod
