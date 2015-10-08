@@ -11,8 +11,8 @@ import shutil
 import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import (
-    create_args_parser, main, link_man_page, parse_tasks, search_for_config,
-    write_config, order_tasks
+    create_args_parser, environment_check, main, link_man_page, parse_tasks,
+    search_for_config, order_tasks, write_config
 )
 from pakit.recipe import RecipeDB
 from pakit.task import (
@@ -29,6 +29,20 @@ def test_link_man_page():
     link_man_page(l_dir)
     assert os.path.islink(expected_link)
     tc.delete_it(l_dir)
+
+
+@mock.patch('pakit.main.PLOG')
+def test_environment_check(mock_log):
+    config = tc.env_setup()
+    bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
+    old_path = os.environ['PATH']
+    os.environ['PATH'] = os.environ['PATH'].replace(bin_dir, '')
+
+    environment_check(config)
+    mock_log.info.assert_called_with('  For Most Shells: export PATH=%s:$PATH',
+                                     bin_dir)
+
+    os.environ['PATH'] = old_path
 
 
 class TestSearchConfig(object):

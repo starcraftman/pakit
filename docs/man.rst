@@ -47,6 +47,9 @@ Options
 --list-short
    List installed recipes, output is very terse
 
+--relink
+   Relink installed recipes
+
 -r, --remove RECIPE [RECIPE...]
    Removes the RECIPE(s) on the system
 

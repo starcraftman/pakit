@@ -76,24 +76,35 @@ def create_args_parser():
     parser.add_argument('-c', '--conf', help='yaml config file')
     parser.add_argument('--create-conf', default=False, action='store_true',
                         help='write the default config to CONF')
-    parser.add_argument('-d', '--display', nargs='+', metavar='PROG',
-                        help='show detailed information on recipe')
+    parser.add_argument('-d', '--display', nargs='+', metavar='RECIPE',
+                        help='show detailed information about RECIPE(s)')
     mut1.add_argument('-i', '--install', nargs='+',
-                      metavar='PROG', help='install specified program(s)')
+                      metavar='RECIPE', help='install specified RECIPE(s)')
     mut1.add_argument('-k', '--search', nargs='+', metavar='WORD',
                       help='search names & descriptions for WORD')
     parser.add_argument('-l', '--list', default=False,
-                        action='store_true', help='list installed programs')
+                        action='store_true', help='list installed recipes')
     parser.add_argument('--list-short', default=False, action='store_true',
                         help='list installed recipes, terse output')
     parser.add_argument('--relink', default=False, action='store_true',
-                        help='relink installed programs')
+                        help='relink installed recipes')
     mut1.add_argument('-r', '--remove', nargs='+',
-                      metavar='PROG', help='remove specified program(s)')
+                      metavar='RECIPE', help='remove specified RECIPE(s)')
     mut1.add_argument('-u', '--update', default=False, action='store_true',
-                      help='update installed programs')
+                      help='update all installed recipes')
 
     return parser
+
+
+def environment_check(config):
+    """
+    Check the environment is correct.
+    """
+    # TODO: Path modification by os.environ?
+    bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
+    if os.environ['PATH'].find(bin_dir) == -1:
+        PLOG.info('To use built recipes %s must be on shell $PATH.', bin_dir)
+        PLOG.info('  For Most Shells: export PATH=%s:$PATH', bin_dir)
 
 
 def global_init(config_file):
@@ -139,6 +150,7 @@ def global_init(config_file):
         pass
 
     link_man_page(config.get('pakit.paths.link'))
+    environment_check(config)
 
     return config
 
@@ -421,7 +433,6 @@ def write_config(config_file):
         sys.exit(0)
 
 
-# TODO: Path modification during operation by os.environ
 def main(argv=None):
     """
     The main entry point for this program.
