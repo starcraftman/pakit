@@ -857,9 +857,7 @@ class Command(object):
         alive: True only if the command is still running.
         rcode: When the command finishes, is the return code.
     """
-    def_timeout = None
-
-    def __init__(self, cmd, cmd_dir=None, prev_cmd=None):
+    def __init__(self, cmd, cmd_dir=None, prev_cmd=None, env=None):
         """
         Run a command on the system.
 
@@ -871,6 +869,9 @@ class Command(object):
                 If shlex.split would not correctly split the line
                 then pass a list.
             cmd_dir: Change to this directory before executing.
+            env: A dictionary of environment variables to change.
+                For instance, env={'HOME': '/tmp'} would change
+                HOME variable for the duration of the Command.
             prev_cmd: Read the stdout of this command for stdin.
 
         Raises:
@@ -892,12 +893,17 @@ class Command(object):
         if prev_cmd:
             stdin = open(prev_cmd.stdout.name, 'r')
 
+        if env:
+            to_update = env
+            env = os.environ.copy()
+            env.update(to_update)
+
         logging.debug('CMD START: %s', self)
         try:
             self.stdout = TempFile(mode='wb', delete=False, dir=TMP_DIR,
                                    prefix='cmd', suffix='.log')
             self._proc = sub.Popen(
-                self._cmd, cwd=self._cmd_dir, preexec_fn=os.setsid,
+                self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
                 stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT
             )
         except OSError:

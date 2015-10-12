@@ -468,3 +468,11 @@ class TestCommand(object):
         cmd2 = Command('grep "ood"', prev_cmd=cmd)
         cmd2.wait()
         assert cmd2.output() == ['Goodbye!']
+
+    def test_env_override(self):
+        old_environ = os.environ.copy()
+        os.environ['HELLO'] = 'bad'
+        cmd = Command(['env'], env={'HELLO': 'pakit'})
+        cmd.wait()
+        'HELLO=pakit' in cmd.output()
+        os.environ = old_environ
