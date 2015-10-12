@@ -25,7 +25,7 @@ import pakit.conf
 import pakit.shell
 
 
-PLOG = logging.getLogger('pakit')
+PLOG = logging.getLogger('pakit').info
 
 
 def create_args_parser():
@@ -104,8 +104,8 @@ def environment_check(config):
     """
     bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
     if os.environ['PATH'].find(bin_dir) == -1:
-        PLOG.info('To use built recipes %s must be on shell $PATH.', bin_dir)
-        PLOG.info('  For Most Shells: export PATH=%s:$PATH', bin_dir)
+        PLOG('To use built recipes %s must be on shell $PATH.', bin_dir)
+        PLOG('  For Most Shells: export PATH=%s:$PATH', bin_dir)
     os.environ['PATH'] = bin_dir + ':' + os.environ['PATH']
 
 
@@ -459,19 +459,19 @@ def main(argv=None):
 
     config = global_init(args.conf)
     logging.debug('CLI: %s', args)
-    PLOG.info('Loading config from: ' + config.filename)
+    PLOG('Loading config from: ' + config.filename)
 
     try:
         tasks = parse_tasks(args)
         for task in tasks:
-            PLOG.info('Running: %s', str(task))
+            PLOG('Running: %s', str(task))
             task.run()
 
         if len(tasks) == 0 and args.update:
-            PLOG.info('Nothing to update.')
+            PLOG('Nothing to update.')
 
     except PakitDBError as exc:
-        PLOG.info(str(exc))
+        PLOG(str(exc))
     except PakitError as exc:
         logging.error(exc)
         logging.error(traceback.format_exc())

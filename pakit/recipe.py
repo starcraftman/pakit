@@ -20,6 +20,9 @@ from pakit.exc import PakitDBError
 from pakit.shell import Command
 
 
+PLOG = logging.getLogger('pakit').info
+
+
 class RecipeDecorator(object):
     """
     Decorate a method and allow optional pre and post functions to
@@ -30,12 +33,14 @@ class RecipeDecorator(object):
     would be 'Worker.post_run'..
 
     Before calling the wrapped function guarantee...
-        1) pre_func is executed.
+        1) tempdir created if use_tempd set.
         2) working directory is changed to new_cwd.
+        3) pre_func is executed.
 
-    After calling wrapped function guarantee...
-        1) working directory is restored to old_cwd.
-        2) post_func is executed.
+    After calling the wrapped function guarantee...
+        1) post_func is executed.
+        2) working directory is restored to old_cwd.
+        3) If tempdir created, remove everything under it.
 
     Attributes:
         instance: The instance of class of the method being wrapped.
@@ -46,6 +51,8 @@ class RecipeDecorator(object):
             the instance of the class in question.
         new_cwd: A directory to os.chdir to. Must exist AFTER *pre_func*.
         old_cwd: Whatever working directory we were at post *pre_func*.
+        use_tempd: If True, make new tempdir and set to new_cwd.
+        plog: The logger to send messages to.
     """
     def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
         self.instance = None
@@ -73,32 +80,33 @@ class RecipeDecorator(object):
                 self.make_tempd()
 
             with self:
-                logging.debug("Executing '%s'", self.func.__name__)
+                PLOG("Executing '%s()'", self.func.__name__)
                 self.func(*args, **kwargs)
 
         return decorated
 
     def __enter__(self):
         """
+        Change into the new_cwd. By default, stay in current directory.
         Executes the pre function if defined on the wrapped instance.
-        Then change into the new_cwd folder.
-        By default, this is the same as the cwd.
         """
-        logging.debug("Executing '%s' before '%s'", self.pre_func.__name__,
-                      self.func.__name__)
-        self.pre_func(self.instance)
         self.old_cwd = os.getcwd()
         os.chdir(self.new_cwd)
+        if self.pre_func:
+            PLOG("Executing '%s()' before '%s()'", self.pre_func.__name__,
+                 self.func.__name__)
+            self.pre_func(self.instance)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         """
         Executes the post function if defined on the wrapped instance.
         Then changes into the old_cwd folder.
         """
+        if self.post_func:
+            PLOG("Executing '%s()' after '%s()'", self.post_func.__name__,
+                 self.func.__name__)
+            self.post_func(self.instance)
         os.chdir(self.old_cwd)
-        self.post_func(self.instance)
-        logging.debug("Executing '%s' after '%s'", self.post_func.__name__,
-                      self.func.__name__)
         if self.use_tempd:
             shutil.rmtree(self.new_cwd)
 
@@ -113,10 +121,13 @@ class RecipeDecorator(object):
         """
         self.func = func
         self.instance = instance
-        self.pre_func = getattr(instance, 'pre_' + func.__name__,
-                                lambda x: None)
-        self.post_func = getattr(instance, 'post_' + func.__name__,
-                                 lambda x: None)
+        self.pre_func = getattr(instance, 'pre_' + func.__name__, None)
+        self.post_func = getattr(instance, 'post_' + func.__name__, None)
+
+    def log(self, *args):
+        """
+        Simple wrapper for logging to user.
+        """
 
     def make_tempd(self):
         """
@@ -335,9 +346,7 @@ class Recipe(object):
         timeout = kwargs.pop('timeout', None)
 
         cmd_dir = kwargs.get('cmd_dir', os.getcwd())
-        logging.getLogger('pakit').info('Executing in %s: %s',
-                                        cmd_dir, cmd)
-        logging.error('Dir: %s', os.getcwd())
+        PLOG('Executing in %s: %s', cmd_dir, cmd)
         cmd = Command(cmd, **kwargs)
 
         if timeout:

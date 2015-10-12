@@ -39,8 +39,8 @@ def test_environment_check(mock_log):
     os.environ['PATH'] = os.environ['PATH'].replace(bin_dir, '')
 
     environment_check(config)
-    mock_log.info.assert_called_with('  For Most Shells: export PATH=%s:$PATH',
-                                     bin_dir)
+    mock_log.assert_called_with('  For Most Shells: export PATH=%s:$PATH',
+                                bin_dir)
 
     os.environ['PATH'] = old_path
 
@@ -294,7 +294,7 @@ class TestMain(object):
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):
         main(['pakit', '--list'])
-        assert mock_plog.info.called
+        assert mock_plog.called
 
     @mock.patch('pakit.main.sys')
     def test_args_none(self, mock_sys):
@@ -311,7 +311,7 @@ class TestMain(object):
     @mock.patch('pakit.main.PLOG')
     def test_no_update_needed(self, mock_plog):
         main(['pakit', '--update'])
-        mock_plog.info.assert_called_with('Nothing to update.')
+        mock_plog.assert_called_with('Nothing to update.')
 
     @mock.patch('pakit.main.parse_tasks')
     def test_pakit_error(self, mock_parse):
@@ -323,4 +323,4 @@ class TestMain(object):
     def test_recipe_not_found(self, mock_plog):
         expect = 'Missing recipe to build: iiiii'
         main(['pakit', '-i', 'iiiii'])
-        mock_plog.info.assert_called_with(expect)
+        mock_plog.assert_called_with(expect)
