@@ -25,6 +25,6 @@ class Ninja(Recipe):
         self.cmd('mv ninja ' + bin_dir)
 
     def verify(self):
-        lines = self.cmd('./bin/ninja --version').output()
+        lines = self.cmd('ninja --version').output()
         matcher = re.match(r'\d\.\d+\.\d+', lines[0])
         assert matcher is not None

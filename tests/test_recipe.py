@@ -9,8 +9,40 @@ import pytest
 import shutil
 
 from pakit.exc import PakitError
-from pakit.recipe import Recipe, RecipeDB
+from pakit.recipe import Recipe, RecipeDB, RecipeDecorator
 import tests.common as tc
+
+
+class DummyRecipe(object):
+    def __init__(self):
+        self.msgs = []
+        self.orig_dir = os.getcwd()
+
+    def build(self, *args, **kwargs):
+        self.msgs.append('build')
+
+    def post_build(self, instance=None):
+        self.msgs.append('post_build')
+        assert os.getcwd() == self.orig_dir
+
+    def pre_build(self, instance=None):
+        self.msgs.append('pre_build')
+
+    def verify(self, *args, **kwargs):
+        assert os.getcwd().find('pakit_verify_') != -1
+
+
+def test_decorator_pre_and_post():
+    DummyRecipe.build = RecipeDecorator()(DummyRecipe.build)
+    dummy = DummyRecipe()
+    dummy.build()
+    assert dummy.msgs == ['pre_build', 'build', 'post_build']
+
+
+def test_decorator_tempd():
+    DummyRecipe.verify = RecipeDecorator(use_tempd=True)(DummyRecipe.verify)
+    dummy = DummyRecipe()
+    dummy.verify()
 
 
 class TestRecipe(object):
@@ -98,12 +130,6 @@ class TestRecipe(object):
         cmd = self.recipe.cmd('echo {prefix}'.split())
         expect = [os.path.join(self.config.get('pakit.paths.prefix'), 'ag')]
         assert cmd.output() == expect
-
-    def test_cmd_dir_default(self):
-        test_dir = '/tmp'
-        self.recipe.def_cmd_dir = test_dir
-        cmd = self.recipe.cmd('pwd')
-        assert cmd.output() == [test_dir]
 
     def test_cmd_dir_arg(self):
         try:

@@ -23,5 +23,5 @@ class Ctags(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/ctags --version').output()
+        lines = self.cmd('ctags --version').output()
         assert lines[0].find('Universal Ctags Development') != -1

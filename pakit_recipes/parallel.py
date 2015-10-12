@@ -21,5 +21,5 @@ class Parallel(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/parallel --version').output()
+        lines = self.cmd('parallel --version').output()
         assert lines[0].find('GNU parallel') != -1

@@ -38,5 +38,5 @@ class Ack(Recipe):
                                  'ack.1p'), man_dir)
 
     def verify(self):
-        lines = self.cmd('./bin/ack --version').output()
+        lines = self.cmd('ack --version').output()
         assert lines[0].find('ack') != -1

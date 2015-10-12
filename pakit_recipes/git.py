@@ -25,5 +25,5 @@ class Git(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/git --version').output()
+        lines = self.cmd('git --version').output()
         assert lines[0].find('git version') != -1

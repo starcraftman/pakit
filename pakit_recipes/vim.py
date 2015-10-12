@@ -26,5 +26,5 @@ class Vim(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/vim --version').output()
+        lines = self.cmd('vim --version').output()
         assert lines[0].find('VIM - Vi') != -1

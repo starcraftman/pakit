@@ -199,14 +199,12 @@ class InstallTask(RecipeTask):
                       str(self.recipe.repo))
             with self.recipe.repo:
                 USER.info('%s: Building Source', self.recipe.name)
-                self.recipe.def_cmd_dir = self.recipe.source_dir
                 self.recipe.build()
 
                 USER.info('%s: Symlinking Program', self.recipe.name)
                 walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
 
                 USER.info('%s: Verifying Program', self.recipe.name)
-                self.recipe.def_cmd_dir = self.recipe.link_dir
                 self.recipe.verify()
 
                 pakit.conf.IDB.add(self.recipe)

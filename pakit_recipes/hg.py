@@ -23,5 +23,5 @@ class Hg(Recipe):
         self.cmd('make PREFIX={prefix} install')
 
     def verify(self):
-        lines = self.cmd('./bin/hg --version').output()
+        lines = self.cmd('hg --version').output()
         assert lines[0].find('Mercurial Distributed SCM') != -1

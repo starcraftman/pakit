@@ -1,3 +1,4 @@
+# pylint: disable=C0302
 """
 All code related to running system commands.
 
@@ -10,6 +11,7 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import atexit
+import functools
 import glob
 import logging
 import os
@@ -44,6 +46,7 @@ def wrap_extract(extract_func):
     Condition: extract_func must extract the folder with source
     into the tmp_dir. Rest is handled automatically.
     """
+    @functools.wraps(extract_func)
     def inner(filename, target):
         """
         Inner part of decorator.
@@ -871,13 +874,19 @@ class Command(object):
             prev_cmd: Read the stdout of this command for stdin.
 
         Raises:
-            PakitCmdError: Usually could not find command on system.
+            PakitCmdError: The command could not find command on system
+                or the cmd_dir did not exist during subprocess execution.
         """
         super(Command, self).__init__()
+
         if isinstance(cmd, list):
             self._cmd = cmd
         else:
             self._cmd = shlex.split(cmd)
+
+        if self._cmd[0].find('./') != 0:
+            self._cmd.insert(0, '/usr/bin/env')
+
         self._cmd_dir = cmd_dir
         stdin = None
         if prev_cmd:

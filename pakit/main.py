@@ -99,12 +99,14 @@ def create_args_parser():
 def environment_check(config):
     """
     Check the environment is correct.
+
+    Guarantee built programs always first in $PATH for Commands.
     """
-    # TODO: Path modification by os.environ?
     bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
     if os.environ['PATH'].find(bin_dir) == -1:
         PLOG.info('To use built recipes %s must be on shell $PATH.', bin_dir)
         PLOG.info('  For Most Shells: export PATH=%s:$PATH', bin_dir)
+    os.environ['PATH'] = bin_dir + ':' + os.environ['PATH']
 
 
 def global_init(config_file):

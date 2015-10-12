@@ -27,5 +27,5 @@ class Cmake(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/cmake --version').output()
+        lines = self.cmd('cmake --version').output()
         assert lines[0].find('cmake version') != -1

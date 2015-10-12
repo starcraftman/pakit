@@ -24,5 +24,5 @@ class Zsh(Recipe):
         self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/zsh --version').output()
+        lines = self.cmd('zsh --version').output()
         assert lines[0].find('zsh') != -1

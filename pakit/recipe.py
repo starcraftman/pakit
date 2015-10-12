@@ -8,13 +8,122 @@ RecipeDB: The database that indexes all recipes.
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
+import functools
 import glob
 import logging
 import os
+import shutil
 import sys
+import tempfile
 
 from pakit.exc import PakitDBError
 from pakit.shell import Command
+
+
+class RecipeDecorator(object):
+    """
+    Decorate a method and allow optional pre and post functions to
+    modify it.
+
+    To be clear, if this decorator is applied to Worker.run,
+    the 'pre_func' would be 'Worker.pre_run' and the 'post_func'
+    would be 'Worker.post_run'..
+
+    Before calling the wrapped function guarantee...
+        1) pre_func is executed.
+        2) working directory is changed to new_cwd.
+
+    After calling wrapped function guarantee...
+        1) working directory is restored to old_cwd.
+        2) post_func is executed.
+
+    Attributes:
+        instance: The instance of class of the method being wrapped.
+        func: The method being wrapped.
+        pre_func: A pre execution function. Accepts a single argument,
+            the instance of the class in question.
+        post_func: A post execution function. Accepts a single argument,
+            the instance of the class in question.
+        new_cwd: A directory to os.chdir to. Must exist AFTER *pre_func*.
+        old_cwd: Whatever working directory we were at post *pre_func*.
+    """
+    def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
+        self.instance = None
+        self.func = None
+        self.pre_func = None
+        self.post_func = None
+        self.new_cwd = new_cwd
+        self.old_cwd = None
+        self.use_tempd = use_tempd
+
+    def __call__(self, func):
+        """
+        Like a normal decorator, take a function as argument.
+
+        Args:
+            func: The class method to wrap.
+        """
+        @functools.wraps(func)
+        def decorated(*args, **kwargs):
+            """
+            The inner part of the decorator.
+            """
+            self.inspect_instance(args[0], func)
+            if self.use_tempd:
+                self.make_tempd()
+
+            with self:
+                logging.debug("Executing '%s'", self.func.__name__)
+                self.func(*args, **kwargs)
+
+        return decorated
+
+    def __enter__(self):
+        """
+        Executes the pre function if defined on the wrapped instance.
+        Then change into the new_cwd folder.
+        By default, this is the same as the cwd.
+        """
+        logging.debug("Executing '%s' before '%s'", self.pre_func.__name__,
+                      self.func.__name__)
+        self.pre_func(self.instance)
+        self.old_cwd = os.getcwd()
+        os.chdir(self.new_cwd)
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        Executes the post function if defined on the wrapped instance.
+        Then changes into the old_cwd folder.
+        """
+        os.chdir(self.old_cwd)
+        self.post_func(self.instance)
+        logging.debug("Executing '%s' after '%s'", self.post_func.__name__,
+                      self.func.__name__)
+        if self.use_tempd:
+            shutil.rmtree(self.new_cwd)
+
+    def inspect_instance(self, instance, func):
+        """
+        Inspect the provided isntance and set required attributes
+        in the decorator.
+
+        Args:
+            instance: The instance of the wrapped class method.
+            func: The class method this decorator is wrapping up.
+        """
+        self.func = func
+        self.instance = instance
+        self.pre_func = getattr(instance, 'pre_' + func.__name__,
+                                lambda x: None)
+        self.post_func = getattr(instance, 'post_' + func.__name__,
+                                 lambda x: None)
+
+    def make_tempd(self):
+        """
+        Simple wrapper around tempfile's methods.
+        """
+        self.new_cwd = tempfile.mkdtemp(prefix='pakit_verify_')
+        logging.debug('Created tempdir: %s', self.new_cwd)
 
 
 class Recipe(object):
@@ -46,7 +155,6 @@ class Recipe(object):
 
     def __init__(self):
         super(Recipe, self).__init__()
-        self.def_cmd_dir = None
         self.homepage = None
         self.opts = {}
         self.repos = None
@@ -197,7 +305,7 @@ class Recipe(object):
 
         - Expand all dictionary markers in *cmd* against *self.opts*.
             Arg *cmd* may be a string or a list of strings.
-        - If no *cmd_dir* in kwargs, execute cmd in *def_cmd_dir*.
+        - If no *cmd_dir* in kwargs, then execute in current directory.
         - If no *timeout* in kwargs, use default pakit Command timeout.
         - Command will block until completed or Exception raised.
 
@@ -225,11 +333,11 @@ class Recipe(object):
             cmd = [word.format(**self.opts) for word in cmd]
 
         timeout = kwargs.pop('timeout', None)
-        if kwargs.get('cmd_dir') is None:
-            kwargs.update({'cmd_dir': self.def_cmd_dir})
 
+        cmd_dir = kwargs.get('cmd_dir', os.getcwd())
         logging.getLogger('pakit').info('Executing in %s: %s',
-                                        kwargs['cmd_dir'], cmd)
+                                        cmd_dir, cmd)
+        logging.error('Dir: %s', os.getcwd())
         cmd = Command(cmd, **kwargs)
 
         if timeout:
@@ -359,6 +467,10 @@ class RecipeDB(object):
         mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)
         cls = getattr(mod, cls_name.capitalize())
+        source_dir = os.path.join(self.__config.get('pakit.paths.source'),
+                                  cls_name)
+        cls.build = RecipeDecorator(source_dir)(cls.build)
+        cls.verify = RecipeDecorator(use_tempd=True)(cls.verify)
         obj = cls()
         obj.set_config(self.__config)
         return obj

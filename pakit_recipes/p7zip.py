@@ -25,5 +25,5 @@ class P7zip(Recipe):
         self.cmd('mv {prefix}/man {prefix}/share')
 
     def verify(self):
-        lines = self.cmd('./bin/7z --help').output()
+        lines = self.cmd('7z --help').output()
         assert lines[2].find('p7zip Version') != -1

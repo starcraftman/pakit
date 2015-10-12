@@ -27,5 +27,5 @@ class Update(Recipe):
             self.cmd('make install')
 
     def verify(self):
-        lines = self.cmd('./bin/ag --version').output()
+        lines = self.cmd('ag --version').output()
         assert lines[0].find('ag version') != -1
