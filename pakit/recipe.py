@@ -4,6 +4,7 @@ The Recipe class and RecipeDB are found here.
 
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
+RecipeDecorator: Provides some functionality by wrapping Recipes at runtime.
 """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
@@ -52,7 +53,6 @@ class RecipeDecorator(object):
         new_cwd: A directory to os.chdir to. Must exist AFTER *pre_func*.
         old_cwd: Whatever working directory we were at post *pre_func*.
         use_tempd: If True, make new tempdir and set to new_cwd.
-        plog: The logger to send messages to.
     """
     def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
         self.instance = None
@@ -123,11 +123,6 @@ class RecipeDecorator(object):
         self.instance = instance
         self.pre_func = getattr(instance, 'pre_' + func.__name__, None)
         self.post_func = getattr(instance, 'post_' + func.__name__, None)
-
-    def log(self, *args):
-        """
-        Simple wrapper for logging to user.
-        """
 
     def make_tempd(self):
         """

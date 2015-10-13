@@ -135,8 +135,8 @@ ag
 ag.repo
    Setting **unstable** here overrides the value of `pakit.defaults.repo`.
 
-Recipes
--------
+Recipe Naming
+-------------
 Recipes are defined in the **pakit_recipes** package inside pakit (for now).
 
 * Every recipe is defined in its own file.
@@ -150,4 +150,26 @@ For example, for recipe **ag**.
 * The class is: **class Ag(Recipe): ...**
 * It can be installed by: **pakit -i ag**
 
-For recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
+Recipe Writing
+--------------
+Writing a recipe isn't too difficult, I'd suggest looking at examples first then
+modifying the below commented template.
+
+A recipe need only provide 3 major pieces of information:
+
+1. How to fetch the source code.
+2. Steps to build and install the source code into a silo.
+3. A means to verify the build was sucessful.
+
+
+.. code-block:: python
+
+   """ formula for building example, stored in example.py """
+   from pakit import Git, Recipe
+
+   class Example(Recipe):
+      def __init__(self):
+         pass
+
+
+For more recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.

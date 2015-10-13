@@ -213,7 +213,7 @@ def log_init(config):
         pak.removeHandler(pak.handlers[0])
 
     pak.setLevel(logging.INFO)
-    pak_fmt = 'pakit: %(asctime)s %(message)s'
+    pak_fmt = 'pakit %(asctime)s %(message)s'
     pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
     pak_stream = logging.StreamHandler()
     pak_stream.setFormatter(pak_info)

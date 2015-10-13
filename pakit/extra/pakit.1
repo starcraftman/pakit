@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "PAKIT" "1" "October 08, 2015" "0.2.3" "Pakit"
+.TH "PAKIT" "1" "October 13, 2015" "0.2.3" "Pakit"
 .SH NAME
 pakit \- Build and manage programs simply
 .
@@ -187,7 +187,7 @@ name in \fIpakit.defaults\fP\&.
 .B ag.repo
 Setting \fBunstable\fP here overrides the value of \fIpakit.defaults.repo\fP\&.
 .UNINDENT
-.SH RECIPES
+.SH RECIPE NAMING
 .sp
 Recipes are defined in the \fBpakit_recipes\fP package inside pakit (for now).
 .INDENT 0.0
@@ -210,8 +210,37 @@ The class is: \fBclass Ag(Recipe): ...\fP
 .IP \(bu 2
 It can be installed by: \fBpakit \-i ag\fP
 .UNINDENT
+.SH RECIPE WRITING
 .sp
-For recipe writing details, see \fBpydoc pakit.recipe\fP and the examples in \fBpakit_recipes\fP\&.
+Writing a recipe isn\(aqt too difficult, I\(aqd suggest looking at examples first then
+modifying the below commented template.
+.sp
+A recipe need only provide 3 major pieces of information:
+.INDENT 0.0
+.IP 1. 3
+How to fetch the source code.
+.IP 2. 3
+Steps to build and install the source code into a silo.
+.IP 3. 3
+A means to verify the build was sucessful.
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+""" formula for building example, stored in example.py """
+from pakit import Git, Recipe
+
+class Example(Recipe):
+   def __init__(self):
+      pass
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For more recipe writing details, see \fBpydoc pakit.recipe\fP and the examples in \fBpakit_recipes\fP\&.
 .SH AUTHOR
 Jeremy Pallats/starcraft.man
 .SH COPYRIGHT
