@@ -187,60 +187,9 @@ name in \fIpakit.defaults\fP\&.
 .B ag.repo
 Setting \fBunstable\fP here overrides the value of \fIpakit.defaults.repo\fP\&.
 .UNINDENT
-.SH RECIPE NAMING
+.SH MORE HELP
 .sp
-Recipes are defined in the \fBpakit_recipes\fP package inside pakit (for now).
-.INDENT 0.0
-.IP \(bu 2
-Every recipe is defined in its own file.
-.IP \(bu 2
-The name of the recipe file, is the name pakit will use to invoke the recipe.
-.IP \(bu 2
-Each recipe file must contain at least 1 class that is the capitalized name of the recipe.
-.IP \(bu 2
-That class must inherit from \fBpakit.Recipe\fP\&.
-.UNINDENT
-.sp
-For example, for recipe \fBag\fP\&.
-.INDENT 0.0
-.IP \(bu 2
-The recipe is stored in: \fBpakit_recipes/ag.py\fP
-.IP \(bu 2
-The class is: \fBclass Ag(Recipe): ...\fP
-.IP \(bu 2
-It can be installed by: \fBpakit \-i ag\fP
-.UNINDENT
-.SH RECIPE WRITING
-.sp
-Writing a recipe isn\(aqt too difficult, I\(aqd suggest looking at examples first then
-modifying the below commented template.
-.sp
-A recipe need only provide 3 major pieces of information:
-.INDENT 0.0
-.IP 1. 3
-How to fetch the source code.
-.IP 2. 3
-Steps to build and install the source code into a silo.
-.IP 3. 3
-A means to verify the build was sucessful.
-.UNINDENT
-.INDENT 0.0
-.INDENT 3.5
-.sp
-.nf
-.ft C
-""" formula for building example, stored in example.py """
-from pakit import Git, Recipe
-
-class Example(Recipe):
-   def __init__(self):
-      pass
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
-.sp
-For more recipe writing details, see \fBpydoc pakit.recipe\fP and the examples in \fBpakit_recipes\fP\&.
+To get more information...
 .SH AUTHOR
 Jeremy Pallats/starcraft.man
 .SH COPYRIGHT

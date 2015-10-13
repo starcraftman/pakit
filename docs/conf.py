@@ -234,7 +234,9 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('man', 'pakit', 'Build and manage programs simply',
-        ['Jeremy Pallats/starcraft.man'], 1)
+        ['Jeremy Pallats/starcraft.man'], 1),
+    ('pakit_recipes', 'pakit_recipes', 'Learn about writing pakit recipes',
+        ['Jeremy Pallats/starcraft.man'], 1),
 ]
 
 # If true, show URL addresses after external links.

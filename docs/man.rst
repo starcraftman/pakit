@@ -1,7 +1,7 @@
 .. The manual page for pakit.
 
-Man Page
-========
+Pakit
+=====
 
 Description
 -----------
@@ -135,41 +135,7 @@ ag
 ag.repo
    Setting **unstable** here overrides the value of `pakit.defaults.repo`.
 
-Recipe Naming
--------------
-Recipes are defined in the **pakit_recipes** package inside pakit (for now).
+More Help
+---------
+To get more information...
 
-* Every recipe is defined in its own file.
-* The name of the recipe file, is the name pakit will use to invoke the recipe.
-* Each recipe file must contain at least 1 class that is the capitalized name of the recipe.
-* That class must inherit from **pakit.Recipe**.
-
-For example, for recipe **ag**.
-
-* The recipe is stored in: **pakit_recipes/ag.py**
-* The class is: **class Ag(Recipe): ...**
-* It can be installed by: **pakit -i ag**
-
-Recipe Writing
---------------
-Writing a recipe isn't too difficult, I'd suggest looking at examples first then
-modifying the below commented template.
-
-A recipe need only provide 3 major pieces of information:
-
-1. How to fetch the source code.
-2. Steps to build and install the source code into a silo.
-3. A means to verify the build was sucessful.
-
-
-.. code-block:: python
-
-   """ formula for building example, stored in example.py """
-   from pakit import Git, Recipe
-
-   class Example(Recipe):
-      def __init__(self):
-         pass
-
-
-For more recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
