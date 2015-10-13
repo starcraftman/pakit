@@ -14,7 +14,7 @@ Short opts in order: -i -u -r -l -a -s -c -d
 
 ## Configuration
 
-File config by a YAML file, default at `~/.pakit.yml`.
+File config by a YAML file, default at `$HOME/.pakit.yml`.
 
 ```yaml
 # Default options passed to all recipes self.opts, can be overwridden by specific opts.

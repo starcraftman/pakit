@@ -26,10 +26,15 @@ class TestDiGraph(object):
 
         assert str(self.graph).split('\n') == expect
 
-    def test_num_verts(self):
+    def test__len__(self):
         self.graph.add_vertex('A')
         self.graph.add_vertex('B')
-        assert self.graph.num_verts == 2
+        assert len(self.graph) == 2
+
+    def test_size(self):
+        self.graph.add_vertex('A')
+        self.graph.add_vertex('B')
+        assert self.graph.size == 2
 
     def test_add_vertex(self):
         self.graph.add_vertex('A')
@@ -69,10 +74,10 @@ class TestDiGraph(object):
         self.graph.add_vertex('C')
         self.graph.add_edges('A', ['B', 'C'])
         print(self.graph)
-        assert self.graph.num_verts == 3
+        assert self.graph.size == 3
         self.graph.remove('C')
         print(self.graph)
-        assert self.graph.num_verts == 2
+        assert self.graph.size == 2
         assert 'C' not in self.graph
         assert self.graph.is_connected('A', 'B')
         assert not self.graph.is_connected('A', 'C')
@@ -83,10 +88,10 @@ class TestDiGraph(object):
         self.graph.add_vertex('C')
         self.graph.add_edges('A', ['B', 'C'])
         print(self.graph)
-        assert self.graph.num_verts == 3
+        assert self.graph.size == 3
         self.graph.remove('D')
         print(self.graph)
-        assert self.graph.num_verts == 3
+        assert self.graph.size == 3
 
 
 class TestTopologicalSort(object):
@@ -107,5 +112,6 @@ class TestTopologicalSort(object):
 
     def test_topological_sort(self):
         print(self.graph)
-        assert len(topological_sort(self.graph)) == 8
-        assert self.graph.num_verts == 0
+        top_list = list(topological_sort(self.graph))
+        assert len(top_list) == 8
+        assert self.graph.size == 0

@@ -6,6 +6,7 @@ Acts as an intermediary between program arguments and pakit Tasks.
 from __future__ import absolute_import, print_function
 
 import argparse
+import glob
 import logging
 import logging.handlers
 import os
@@ -41,27 +42,27 @@ def create_args_parser():
     to build & install recipes into local paths.
 
     First Time Run:
-        Run in shell: `{0} --create-conf`
+        Run in shell: `{1} --create-conf`
             This writes the default config to $HOME/.pakit.yml
 
         Run in shell: `export PATH=/tmp/pakit/links/bin:$PATH`
-            This is where all programs eventually linked to by default.
-            See man page for more configuration information.
+            This is where all program bins will link to by default.
 
     For project development or to report bugs:
         https://github.com/starcraftman/pakit
 
     Additional Information:
-        - Man page, provided inside `pakit/extra/pakit.1`. It is automatically
-        available via `man pakit` if `paths.link` is on your shell $PATH.
-        - `pydoc pakit`
-        - See DEMO.md inside pakit site package.
+        man pakit
+        man pakit_recipes
+        pydoc pakit
 
     Recipes:
-        pakit_recipes/ag.py is an example recipe
         User made recipes can be put in $HOME/.pakit/recipes by default.
         If two recipes have same name, last one in will be executed.
-    """.format(prog_name)
+        Example recipes can be found in the `pakit_recipes` module.
+        A good example is `pakit_recipes/ag.py`.
+    """.format(prog_name.capitalize(), prog_name)
+    mesg = mesg[0:-5]
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
@@ -151,26 +152,31 @@ def global_init(config_file):
     except KeyError:
         pass
 
-    link_man_page(config.get('pakit.paths.link'))
+    link_man_pages(config.get('pakit.paths.link'))
     environment_check(config)
 
     return config
 
 
-def link_man_page(link_dir):
+def link_man_pages(link_dir):
     """
-    Silently links man page into link dir.
+    Silently links project man pages into link dir.
     """
-    src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
-    dst = os.path.join(link_dir, 'share', 'man', 'man1', 'pakit.1')
+    src = os.path.join(os.path.dirname(__file__), 'extra')
+    dst = os.path.join(link_dir, 'share', 'man', 'man1')
     try:
-        os.makedirs(os.path.dirname(dst))
+        os.makedirs(dst)
     except OSError:
         pass
-    try:
-        os.symlink(src, dst)
-    except OSError:
-        pass
+
+    man_pages = [os.path.basename(fname) for fname in
+                 glob.glob(os.path.join(src, '*.1'))]
+    for page in man_pages:
+        try:
+            s_man, d_man = os.path.join(src, page), os.path.join(dst, page)
+            os.symlink(s_man, d_man)
+        except OSError:  # pragma: no cover
+            pass
 
 
 def log_init(config):
@@ -213,7 +219,7 @@ def log_init(config):
         pak.removeHandler(pak.handlers[0])
 
     pak.setLevel(logging.INFO)
-    pak_fmt = 'pakit: %(asctime)s %(message)s'
+    pak_fmt = 'pakit %(asctime)s %(message)s'
     pak_info = logging.Formatter(fmt=pak_fmt, datefmt='[%H:%M:%S]')
     pak_stream = logging.StreamHandler()
     pak_stream.setFormatter(pak_info)

@@ -4,6 +4,7 @@ The Recipe class and RecipeDB are found here.
 
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
+RecipeDecorator: Provides some functionality by wrapping Recipes at runtime.
 """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
@@ -21,6 +22,30 @@ from pakit.shell import Command
 
 
 PLOG = logging.getLogger('pakit').info
+
+
+def check_package(path):
+    """
+    Ensure the path is a valid python module to import from.
+
+    Args:
+        path: The path of a python module to check.
+
+    Raises:
+        PakitDBError: When the package name is invalid, user must correct.
+    """
+    if not os.path.isdir(path):
+        return
+
+    if os.path.basename(path)[0] == '.':
+        raise PakitDBError('Cannot index invalid recipe location. '
+                           'Remove the leading period(s) from ' + path)
+
+    init = os.path.join(path, '__init__.py')
+    if not os.path.exists(init):
+        with open(init, 'w') as fout:
+            fout.write('# Written by pakit to mark this folder'
+                       'as a python module')
 
 
 class RecipeDecorator(object):
@@ -52,8 +77,9 @@ class RecipeDecorator(object):
         new_cwd: A directory to os.chdir to. Must exist AFTER *pre_func*.
         old_cwd: Whatever working directory we were at post *pre_func*.
         use_tempd: If True, make new tempdir and set to new_cwd.
-        plog: The logger to send messages to.
     """
+    # TODO: Two decorators here, 1) changes dir, 2) looks for pre/post
+    # should probably separate them
     def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
         self.instance = None
         self.func = None
@@ -95,7 +121,7 @@ class RecipeDecorator(object):
         if self.pre_func:
             PLOG("Executing '%s()' before '%s()'", self.pre_func.__name__,
                  self.func.__name__)
-            self.pre_func(self.instance)
+            self.pre_func()
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         """
@@ -105,7 +131,7 @@ class RecipeDecorator(object):
         if self.post_func:
             PLOG("Executing '%s()' after '%s()'", self.post_func.__name__,
                  self.func.__name__)
-            self.post_func(self.instance)
+            self.post_func()
         os.chdir(self.old_cwd)
         if self.use_tempd:
             shutil.rmtree(self.new_cwd)
@@ -123,11 +149,6 @@ class RecipeDecorator(object):
         self.instance = instance
         self.pre_func = getattr(instance, 'pre_' + func.__name__, None)
         self.post_func = getattr(instance, 'post_' + func.__name__, None)
-
-    def log(self, *args):
-        """
-        Simple wrapper for logging to user.
-        """
 
     def make_tempd(self):
         """
@@ -185,6 +206,7 @@ class Recipe(object):
             '{name}',
             'Description: {desc}',
             'Homepage: {home}',
+            'Requires: {reqs}',
             'Current Repo: "{cur_repo}"',
         ]
         for name, repo in sorted(self.repos.items()):
@@ -196,6 +218,7 @@ class Recipe(object):
         info = fmt.format(name=self.name,
                           desc=self.description,
                           home=self.homepage,
+                          reqs=','.join(getattr(self, 'requires', [''])),
                           cur_repo=self.repo_name,
                           tab=tab)
         return info.rstrip('\n')
@@ -403,31 +426,6 @@ class RecipeDB(object):
         for key in sorted(self.__instance.__db):
             yield (key, self.__instance.__db[key])
 
-    def index(self, path):
-        """
-        Index all *Recipes* in the path.
-
-        For each file, the Recipe subclass should be named after the file.
-        So for path/ag.py should have a class called Ag.
-
-        Args:
-            path: The folder containing recipes to index.
-        """
-        # TODO: Iterate all classes in file, only index subclassing Recipe
-        sys.path.insert(0, os.path.dirname(path))
-
-        new_recs = glob.glob(os.path.join(path, '*.py'))
-        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
-        if '__init__' in new_recs:
-            new_recs.remove('__init__')
-
-        mod = os.path.basename(path)
-        for cls in new_recs:
-            obj = self.__recipe_obj(mod, cls)
-            self.__db.update({cls: obj})
-
-        sys.path = sys.path[1:]
-
     def get(self, name):
         """
         Get the recipe from the database.
@@ -439,6 +437,32 @@ class RecipeDB(object):
         if obj is None:
             raise PakitDBError('Missing recipe to build: ' + name)
         return obj
+
+    def index(self, path):
+        """
+        Index all *Recipes* in the path.
+
+        For each file, the Recipe subclass should be named after the file.
+        So for path/ag.py should have a class called Ag.
+
+        Args:
+            path: The folder containing recipes to index.
+        """
+        # TODO: Iterate all classes in file, only index subclassing Recipe
+        check_package(path)
+        sys.path.insert(0, os.path.dirname(path))
+
+        new_recs = glob.glob(os.path.join(path, '*.py'))
+        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+        if '__init__' in new_recs:
+            new_recs.remove('__init__')
+
+        mod = os.path.basename(path)
+        for cls in new_recs:
+            obj = self.recipe_obj(mod, cls)
+            self.__db.update({cls: obj})
+
+        sys.path = sys.path[1:]
 
     def names(self, desc=False):
         """
@@ -458,7 +482,7 @@ class RecipeDB(object):
         else:
             return sorted(self.__db.keys())
 
-    def __recipe_obj(self, mod_name, cls_name):
+    def recipe_obj(self, mod_name, cls_name):
         """
         Import and instantiate the recipe class. Then configure it.
 
@@ -470,8 +494,8 @@ class RecipeDB(object):
             The instantiated recipe.
 
         Raises:
-            ImportError: If the module could not be imported.
             AttributeError: The module did not have the required class.
+            ImportError: If the module could not be imported.
         """
         mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)

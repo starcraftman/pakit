@@ -47,8 +47,9 @@ Fetch the latest from the source. Works unless the build badge says failing.
 
 ```bash
 git clone https://github.com/starcraftman/pakit.git
-export PATH=$(pwd)/pakit/bin:$PATH
+export PATH=$(pwd)/bin:$PATH
 sudo -H pip install argparse PyYAML
+python pakit/setup.py release
 ```
 
 **pip**
@@ -70,7 +71,7 @@ export PATH=/tmp/pakit/links/bin:$PATH
 ```
 
 The above exports will only last for the terminal session.
-To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
+To make them permanent for bash, edit `$HOME/.bashrc` or `$HOME/.bash_aliases`.
 
 ## More Information
 

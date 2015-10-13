@@ -338,6 +338,9 @@ class Dummy(Fetchable):
         """
         super(Dummy, self).__init__(uri, kwargs.get('target', None))
 
+    def __str__(self):
+        return 'DummyTask: No source code to fetch.'
+
     def __enter__(self):
         """
         Guarantees that source is available at target

@@ -231,7 +231,10 @@ class RemoveTask(RecipeTask):
             return
 
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
-        shutil.rmtree(self.recipe.install_dir)
+        try:
+            shutil.rmtree(self.recipe.install_dir)
+        except OSError:  # pragma: no cover
+            pass
         pakit.conf.IDB.remove(self.recipe.name)
 
 

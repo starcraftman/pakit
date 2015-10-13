@@ -1,15 +1,21 @@
 .. The manual page for pakit.
 
-Man Page
-========
+Pakit
+=====
 
 Description
 -----------
-pakit provides:
+Pakit provides:
 
-#. A Package Manager CLI to install, remove & update programs.
+#. A package manager interface to install, remove & update programs.
 #. A simple Recipe specification to build programs from source code.
 #. Premade recipes for common programs under ``pakit_recipes``.
+
+When you install a program pakit will...
+
+#. download the source into a silo in `pakit.paths.source` and build it.
+#. install the program into a silo under `pakit.paths.prefix`.
+#. link the silo to the `pakit.paths.link` directory.
 
 Synopsis
 --------
@@ -24,7 +30,7 @@ Options
    List available recipes, output is very terse
 
 -c,  --conf CONF
-   Use CONF file instead of default (~/.pakit.yml)
+   Use CONF file instead of default ($HOME/.pakit.yml)
 
 --create-conf
    Write the default configuration to CONF
@@ -61,12 +67,13 @@ Options
 
 Completion
 ----------
-I have written a bash completion script. You can find it within the pakit module, inside the
-`extra/completion` folder. See that folder's `README.md` for further details.
+At this time only bash completion is available
+You can find it within the pakit module, inside the `extra/completion` folder.
+See that folder's `README.md` for further details.
 
 Config
 ------
-Configuration is done by YAML file, default location is ``~/.pakit.yml``
+Configuration is done by YAML file, default location is ``$HOME/.pakit.yml``
 
 This is an example config:
 
@@ -89,13 +96,13 @@ This is an example config:
    ag:
      repo: unstable
 
-Expalnation of Config:
+I will explain each element of the nested dictionary in turn.
 
 pakit.command.timeout
-   The timeout for commands, when no stdout produced for timeout kill process.
+   The timeout for commands, when no stdout produced for timeout terminate the command.
 
 pakit.log.enabled
-   Toggles the file logger. Console are errors always enabled.
+   Toggles the file logger. Console messages are currently always enabled.
 
 pakit.log.file
    Where the file log will be written to.
@@ -105,15 +112,16 @@ pakit.log.level
 
 pakit.paths.link
    Path where all programs will be linked to. You should put the bin folder in
-   this folder on the **$PATH**. For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
+   this folder on the **$PATH**.
+   For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
 
 pakit.paths.prefix
    All recipes will be installed into this path. Using the above config,
-   the recipe **ag** would be installed to **/tmp/pakit/builds/ag**.
+   the recipe **ag** would be installed to `/tmp/pakit/builds/ag`.
 
 pakit.paths.recipes
-   Path to a folder with user created recipes. Path must be a valid package
-   name according to python rules. Importantly this means base folder
+   Path to a folder with user created recipes. Path must be a valid python package
+   according to python conventions. Importantly this means base folder
    can **NOT** be a hidden directory (leading '.').
 
 pakit.paths.source
@@ -125,29 +133,20 @@ pakit.defaults
 
 pakit.defaults.repo
    The default source repository to use.
-   By convention, **stable** will always fetch a stable versioned release.
+   By convention, **stable** will always fetch a stable release.
    Whereas **unstable** should build from recent project commits, it may break.
 
 ag
-   A recipe specific dictionary that will *override* keys of the same
+   A recipe specific dictionary that will **update** keys of the same
    name in `pakit.defaults`.
 
 ag.repo
    Setting **unstable** here overrides the value of `pakit.defaults.repo`.
 
-Recipes
--------
-Recipes are defined in the **pakit_recipes** package inside pakit (for now).
+More Help
+---------
+To get more information...
 
-* Every recipe is defined in its own file.
-* The name of the recipe file, is the name pakit will use to invoke the recipe.
-* Each recipe file must contain at least 1 class that is the capitalized name of the recipe.
-* That class must inherit from **pakit.Recipe**.
-
-For example, for recipe **ag**.
-
-* The recipe is stored in: **pakit_recipes/ag.py**
-* The class is: **class Ag(Recipe): ...**
-* It can be installed by: **pakit -i ag**
-
-For recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
+* pakit --help
+* man pakit_recipes
+* pydoc pakit

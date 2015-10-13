@@ -11,7 +11,7 @@ import shutil
 import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import (
-    create_args_parser, environment_check, main, link_man_page, parse_tasks,
+    create_args_parser, environment_check, main, link_man_pages, parse_tasks,
     search_for_config, order_tasks, write_config
 )
 from pakit.recipe import RecipeDB
@@ -22,13 +22,27 @@ from pakit.task import (
 import tests.common as tc
 
 
-def test_link_man_page():
-    l_dir = os.path.join(tc.STAGING, 'links')
-    expected_link = os.path.join(tc.STAGING, 'links', 'share', 'man', 'man1',
-                                 'pakit.1')
-    link_man_page(l_dir)
-    assert os.path.islink(expected_link)
-    tc.delete_it(l_dir)
+def test_link_man_pages():
+    try:
+        link_dir = os.path.join(tc.STAGING, 'links')
+        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'pakit', 'extra')
+        fake_man = os.path.join(src, 'test_man.1')
+
+        try:
+            os.makedirs(os.path.dirname(fake_man))
+        except OSError:
+            pass
+        with open(fake_man, 'w') as fout:
+            fout.write('hello')
+
+        link_man_pages(link_dir)
+        expected_man = os.path.join(link_dir, 'share', 'man', 'man1',
+                                    os.path.basename(fake_man))
+        assert os.path.islink(expected_man)
+    finally:
+        tc.delete_it(fake_man)
+        tc.delete_it(link_dir)
 
 
 @mock.patch('pakit.main.PLOG')
@@ -291,6 +305,9 @@ class TestParseTasks(object):
 
 class TestMain(object):
     """ Test different argv's passed to main. """
+    def setup_class(self):
+        self.config = tc.env_setup()
+
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):
         main(['pakit', '--list'])

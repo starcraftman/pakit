@@ -9,8 +9,34 @@ import pytest
 import shutil
 
 from pakit.exc import PakitError
-from pakit.recipe import Recipe, RecipeDB, RecipeDecorator
+from pakit.recipe import Recipe, RecipeDB, RecipeDecorator, check_package
 import tests.common as tc
+
+
+class TestCheckPackage(object):
+    def setup(self):
+        self.test_module = os.path.join(tc.STAGING, 'module')
+
+    def teardown(self):
+        tc.delete_it(self.test_module)
+
+    def test_check_package_bad_name(self):
+        self.test_module = os.path.join(tc.STAGING, '.module')
+        os.makedirs(self.test_module)
+        with pytest.raises(PakitError):
+            check_package(self.test_module)
+
+    def test_check_package_missing_init(self):
+        init = os.path.join(self.test_module, '__init__.py')
+        os.makedirs(self.test_module)
+        assert not os.path.isfile(init)
+        check_package(self.test_module)
+        assert os.path.isfile(init)
+
+    def test_check_package_non_existant(self):
+        assert not os.path.exists(self.test_module)
+        check_package(self.test_module)
+        assert not os.path.exists(self.test_module)
 
 
 class DummyRecipe(object):
@@ -21,11 +47,11 @@ class DummyRecipe(object):
     def build(self, *args, **kwargs):
         self.msgs.append('build')
 
-    def post_build(self, instance=None):
+    def post_build(self):
         self.msgs.append('post_build')
         assert os.getcwd() == self.orig_dir
 
-    def pre_build(self, instance=None):
+    def pre_build(self):
         self.msgs.append('pre_build')
 
     def verify(self, *args, **kwargs):
@@ -68,6 +94,7 @@ class TestRecipe(object):
             'ag',
             '  Description: Grep like tool optimized for speed',
             '  Homepage: ' + uri,
+            '  Requires: ',
             '  Current Repo: "unstable"',
             '  Repo "stable":',
             '    Git: tag: 0.31.0, uri: ' + uri,
@@ -93,6 +120,7 @@ class TestRecipe(object):
             'ag',
             '  Description: Grep like tool optimized for speed',
             '  Homepage: ' + uri,
+            '  Requires: ',
             '  Current Repo: "unstable"',
             '  Repo "stable":',
             '    Git: tag: 0.31.0, uri: ' + uri,
@@ -156,10 +184,6 @@ class TestRecipeDB(object):
     def setup(self):
         self.config = tc.env_setup()
 
-    def test_names(self):
-        for prog in ['ag', 'vim']:
-            assert prog in RecipeDB().names()
-
     def test__contains__(self):
         assert 'ag' in RecipeDB()
         assert 'aaaa' not in RecipeDB()
@@ -177,3 +201,20 @@ class TestRecipeDB(object):
     def test_get_not_found(self):
         with pytest.raises(PakitError):
             RecipeDB().get('xyzxyz')
+
+    def test_names(self):
+        for prog in ['ag', 'vim']:
+            assert prog in RecipeDB().names()
+
+    def test_index(self):
+        test_formulas = os.path.join(os.path.dirname(__file__), 'formula')
+        old_db = RecipeDB._RecipeDB__instance
+        RecipeDB._RecipeDB__instance = None
+        RecipeDB(self.config).index(test_formulas)
+        assert 'cyclea' in RecipeDB()
+        RecipeDB._RecipeDB__instance = old_db
+
+    def test_recipe_obj(self):
+        recipe = RecipeDB().recipe_obj('pakit_recipes', 'ag')
+        assert isinstance(recipe, Recipe)
+        assert recipe.name == 'ag'
