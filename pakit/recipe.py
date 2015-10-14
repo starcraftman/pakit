@@ -182,6 +182,7 @@ class Recipe(object):
             '{name}',
             'Description: {desc}',
             'Homepage: {home}',
+            'Requires: {reqs}',
             'Current Repo: "{cur_repo}"',
         ]
         for name, repo in sorted(self.repos.items()):
@@ -193,6 +194,7 @@ class Recipe(object):
         info = fmt.format(name=self.name,
                           desc=self.description,
                           home=self.homepage,
+                          reqs=','.join(getattr(self, 'requires', ['Nothing.'])),
                           cur_repo=self.repo_name,
                           tab=tab)
         return info.rstrip('\n')

@@ -9,17 +9,20 @@ This page should provide all information needed to write a Recipe for pakit.
 Before reading this, be sure you understand how pakit works by reading the **pakit** man page.
 
 I will try not to be too specific about code, for more information on classes mentioned
-and internal code see the pydocs.
+and internal working of pakit see the pydocs starting at `pydoc pakit`.
 
 Note on convetion used here, when I write *Recipe.repos*, Recipe here is just a placeholder
 for the subclass of Recipe you define. In this case, repos is an attribute. Whereas, *Recipe.build()*
 would refer to a method in said subclass of Recipe.
 
-Quick Annotated Example
------------------------
+Annotated Example
+-----------------
 To facilitate getting quickly up to speed, I will annotate an **example** Recipe
-based to explain how it fits into pakit.
-My annotations will begin with **#** like inline python comments, except for the docstrings.
+based to explain how it fits into pakit. It is available with pakit, you can
+see how it fits in like any other Recipe by doing normal commands like `pakit --display example`
+or `pakit --install example`.
+
+My annotations will begin with `#` like inline python comments, except for the docstrings.
 I will add some *optional* features like *pre_build* and *requires* for illustration purposes.
 
 .. code-block:: python
