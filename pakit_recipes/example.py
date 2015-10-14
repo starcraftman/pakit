@@ -20,12 +20,12 @@ class Example(Recipe):
         self.src = 'https://github.com/ggreer/the_silver_searcher.git'
         self.homepage = self.src
         self.repos = {
-            'stable': Git(self.src, tag='0.31.0'),
+            'stable': Git(self.src, tag='0.30.0'),
             'unstable': Git(self.src),
         }
         self.requires = ['exampledep']
 
-    def log(self, msg):
+    def log(self, msg):  # pylint: disable=R0201
         """
         Simple method prints message followed by current working directory.
 
@@ -71,4 +71,3 @@ class Example(Recipe):
         Will execute after verify().
         """
         self.log('After verify()')
-

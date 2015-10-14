@@ -14,8 +14,8 @@ class Exampledep(Recipe):
         self.homepage = self.src
         self.repos = {
             'stable': Dummy(),
-            'unstable': Dummy(),
         }
+        self.repos['unstable'] = self.repos['stable']
 
     def build(self):
         print('Nothing to build.')
