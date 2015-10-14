@@ -21,11 +21,11 @@ class DummyRecipe(object):
     def build(self, *args, **kwargs):
         self.msgs.append('build')
 
-    def post_build(self, instance=None):
+    def post_build(self):
         self.msgs.append('post_build')
         assert os.getcwd() == self.orig_dir
 
-    def pre_build(self, instance=None):
+    def pre_build(self):
         self.msgs.append('pre_build')
 
     def verify(self, *args, **kwargs):

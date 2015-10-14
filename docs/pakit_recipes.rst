@@ -17,13 +17,23 @@ would refer to a method in said subclass of Recipe.
 
 Quick Annotated Example
 -----------------------
-To facilitate getting quickly up to speed, I will annotate the default **ag** Recipe
-to explain how it fits into pakit. Optional attributes or methods will
+To facilitate getting quickly up to speed, I will annotate an **example** Recipe
+based to explain how it fits into pakit.
+My annotations will begin with **#** like inline python comments, except for the docstrings.
+I will add some *optional* features like *pre_build* and *requires* for illustration purposes.
 
 .. code-block:: python
 
-   """ formula for building example, stored in example.py """
+   # This recipe would be in file example.py
+   """ formula for building example"""
+
+   # You should import the parts of pakit that can help you
+   # Here I import the main Recipe class, and the Git class to fetch a git repository
    from pakit import Git, Recipe
+
+   # You should, where applicable, use standard python libs to help
+   # I discourage you from writing Recipes with pypi libs, I aim for minimal dependence
+   import os
 
   class Ag(Recipe):
       """
@@ -38,8 +48,11 @@ to explain how it fits into pakit. Optional attributes or methods will
       """
       def __init__(self):
           super(Ag, self).__init__()
+          # Entirely optional variable, pakit ignores variables it isn't looking for
           self.src = 'https://github.com/ggreer/the_silver_searcher.git'
+          # The homepage of the project/program
           self.homepage = self.src
+          # A dictionary of means to fetch the source code, see Recipe Fetching
           self.repos = {
               'stable': Git(self.src, tag='0.31.0'),
               'unstable': Git(self.src),

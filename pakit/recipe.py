@@ -97,7 +97,7 @@ class RecipeDecorator(object):
         if self.pre_func:
             PLOG("Executing '%s()' before '%s()'", self.pre_func.__name__,
                  self.func.__name__)
-            self.pre_func(self.instance)
+            self.pre_func()
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         """
@@ -107,7 +107,7 @@ class RecipeDecorator(object):
         if self.post_func:
             PLOG("Executing '%s()' after '%s()'", self.post_func.__name__,
                  self.func.__name__)
-            self.post_func(self.instance)
+            self.post_func()
         os.chdir(self.old_cwd)
         if self.use_tempd:
             shutil.rmtree(self.new_cwd)
