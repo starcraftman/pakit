@@ -145,6 +145,9 @@ class TestDummy(object):
     def teardown(self):
         tc.delete_it(self.test_dir)
 
+    def test__str__(self):
+        assert str(self.dummy) == 'DummyTask: No source code to fetch.'
+
     def test__with__(self):
         with self.dummy:
             assert self.dummy.ready
