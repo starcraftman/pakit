@@ -18,105 +18,108 @@ would refer to a method in said subclass of Recipe.
 Annotated Example
 -----------------
 To facilitate getting quickly up to speed, I will annotate and discuss the **example** Recipe
-that comes with pakit. It is available with pakit, you can see how it fits in
-like any other Recipe by doing normal commands on it like. It doesn't actually build
-anything so updating it would be pointless.
+that comes with pakit.
+It doesn't actually build anything just demonstrates Recipe operation.
+By executing the following commands you can see it in action, then read below comments.
 
-- `pakit --display example`
-- `pakit --install example`.
-- `pakit --remove example exampledep`.
+.. code-block:: bash
+
+    pakit --display example
+    pakit --install example
+    pakit --remove example exampledep
 
 My annotations will begin with `#` like inline python comments, I may also make use of the
 docstrings.
 Some of the features of this example are optional, I will make note of this.
+Later you can compare what you've seen here with other Recipes that actually
+build programs.
 
 .. code-block:: python
 
-   # This recipe would be in file example.py
+   # this recipe would be in file example.py
    """ formula for building example"""
 
-   # You should import the parts of pakit that can help you
-   # Here I import the main Recipe class, and the Git class to fetch a git repository
-   from pakit import Git, Recipe
+   # you should import the parts of pakit that can help you
+   # here i import the main recipe class, and the git class to fetch a git repository
+   from pakit import git, recipe
 
-   # You should, where applicable, use standard python libs to help
-   # I discourage you from writing Recipes with pypi libs, I aim for minimal dependence
+   # you should, where applicable, use standard python libs to help
+   # i discourage you from writing recipes with pypi libs, i aim for minimal dependence
    import os
 
-  """ Formula for building example """
+  """ formula for building example """
   from __future__ import print_function
-  from pakit import Git, Recipe
+  from pakit import git, recipe
   import os
 
 
-  class Example(Recipe):
+  class example(recipe):
       """
-      Example recipe. This line should be a short description.
+      example recipe. this line should be a short description.
 
-      This is a longer description.
-      It can be of any length.
+      this is a longer description.
+      it can be of any length.
 
-      Have breaks in text.
-      It will be presented as 'More Information' when displaying a Recipe.
-      For instance `pakit --display example`.
+      have breaks in text.
+      it will be presented as 'more information' when displaying a recipe.
+      for instance `pakit --display example`.
       """
       def __init__(self):
-          super(Example, self).__init__()
+          super(example, self).__init__()
           self.src = 'https://github.com/ggreer/the_silver_searcher.git'
           self.homepage = self.src
           self.repos = {
-              'stable': Git(self.src, tag='0.31.0'),
-              'unstable': Git(self.src),
+              'stable': git(self.src, tag='0.31.0'),
+              'unstable': git(self.src),
           }
           self.requires = ['exampledep']
 
       def log(self, msg):
           """
-          Simple method prints message followed by current working directory.
+          simple method prints message followed by current working directory.
 
-          You can add any method you want to Recipe so long as pakit's
-          conventions are followed. I currently do no checking  to ensure
+          you can add any method you want to recipe so long as pakit's
+          conventions are followed. i currently do no checking  to ensure
           they are.
           """
           print(msg, 'the working directory is', os.getcwd())
 
       def pre_build(self):
           """
-          Optional method, will execute before build().
-          The working directory will be the source code directory.
+          optional method, will execute before build().
+          the working directory will be the source code directory.
           """
-          self.log('Before build()')
+          self.log('before build()')
 
       def build(self):
           """
-          Required method, build the program and install it into the install_dir.
-          The working directory will be the source code directory.
+          required method, build the program and install it into the install_dir.
+          the working directory will be the source code directory.
 
           """
           self.log('build()')
 
       def post_build(self):
           """
-          Optional method, will execute after build().
-          The working directory will be the source code directory.
+          optional method, will execute after build().
+          the working directory will be the source code directory.
           """
-          self.log('After build()')
+          self.log('after build()')
 
       def pre_verify(self):
           """
-          Will execute before build().
+          will execute before build().
           """
-          self.log('Before verify()')
+          self.log('before verify()')
 
       def verify(self):
           self.log('verify()')
 
       def post_verify(self):
           """
-          Will execute after verify().
+          will execute after verify().
           """
-          self.log('After verify()')
-
+          self.log('after verify()')
 
 
 For more Recipe writing details, continue reading the following sections.
@@ -216,7 +219,6 @@ For more information on the Command class see the pydoc for **pakit.shell.Comman
 By the end of the **build()** function, your program should be installed to the required path.
 The path to install your program is available in the *Recipe.opts* variable, using the *prefix* key.
 
-
 Recipe Verification
 -------------------
 Once again, execute any arbitary combination of python code and system commands with self.cmd
@@ -248,4 +250,3 @@ Pre and post functions will execute in the same working directory as their main 
 
 - *pre_build* and *post_build* will have working directory set to the source code.
 - *pre_verify* and *post_verify* will have working directory set to the temp directory.
-

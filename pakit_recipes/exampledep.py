@@ -1,4 +1,4 @@
-""" Formula for building ag """
+""" Formula for building exampledep """
 from __future__ import print_function
 
 from pakit import Dummy, Recipe
@@ -10,12 +10,12 @@ class Exampledep(Recipe):
     """
     def __init__(self):
         super(Exampledep, self).__init__()
-        self.src = 'https://github.com/ggreer/the_silver_searcher.git'
-        self.homepage = self.src
+        self.homepage = 'Dummy Recipe'
+        repo = Dummy()
         self.repos = {
-            'stable': Dummy(),
+            'stable': repo,
+            'unstable': repo,
         }
-        self.repos['unstable'] = self.repos['stable']
 
     def build(self):
         print('Nothing to build.')
