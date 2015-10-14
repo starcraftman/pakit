@@ -8,12 +8,53 @@ Description
 This page should provide all information needed to write a Recipe for pakit.
 Before reading this, be sure you understand how pakit works by reading the **pakit** man page.
 
-I will try not to be too specific about code, for information on the classes and
-internal operation of pakit see the pydocs.
+I will try not to be too specific about code, for more information on classes mentioned
+and internal code see the pydocs.
 
 Note on convetion used here, when I write *Recipe.repos*, Recipe here is just a placeholder
 for the subclass of Recipe you define. In this case, repos is an attribute. Whereas, *Recipe.build()*
 would refer to a method in said subclass of Recipe.
+
+Quick Annotated Example
+-----------------------
+To facilitate getting quickly up to speed, I will annotate the default **ag** Recipe
+to explain how it fits into pakit. Optional attributes or methods will
+
+.. code-block:: python
+
+   """ formula for building example, stored in example.py """
+   from pakit import Git, Recipe
+
+  class Ag(Recipe):
+      """
+      Short description of the program, only 1 line.
+
+      Longer description of the program.
+      Can be many lines.
+
+      Formatted any way you like. It will be made available
+      as additional information at the bottom of a Recipe
+      when displayed with `pakit --display`.
+      """
+      def __init__(self):
+          super(Ag, self).__init__()
+          self.src = 'https://github.com/ggreer/the_silver_searcher.git'
+          self.homepage = self.src
+          self.repos = {
+              'stable': Git(self.src, tag='0.31.0'),
+              'unstable': Git(self.src),
+          }
+
+      def build(self):
+          self.cmd('./build.sh --prefix {prefix}')
+          self.cmd('make install')
+
+      def verify(self):
+          lines = self.cmd('ag --version').output()
+          assert lines[0].find('ag version') != -1
+
+
+For more recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
 
 Recipe Basics
 -------------
@@ -142,42 +183,3 @@ Pre and post functions will execute in the same working directory as their main 
 - *pre_build* and *post_build* will have working directory set to the source code.
 - *pre_verify* and *post_verify* will have working directory set to the temp directory.
 
-Recipe Writing
---------------
-To facilitate getting quickly up to speed, I will annotate the default **ag** Recipe.
-
-.. code-block:: python
-
-   """ formula for building example, stored in example.py """
-   from pakit import Git, Recipe
-
-  class Ag(Recipe):
-      """
-      Short description of the program, only 1 line.
-
-      Longer description of the program.
-      Can be many lines.
-
-      Formatted any way you like. It will be made available
-      as additional information at the bottom of a Recipe
-      when displayed with `pakit --display`.
-      """
-      def __init__(self):
-          super(Ag, self).__init__()
-          self.src = 'https://github.com/ggreer/the_silver_searcher.git'
-          self.homepage = self.src
-          self.repos = {
-              'stable': Git(self.src, tag='0.31.0'),
-              'unstable': Git(self.src),
-          }
-
-      def build(self):
-          self.cmd('./build.sh --prefix {prefix}')
-          self.cmd('make install')
-
-      def verify(self):
-          lines = self.cmd('ag --version').output()
-          assert lines[0].find('ag version') != -1
-
-
-For more recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.

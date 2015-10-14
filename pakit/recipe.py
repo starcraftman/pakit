@@ -54,6 +54,8 @@ class RecipeDecorator(object):
         old_cwd: Whatever working directory we were at post *pre_func*.
         use_tempd: If True, make new tempdir and set to new_cwd.
     """
+    # TODO: Two decorators here, 1) changes dir, 2) looks for pre/post
+    # should probably separate them
     def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
         self.instance = None
         self.func = None
