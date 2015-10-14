@@ -17,13 +17,18 @@ would refer to a method in said subclass of Recipe.
 
 Annotated Example
 -----------------
-To facilitate getting quickly up to speed, I will annotate an **example** Recipe
-based to explain how it fits into pakit. It is available with pakit, you can
-see how it fits in like any other Recipe by doing normal commands like `pakit --display example`
-or `pakit --install example`.
+To facilitate getting quickly up to speed, I will annotate and discuss the **example** Recipe
+that comes with pakit. It is available with pakit, you can see how it fits in
+like any other Recipe by doing normal commands on it like. It doesn't actually build
+anything so updating it would be pointless.
 
-My annotations will begin with `#` like inline python comments, except for the docstrings.
-I will add some *optional* features like *pre_build* and *requires* for illustration purposes.
+- `pakit --display example`
+- `pakit --install example`.
+- `pakit --remove example exampledep`.
+
+My annotations will begin with `#` like inline python comments, I may also make use of the
+docstrings.
+Some of the features of this example are optional, I will make note of this.
 
 .. code-block:: python
 
@@ -38,39 +43,84 @@ I will add some *optional* features like *pre_build* and *requires* for illustra
    # I discourage you from writing Recipes with pypi libs, I aim for minimal dependence
    import os
 
-  class Ag(Recipe):
+  """ Formula for building example """
+  from __future__ import print_function
+  from pakit import Git, Recipe
+  import os
+
+
+  class Example(Recipe):
       """
-      Short description of the program, only 1 line.
+      Example recipe. This line should be a short description.
 
-      Longer description of the program.
-      Can be many lines.
+      This is a longer description.
+      It can be of any length.
 
-      Formatted any way you like. It will be made available
-      as additional information at the bottom of a Recipe
-      when displayed with `pakit --display`.
+      Have breaks in text.
+      It will be presented as 'More Information' when displaying a Recipe.
+      For instance `pakit --display example`.
       """
       def __init__(self):
-          super(Ag, self).__init__()
-          # Entirely optional variable, pakit ignores variables it isn't looking for
+          super(Example, self).__init__()
           self.src = 'https://github.com/ggreer/the_silver_searcher.git'
-          # The homepage of the project/program
           self.homepage = self.src
-          # A dictionary of means to fetch the source code, see Recipe Fetching
           self.repos = {
               'stable': Git(self.src, tag='0.31.0'),
               'unstable': Git(self.src),
           }
+          self.requires = ['exampledep']
+
+      def log(self, msg):
+          """
+          Simple method prints message followed by current working directory.
+
+          You can add any method you want to Recipe so long as pakit's
+          conventions are followed. I currently do no checking  to ensure
+          they are.
+          """
+          print(msg, 'the working directory is', os.getcwd())
+
+      def pre_build(self):
+          """
+          Optional method, will execute before build().
+          The working directory will be the source code directory.
+          """
+          self.log('Before build()')
 
       def build(self):
-          self.cmd('./build.sh --prefix {prefix}')
-          self.cmd('make install')
+          """
+          Required method, build the program and install it into the install_dir.
+          The working directory will be the source code directory.
+
+          """
+          self.log('build()')
+
+      def post_build(self):
+          """
+          Optional method, will execute after build().
+          The working directory will be the source code directory.
+          """
+          self.log('After build()')
+
+      def pre_verify(self):
+          """
+          Will execute before build().
+          """
+          self.log('Before verify()')
 
       def verify(self):
-          lines = self.cmd('ag --version').output()
-          assert lines[0].find('ag version') != -1
+          self.log('verify()')
+
+      def post_verify(self):
+          """
+          Will execute after verify().
+          """
+          self.log('After verify()')
 
 
-For more recipe writing details, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
+
+For more Recipe writing details, continue reading the following sections.
+For detailed information on how Recipes work, see ``pydoc pakit.recipe`` and the examples in **pakit_recipes**.
 
 Recipe Basics
 -------------

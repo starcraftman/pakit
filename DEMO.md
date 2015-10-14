@@ -61,6 +61,15 @@ Simple remove, no trace will be left.
 pakit --remove tmux
 ```
 
+**More Information On Recipes**
+
+Prints out information including description, requirements, repositories to fetch
+soruce code and any additional notes.
+
+```bash
+pakit --display ag vim
+```
+
 **List Available Recipes**
 
 Prints out any recipe pakit can run.
