@@ -11,9 +11,14 @@ Before reading this, be sure you understand how pakit works by reading the **pak
 I will try not to be too specific about code, for more information on classes mentioned
 and internal working of pakit see the pydocs starting at `pydoc pakit`.
 
-Note on convetion used here, when I write *Recipe.repos*, Recipe is just a placeholder
-for the subclass of Recipe you define.
-In this case, I am referring to the repos attribute of the subclass Recipe.
+Note on convetion used here:
+
+- When I write *Recipe*, I am referring to the base class at `pakit.Recipe`.
+  You can read about it in the pydocs.
+- When I write *recipe*, I am referring to the general idea of a recipe that pakit uses.
+- When I write *Sub.repos*, Sub is just a placeholder for the subclass name you would
+  use when writing your pakit recipe.
+  In this case, I am referring to the repos attribute of said subclass.
 
 Annotated Example
 -----------------
@@ -182,7 +187,7 @@ within the base Recipe. All you need to do is follow the conventions and pakit w
 
 You must follow correct **Recipe Naming** for your recipes to be **loaded** properly by pakit.
 Please see the respective sections for information.
-After that, you must write a recipe that describes...
+The actual Recipe contains 3 notable sections.
 
 #. How to **fetch** the source code.
 #. Steps to **build** and install the source code into a silo.
@@ -196,7 +201,7 @@ pakit to interact with the recipe.
 In short:
 
 #. Every recipe is defined in its own file.
-#. The name of the recipe file, is the name pakit will use to import, load and store it in the database.
+#. The name of the recipe file, is the name pakit will use to index it in the database.
 #. Each recipe file must contain at least 1 class that is the capitalized name of the recipe file.
 #. That class must inherit from **pakit.Recipe**.
 
@@ -208,95 +213,95 @@ For example, the default recipe **ag** found in **pakit_recipes/ag.py**.
 
 Recipe Loading
 --------------
-All Recipes are written from the same building blocks, they differ only in who maintains them.
+All Recipes are indexed by **pakit.recipe.RecipeDB** on pakit startup.
+The database uses a dictionary approach to storage, last Recipe loaded with the same name wins.
+So if both *default* and *user* paths have a Recipe for **ag**, pakit will
+use the *user* version as it was loaded later.
+
+Now just to clarify:
 
 #. *Default* Recipes will be maintained, tested and provided by **pakit**. This project will
    try to ensure these work. Default recipes currently come with pakit in the **pakit_recipes** module.
 
 #. *User* Recipes are ones you write and store in the configured location  `pakit.paths.recipes`
    on your computer. By default, this location is `$HOME/.pakit/recipes`. You are responsible for your
-   own Recipes, if you would like help try the gitter channel on the project page.
-
-All Recipes are indexed by RecipeDB, which uses a dictionary approach to storage. Last Recipe loaded
-with the same name wins. So if both *default* and *user* paths have a Recipe for **ag**, pakit will
-use the *user* version as it was loaded later.
+   own Recipes, if you want help writing them try the gitter channel on the project page.
 
 Recipe Fetching
 ---------------
-All Recipes **MUST** have an attribute called *Recipe.repos* that is a dictionary of
+All Recipes must have an attribute called *repos* that is a dictionary of
 Fetchable subclasses.
 These subclasses provide convenient means to fetch source code from remote URIs,
 
-Example Subclasses:
+Noteworthy Subclasses:
 
 * *Git*: Fetch source from a valid git URI. By default checkout default branch. Optionally specify
   a branch, tag, or revision to checkout post download.
 * *Hg*: Operates same as Git but for Mercurial repositories.
-* *Archive*: Provides support for retrieving source archives from a specified URI. Note you **MUST**
-  provide the required hash as argument to verify the integrity of the archive.
-* *Dummy*: A convenience class, should the Recipe require a method not yet implemented, use this
-  and no source will be downloaded. You will have to do it yourself in other parts of the Recipe
-  like **build**.
+* *Archive*: Provides support for retrieving source archives from a specified URI.
+  You must provide the hash of the archive to verify it after download. Extracting
+  the archive to source folder will be done automatically if supported.
+* *Dummy*: A convenience class, should the Recipe not require source code, use this
+  and pakit will simply create an empty folder where the source should be.
 
-By convention, repos should have two entries by default: *stable* and *unstable*.
-At the very least, provide *stable* as it will usually be the default user setting.
-As the names imply, *stable* should point to a tag or official release of the project.
-*unstable* can point to the source repository or some more recent edition.
+By convention, repos should have two entries: *stable* and *unstable*.
+The *stable* repo should fetch a tagged or versioned release of code if possible.
+The *unstable* repo can point to a more recent version directly from source.
 
-The repo selected from repos can be configured, see the **pakit** man page for details.
+The repo selected for a Recipe can be configured, see the **pakit** man page for details.
+
+Recipe Pre And Post Methods
+---------------------------
+These methods are provided as convenience for certain corner cases like applying custom
+patches (*pre_build()*) to code or modifying runtime scripts post verification (*post_verify*).
+They should be used sparingly.
+
+See the annotated **example** Recipe above for more information.
+You may implement any or none of these methods at your discretion.
 
 Recipe Building
 ---------------
 Once the source code selected is downloaded **pakit** will automatically change directory to the
-source code. It will then invoke the *Recipe.build()* function to do work. Within this function
-you may use whatever python function is available with python 2.7 by default, or any of pakit's
-internal Classes.
+source code. It will then invoke the *Sub.build()*.
+By the end of the *Sub.build()*, your program should be installed to the required path.
+The path to install your program is available in the *Recipe.opts* variable, using the *prefix* key.
+Linking will be done automatically by pakit before the verification step.
 
 A few notes:
 
-#. Any Exception raised during **build()** will trigger a rollback of the entire Recipe, halting
-   any further tasks and cleaning up the source code.
-#. To issue system commands I **STRONGLY** encourage you to use the *Recipe.cmd* convenience method.
-   It acts as a wrapper around  subprocess.Popen, enabling some useful features:
+#. Any Exception raised during *Sub.build()* will trigger a rollback, halting
+   any further tasks and cleaning up the source code. If it was an update,
+   the previous working version will be restored.
+#. You are free to use anythin availble in python and its libraries to build your program,
+   even pakit code.
+#. To issue system commands I **STRONGLY** encourage you to use the *Sub.cmd* convenience method
+   available on all subclasses.
+   It acts as a wrapper around  python's subprocess.Popen, enabling useful features:
+   This method returns the Command object after it has finished executing.
 
   A. It will timeout your Command if no stdout/stderr received during a configured interval.
   B. It will expand dictionary markers against **self.opts**, a dictionary of values configurable
      by the user and Recipe writer. This dictionary includes the source, install and link location for
      the program.
+  C. Output can be retrieved with *Command.output()* and returns a list of strings.
+  D. If you pass in a prev_cmd to the constructor, you Command will use it for stdin.
 
-For more information on the Command class see the pydoc for **pakit.shell.Command**.
+For more information about executing system commands see:
 
-By the end of the **build()** function, your program should be installed to the required path.
-The path to install your program is available in the *Recipe.opts* variable, using the *prefix* key.
+- Details about the cmd wrapper at `pydoc pakit.recipe.Recipe.cmd`
+- Details about the Command class at `pydoc pakit.shell.Command`
+
 
 Recipe Verification
 -------------------
-Once again, execute any arbitary combination of python code and system commands with self.cmd
-to verify the proper functioning of the Recipe. You should make liberal use of the **assert**
-keyword. Any raised AssertionException will trigger a rollback like above, undoing linking
-and cleaning up modifications.
+Verification exists to ensure the installed program works AFTER having been linked into the link directory.
+You working directory will be changed to a temporary directory within which you can do anything
+to verify the program. This includes, writing files, invoking commands, building programs against
+libraries.
 
-Of important note, unlike *Recipe.build()* your working directory will be a temporary directory
-created by python's tempfile. You may do **anything** you need to verify the program within,
-like writing a C file and checking it compiles against a built library, or writing a file and
-checking **ag** can grep it correctly. On function exit, the temp directory will be completely cleaned.
+To verify the program, you should use python **assert** statements.
+If an AssertionException is raised pakit will clean up by:
 
-Recipe Pre And Post Functions
------------------------------
-To faciliatate some corner cases, I've provided the ability to separate some logic into pre and post functions
-for both *Recipe.build()* and *Recipe.verify()*. To be clear that means implementing these in your class would be:
-
-* *Recipe.pre_build()*
-* *Recipe.post_build()*
-* *Recipe.pre_verify()*
-* *Recipe.post_verify()*
-
-Say for instance, a bug is found in a stable release. You can freely patch the source code during the *pre_build()*
-function before actually building it and remove the logic later when a release is made without polluting *build()*.
-Alternatively, perhaps you want to patch some file of a build assuming it builds correctly or verifies, see the
-relevant post.
-
-Pre and post functions will execute in the same working directory as their main function. That means:
-
-* *pre_build* and *post_build* will have working directory set to the source code.
-* *pre_verify* and *post_verify* will have working directory set to the temp directory.
+- Undoing the link step.
+- Deleting the install folder.
+- Reseting or deleting the source code.
