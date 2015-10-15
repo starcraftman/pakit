@@ -139,3 +139,6 @@ More Help
 ---------
 To get more information...
 
+* `pakit --help`
+* `man pakit_recipes`
+* `pydoc pakit`
