@@ -37,7 +37,7 @@ Annotated Example
 -----------------
 To quickly explain recipes, I will discuss the **example** recipe
 that comes with pakit.
-It doesn't build anything, it just prints mmessages at all steps.
+It doesn't build anything, it just prints messages at all steps.
 By executing the following commands you can see it in action, pay attention to the output
 They correspond to the methods in the recipe.
 
