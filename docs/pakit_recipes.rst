@@ -1,4 +1,4 @@
-.. The manual page for pakit.
+.. The manual page for writing pakit recipes.
 
 Pakit Recipe Essentials
 =======================
@@ -180,7 +180,7 @@ Recipe Basics
 I have attempted to make pakit Recipes small and light. Most of the work is done behind the scenes
 within the base Recipe. All you need to do is follow the conventions and pakit will do the rest.
 
-You must follow correct :ref:`my-recipe-naming` Recipe Naming for your recipes to be **loaded** properly by pakit.
+You must follow correct :ref:`recs-naming` for your recipes to be :ref:`loaded <recs-loading>` properly by pakit.
 Please see the respective sections for information.
 After that, you must write a recipe that describes...
 
@@ -188,7 +188,7 @@ After that, you must write a recipe that describes...
 #. Steps to **build** and install the source code into a silo.
 #. A means to **verify** the build was sucessful.
 
-.. _my-recipe-naming:
+.. _recs-naming:
 
 Recipe Naming
 -------------
@@ -207,6 +207,8 @@ For example, the default recipe **ag** found in **pakit_recipes/ag.py**.
 #. The recipe is stored in: **pakit_recipes/ag.py**
 #. The class is: **class Ag(Recipe): ...**
 #. It can be installed by: **pakit -i ag**
+
+.. _recs-loading:
 
 Recipe Loading
 --------------
