@@ -6,7 +6,7 @@ Pakit Recipe Essentials
 Conventions
 -----------
 
-- When I write words inside \`backticks\`, I mean that is to be executed on the shell.
+- When I write words inside \`backticks\`, the contents should be executed on the shell.
 - When I write *recipe*, I am referring to the general idea of a recipe that pakit uses.
 - When I write *Recipe*, I am referring to the base class for all recipes at `pakit.Recipe`.
 - When I write *Sub.repos*, Sub is just a placeholder for the subclass name you would
@@ -24,17 +24,18 @@ In order to write recipes...
 #. You should be able to program python at a basic level. Writing a class with methods
    should be easy for you. If you want a primer, I recommend: `Dive Into Python`_
 #. You should understand how **pakit** works, read the man page and try the demo.
-#. You should read the following pydoc sections:
+#. You should read the following important pydoc sections:
 
-   a. \`pydoc pakit\`
-   b. \`pydoc pakit.recipe.Recipe.cmd\`
-   c. \`pydoc pakit.shell.Command\`
-#. You must know how the program you wish to write a recipe for compiles and installs.
-
+   a. \`pydoc pakit.Git\` (Fetches git source code)
+   a. \`pydoc pakit.Archive\` (Fetches a source archive and extracts)
+   b. \`pydoc pakit.Recipe.cmd\` (Wrapper, returns a Command object)
+   c. \`pydoc pakit.shell.Command\` (Used to execute system commands)
+#. You must know how the program you are writing the recipe for compiles and installs.
+#. Later, you can read example recipes in the **pakit_recipes** module.
 
 Annotated Example
 -----------------
-To quickly explain recipes, I will annotate and discuss the **example** recipe
+To quickly explain recipes, I will discuss the **example** recipe
 that comes with pakit.
 It doesn't build anything, it just demonstrates logs messages at all steps.
 By executing the following commands you can see it in action, pay attention to
@@ -46,151 +47,14 @@ the messages. They correspond to the methods in the recipe.
   pakit --install example
   pakit --remove example exampledep
 
-My annotations will begin with `#` like inline python comments.
-I may also make use of the docstrings.
+My annotations will begin with "#" signs like inline python comments.
+I will also use class and method docstrings.
 Some of the features of this example are optional, I will make note of this.
 Later you can compare what you've seen here with other Recipes that actually
 build programs.
 
-.. code-block:: python
-
-  # This docstring is not used by pakit, by convention they are usually similar
-  """ Formula for building example """
-
-  # All Recipes must be usable on python 2.7+, use future print if needed
-  from __future__ import print_function
-
-  # Pakit provides convenience classes, full list available with `pydoc pakit`
-  # Import only those you need.
-  from pakit import Git, Recipe
-
-  # Feel free to use standard libs provided with python 2.7
-  # Pay attention to avoid python 3 specific ehancements/libs
-  import os
-
-
-  # This recipe should be in file 'example.py'
-  # It can be referenced by pakit commands as 'example'
-  class Example(Recipe):
-      """
-      Example recipe. This line should be a short description.
-
-      This is a longer description.
-      It can be of any length.
-
-      Have breaks in text.
-      It will be presented as 'More Information' when displaying a Recipe.
-      For instance `pakit --display example`.
-      """
-      def __init__(self):
-          # Required
-          super(Example, self).__init__()
-          # Extra attributes are ignored by pakit
-          self.src = 'https://github.com/ggreer/the_silver_searcher.git'
-          # The homepage of the project, should be information for users
-          self.homepage = self.src
-          # A dictionary of Fetchable classes, used to get the source code
-          # By convention, should always have 'stable' and 'unstable' keys
-          # 'stable' -> point to stable release of source code
-          # 'unstable' -> point to a more recent version, like branch of code
-          self.repos = {
-              'stable': Git(self.src, tag='0.30.0'),
-              'unstable': Git(self.src),
-          }
-          # OPTIONAL: If present, this Recipe requires listed Recipes to be
-          #           installed before it can be.
-          self.requires = ['exampledep']
-
-      def log(self, msg):  # pylint: disable=R0201
-          """
-          Simple method prints message followed by current working directory.
-
-          You can add any method you want to Recipe so long as pakit's
-          conventions are followed. I currently do no checking  to ensure
-          they are.
-          """
-          print(msg, 'the working directory is', os.getcwd())
-
-      def pre_build(self):
-          """
-          OPTIONAL: Will be called BEFORE build().
-
-          When called, the working directory will be set to the source code.
-
-          Possible Use Case: Patching source before build().
-          """
-          self.log('Before build()')
-
-      def build(self):
-          """
-          MANDATORY
-
-          When called, the working directory will be set to the source code.
-          Steps should be taken to build and install the program.
-          Issue system commands using self.cmd.
-          For usage, see 'pydoc pakit.recipe.cmd` for details.
-          """
-          self.log('build()')
-
-      def post_build(self):
-          """
-          OPTIONAL: Will be called AFTER build().
-
-          When called, the working directory will be set to the source code.
-
-          Possible Use Case: Patching files after installed.
-          """
-          self.log('After build()')
-
-      def pre_verify(self):
-          """
-          OPTIONAL: Will be called BEFORE verify().
-
-          When called, the working directory will be set to a temporary
-          directory created by pakit.
-          Your program binaries will be available  at the front of $PATH.
-          You may do anything in the temp directory so long as permission
-          to delete the files/folder are not removed.
-
-          Possible Use Case: Fetch some remote file to test against.
-          """
-          self.log('Before verify()')
-
-      def verify(self):
-          """
-          MANDATORY
-
-          When called, the working directory will be set to a temporary
-          directory created by pakit.
-          Your program binaries will be available  at the front of $PATH.
-          You may do anything in the temp directory so long as permission
-        to delete the files/folder are not removed.
-
-        You should execute Commands with self.cmd and verify the output.
-        Use 'assert' statements to ensure the build is good.
-        """
-        self.log('verify()')
-        assert True
-
-    def post_verify(self):
-        """
-        OPTIONAL: Will be called AFTER verify().
-
-        When called, the working directory will be set to a temporary
-        directory created by pakit.
-        Your program binaries will be available  at the front of $PATH.
-        You may do anything in the temp directory so long as permission
-        to delete the files/folder are not removed.
-
-        Possible Use Case: Not yet found.
-        """
-        self.log('After verify()')
-
-For more Recipe writing details, continue reading the following sections.
-For additional information on how Recipes work:
-
-* Consult `pydoc pakit.recipe`.
-* Read some Recipe examples inside the **pakit_recipes** module.
+.. literalinclude:: ../pakit_recipes/example.py
+   :linenos:
 
 Recipe Basics
 -------------
@@ -291,12 +155,12 @@ A few notes:
    It acts as a wrapper around  python's subprocess.Popen, enabling useful features:
    This method returns the Command object after it has finished executing.
 
-  A. It will timeout your Command if no stdout/stderr received during a configured interval.
-  B. It will expand dictionary markers against **self.opts**, a dictionary of values configurable
+  a. It will timeout your Command if no stdout/stderr received during a configured interval.
+  b. It will expand dictionary markers against **self.opts**, a dictionary of values configurable
      by the user and Recipe writer. This dictionary includes the source, install and link location for
      the program.
-  C. Output can be retrieved with *Command.output()* and returns a list of strings.
-  D. If you pass in a prev_cmd to the constructor, you Command will use it for stdin.
+  c. Output can be retrieved with *Command.output()* and returns a list of strings.
+  d. If you pass in a prev_cmd to the constructor, you Command will use it for stdin.
 
 For more information about executing system commands see:
 
