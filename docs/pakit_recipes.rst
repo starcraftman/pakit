@@ -27,9 +27,9 @@ In order to write recipes...
 #. You should read the following important pydoc sections:
 
    a. \`pydoc pakit.Git\` (Fetches git source code)
-   a. \`pydoc pakit.Archive\` (Fetches a source archive and extracts)
-   b. \`pydoc pakit.Recipe.cmd\` (Wrapper, returns a Command object)
-   c. \`pydoc pakit.shell.Command\` (Used to execute system commands)
+   b. \`pydoc pakit.Archive\` (Fetches a source archive and extracts)
+   c. \`pydoc pakit.Recipe.cmd\` (Wrapper, returns a Command object)
+   d. \`pydoc pakit.shell.Command\` (Used to execute system commands)
 #. You must know how the program you are writing the recipe for compiles and installs.
 #. Later, you can read example recipes in the **pakit_recipes** module.
 
