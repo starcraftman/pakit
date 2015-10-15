@@ -297,7 +297,7 @@ class TestTaskRelink(TestTaskBase):
         shutil.rmtree(recipe.link_dir)
         assert not os.path.exists(recipe.link_dir)
         RelinkRecipes().run()
-        assert os.listdir(recipe.link_dir) == ['bin', 'share']
+        assert sorted(os.listdir(recipe.link_dir)) == ['bin', 'share']
         assert os.path.islink(os.path.join(recipe.link_dir, 'bin', 'ag'))
 
 
