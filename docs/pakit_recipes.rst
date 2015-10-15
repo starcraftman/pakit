@@ -3,30 +3,42 @@
 Pakit Recipe Essentials
 =======================
 
-Description
+Conventions
 -----------
-This page should provide all information needed to write a Recipe for pakit.
-Before reading this, be sure you understand how pakit works by reading the **pakit** man page.
 
-I will try not to be too specific about code, for more information on classes mentioned
-and internal working of pakit see the pydocs starting at `pydoc pakit`.
-
-Note on convetion used here:
-
-- When I write *Recipe*, I am referring to the base class at `pakit.Recipe`.
-  You can read about it in the pydocs.
+- When I write words inside \`backticks\`, I mean that is to be executed on the shell.
 - When I write *recipe*, I am referring to the general idea of a recipe that pakit uses.
+- When I write *Recipe*, I am referring to the base class for all recipes at `pakit.Recipe`.
 - When I write *Sub.repos*, Sub is just a placeholder for the subclass name you would
   use when writing your pakit recipe.
   In this case, I am referring to the repos attribute of said subclass.
+  More on this later.
+
+Overview
+--------
+This page will document how to write recipes.
+
+I have tried to make it easy while maintaing the ability for powerful customization.
+In order to write recipes...
+
+#. You should be able to program python at a basic level. Writing a class with methods
+   should be easy for you. If you want a primer, I recommend: `Dive Into Python`_
+#. You should understand how **pakit** works, read the man page and try the demo.
+#. You should read the following pydoc sections:
+
+   a. \`pydoc pakit\`
+   b. \`pydoc pakit.recipe.Recipe.cmd\`
+   c. \`pydoc pakit.shell.Command\`
+#. You must know how the program you wish to write a recipe for compiles and installs.
+
 
 Annotated Example
 -----------------
-To quickly explain Recipes, I will annotate and discuss the **example** Recipe
+To quickly explain recipes, I will annotate and discuss the **example** recipe
 that comes with pakit.
-It doesn't build anything useful, it just demonstrates Recipe features
+It doesn't build anything, it just demonstrates logs messages at all steps.
 By executing the following commands you can see it in action, pay attention to
-the stdout from pakit.
+the messages. They correspond to the methods in the recipe.
 
 .. code-block:: bash
 
@@ -305,3 +317,6 @@ If an AssertionException is raised pakit will clean up by:
 - Undoing the link step.
 - Deleting the install folder.
 - Reseting or deleting the source code.
+
+.. Text replacements and links go here
+.. _Dive Into Python: http://www.diveintopython3.net/
