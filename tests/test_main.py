@@ -3,6 +3,7 @@ Test pakit.main
 """
 from __future__ import absolute_import
 
+import glob
 import mock
 import os
 import pytest
@@ -11,7 +12,7 @@ import shutil
 import pakit.conf
 from pakit.exc import PakitError
 from pakit.main import (
-    create_args_parser, environment_check, main, link_man_page, parse_tasks,
+    create_args_parser, environment_check, main, link_man_pages, parse_tasks,
     search_for_config, order_tasks, write_config
 )
 from pakit.recipe import RecipeDB
@@ -22,13 +23,17 @@ from pakit.task import (
 import tests.common as tc
 
 
-def test_link_man_page():
-    l_dir = os.path.join(tc.STAGING, 'links')
-    expected_link = os.path.join(tc.STAGING, 'links', 'share', 'man', 'man1',
-                                 'pakit.1')
-    link_man_page(l_dir)
-    assert os.path.islink(expected_link)
-    tc.delete_it(l_dir)
+def test_link_man_pages():
+    src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                       'pakit', 'extra')
+    link_dir = os.path.join(tc.STAGING, 'links')
+    link_man_pages(link_dir)
+    expected_dir = os.path.join(link_dir, 'share', 'man', 'man1')
+    expected_pages = [os.path.basename(fname) for fname in
+                      glob.glob(os.path.join(src, '*.1'))]
+    for page in expected_pages:
+        assert os.path.islink(os.path.join(expected_dir, page))
+    tc.delete_it(link_dir)
 
 
 @mock.patch('pakit.main.PLOG')

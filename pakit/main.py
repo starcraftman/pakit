@@ -6,6 +6,7 @@ Acts as an intermediary between program arguments and pakit Tasks.
 from __future__ import absolute_import, print_function
 
 import argparse
+import glob
 import logging
 import logging.handlers
 import os
@@ -151,26 +152,31 @@ def global_init(config_file):
     except KeyError:
         pass
 
-    link_man_page(config.get('pakit.paths.link'))
+    link_man_pages(config.get('pakit.paths.link'))
     environment_check(config)
 
     return config
 
 
-def link_man_page(link_dir):
+def link_man_pages(link_dir):
     """
-    Silently links man page into link dir.
+    Silently links project man pages into link dir.
     """
-    src = os.path.join(os.path.dirname(__file__), 'extra', 'pakit.1')
-    dst = os.path.join(link_dir, 'share', 'man', 'man1', 'pakit.1')
+    src = os.path.join(os.path.dirname(__file__), 'extra')
+    dst = os.path.join(link_dir, 'share', 'man', 'man1')
     try:
-        os.makedirs(os.path.dirname(dst))
+        os.makedirs(dst)
     except OSError:
         pass
-    try:
-        os.symlink(src, dst)
-    except OSError:
-        pass
+
+    man_pages = [os.path.basename(fname) for fname in
+                 glob.glob(os.path.join(src, '*.1'))]
+    for page in man_pages:
+        try:
+            s_man, d_man = os.path.join(src, page), os.path.join(dst, page)
+            os.symlink(s_man, d_man)
+        except OSError:
+            pass
 
 
 def log_init(config):
