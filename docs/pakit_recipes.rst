@@ -23,7 +23,7 @@ In order to write recipes...
 
 #. You should be able to program python at a basic level. Writing a class with methods
    should be easy for you. If you want a primer, I recommend: `Dive Into Python`_
-#. You should understand how **pakit** works, read the man page and try the demo.
+#. You should understand how pakit works, read the man page and try the demo.
 #. You should read the following important pydoc sections:
 
    a. \`pydoc pakit.Git\` (Fetches git source code)
@@ -130,6 +130,10 @@ Some of the features of this example are optional, I will make note of this.
           For usage, see 'pydoc pakit.recipe.cmd` for details.
           """
           self.log('build()')
+          cmd1 = self.cmd('pwd')
+          cmd2 = self.cmd('ls')
+          print('Current dir: ' + cmd1.output()[0])
+          print('Contains:\n  ' + '\n  '.join(cmd2.output()))
 
       def post_build(self):
           """
@@ -301,8 +305,8 @@ A few notes:
 
 For more information about executing system commands see:
 
-- Details about the cmd wrapper at `pydoc pakit.recipe.Recipe.cmd`
-- Details about the Command class at `pydoc pakit.shell.Command`
+- Details about the cmd wrapper at \`pydoc pakit.recipe.Recipe.cmd\`
+- Details about the Command class at \`pydoc pakit.shell.Command\`
 
 
 Recipe Verification

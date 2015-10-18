@@ -75,6 +75,10 @@ class Example(Recipe):
         For usage, see 'pydoc pakit.recipe.cmd` for details.
         """
         self.log('build()')
+        cmd1 = self.cmd('pwd')
+        cmd2 = self.cmd('ls')
+        print('Current dir: ' + cmd1.output()[0])
+        print('Contains:\n  ' + '\n  '.join(cmd2.output()))
 
     def post_build(self):
         """
