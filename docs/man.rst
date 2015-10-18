@@ -61,12 +61,13 @@ Options
 
 Completion
 ----------
-I have written a bash completion script. You can find it within the pakit module, inside the
-`extra/completion` folder. See that folder's `README.md` for further details.
+At this time only bash completion is available
+You can find it within the pakit module, inside the `extra/completion` folder.
+See that folder's `README.md` for further details.
 
 Config
 ------
-Configuration is done by YAML file, default location is ``~/.pakit.yml``
+Configuration is done by YAML file, default location is ``$HOME/.pakit.yml``
 
 This is an example config:
 

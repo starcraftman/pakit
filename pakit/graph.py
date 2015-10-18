@@ -21,7 +21,7 @@ class DiGraph(object):
         self.adj_lists = {}
 
     def __str__(self):
-        msg = ['There are ' + str(self.num_verts) + ' vertices.']
+        msg = ['There are ' + str(self.size) + ' vertices.']
         msg += ['The adjacency lists are:']
         msg += ['  ' + key + ': ' + ', '.join(sorted(self.adj_lists[key]))
                 for key in sorted(self.adj_lists)]
@@ -33,8 +33,11 @@ class DiGraph(object):
         """
         return key in self.adj_lists
 
+    def __len__(self):
+        return self.size()
+
     @property
-    def num_verts(self):
+    def size(self):
         """
         The number of vertices in the graph.
         """
@@ -88,27 +91,24 @@ class DiGraph(object):
 
 def topological_sort(graph):
     """
-    Topological sort of a graph.
+    Generate a topological sort of a graph.
     Side Effect: Empties the graph.
 
     Returns:
-        A list in sorted order to satisfy dependencies.
+        A node in the graph with requirements satisfied.
 
     Raises:
-        CycleInGraphError: The directed graph had a cycle.
+        CycleInGraphError: The directed graph has a cycle.
     """
-    t_list = []
-    last_len = graph.num_verts
+    last_len = graph.size
 
-    while graph.num_verts:
+    while graph.size:
         for key in graph.adj_lists:
             if graph.adj_lists[key] == []:
-                t_list.append(key)
                 graph.remove(key)
+                yield key
                 break
 
-        if last_len == graph.num_verts:
+        if last_len == graph.size:
             raise CycleInGraphError(str(graph))
-        last_len = graph.num_verts
-
-    return t_list
+        last_len = graph.size
