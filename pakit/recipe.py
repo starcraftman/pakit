@@ -37,7 +37,7 @@ def check_package(path):
     if not os.path.isdir(path):
         return
 
-    if os.path.basename(path).find('.') == 0:
+    if os.path.basename(path)[0] == '.':
         raise PakitDBError('Cannot index invalid recipe location. '
                            'Remove the leading period(s) from ' + path)
 
