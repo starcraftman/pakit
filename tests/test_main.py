@@ -24,20 +24,25 @@ import tests.common as tc
 
 def test_link_man_pages():
     try:
+        link_dir = os.path.join(tc.STAGING, 'links')
         src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'pakit', 'extra')
-        fake_man = os.path.join(src, 'pakit.1')
+        fake_man = os.path.join(src, 'test_man.1')
+
+        try:
+            os.makedirs(os.path.dirname(fake_man))
+        except OSError:
+            pass
         with open(fake_man, 'w') as fout:
             fout.write('hello')
 
-        link_dir = os.path.join(tc.STAGING, 'links')
         link_man_pages(link_dir)
         expected_man = os.path.join(link_dir, 'share', 'man', 'man1',
-                                    'pakit.1')
+                                    os.path.basename(fake_man))
         assert os.path.islink(expected_man)
     finally:
-        tc.delete_it(link_dir)
         tc.delete_it(fake_man)
+        tc.delete_it(link_dir)
 
 
 @mock.patch('pakit.main.PLOG')
