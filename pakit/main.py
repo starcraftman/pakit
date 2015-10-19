@@ -175,7 +175,7 @@ def link_man_pages(link_dir):
         try:
             s_man, d_man = os.path.join(src, page), os.path.join(dst, page)
             os.symlink(s_man, d_man)
-        except OSError:
+        except OSError:  # pragma: no cover
             pass
 
 
