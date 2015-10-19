@@ -26,6 +26,11 @@ class TestDiGraph(object):
 
         assert str(self.graph).split('\n') == expect
 
+    def test__len__(self):
+        self.graph.add_vertex('A')
+        self.graph.add_vertex('B')
+        assert len(self.graph) == 2
+
     def test_size(self):
         self.graph.add_vertex('A')
         self.graph.add_vertex('B')

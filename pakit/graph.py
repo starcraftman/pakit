@@ -34,7 +34,7 @@ class DiGraph(object):
         return key in self.adj_lists
 
     def __len__(self):
-        return self.size()
+        return self.size
 
     @property
     def size(self):
