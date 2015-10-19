@@ -42,27 +42,25 @@ def create_args_parser():
     to build & install recipes into local paths.
 
     First Time Run:
-        Run in shell: `{0} --create-conf`
+        Run in shell: `{1} --create-conf`
             This writes the default config to $HOME/.pakit.yml
 
         Run in shell: `export PATH=/tmp/pakit/links/bin:$PATH`
-            This is where all programs eventually linked to by default.
-            See man page for more configuration information.
+            This is where all program bins will link to by default.
 
     For project development or to report bugs:
         https://github.com/starcraftman/pakit
 
     Additional Information:
-        - Man page, provided inside `pakit/extra/pakit.1`. It is automatically
-        available via `man pakit` if `paths.link` is on your shell $PATH.
+        - Man pages, `man pakit` or `man pakit_recipes`
         - `pydoc pakit`
         - See DEMO.md inside pakit site package.
 
     Recipes:
-        pakit_recipes/ag.py is an example recipe
+        pakit_recipes/ag.py is an example recipe.
         User made recipes can be put in $HOME/.pakit/recipes by default.
         If two recipes have same name, last one in will be executed.
-    """.format(prog_name)
+    """.format(prog_name.capitalize(), prog_name)
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
