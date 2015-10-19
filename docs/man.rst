@@ -133,7 +133,7 @@ pakit.defaults
 
 pakit.defaults.repo
    The default source repository to use.
-   By convention, **stable** will always fetch a stable versioned release.
+   By convention, **stable** will always fetch a stable release.
    Whereas **unstable** should build from recent project commits, it may break.
 
 ag

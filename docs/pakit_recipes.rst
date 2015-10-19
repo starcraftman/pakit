@@ -18,7 +18,7 @@ Overview
 --------
 This page will document how to write recipes.
 
-I have tried to make it easy while maintaing the ability for powerful customization.
+I have tried to make it easy while maintaining the ability for powerful customization.
 In order to write recipes...
 
 #. You should be able to program python at a basic level. Writing a class with methods
@@ -202,7 +202,7 @@ part of a recipe.
   explains how to specify build instructions.
 
 **Recipe Verification**
-  details how to verify the recipe suceeded.
+  details how to verify the recipe succeeded.
 
 Recipe Naming
 -------------
@@ -257,7 +257,7 @@ Noteworthy Subclasses:
   This class will simply create an empty folder where the source should be.
 
 By convention, repos should have two entries: *stable* and *unstable*.
-The *stable* repo should fetch a tagged or versioned release of code if possible.
+The *stable* repo should fetch a tagged or version release of code if possible.
 The *unstable* repo can point to a more recent version directly from source.
 
 The repo selected for a Recipe can be configured, see the **pakit** man page for details.
@@ -276,7 +276,7 @@ A few notes:
 #. Any Exception raised during *Sub.build()* method will trigger a rollback, halting
    any further tasks and cleaning up the current install. If it was an update,
    the previous working version will be restored.
-#. You are free to use anything availble in python and its libraries to build your program,
+#. You are free to use anything available in python and its libraries to build your program,
    even pakit code.
 #. To issue system commands I **STRONGLY** encourage you to use the *Sub.cmd* convenience method
    available on all subclasses.
