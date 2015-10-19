@@ -30,7 +30,7 @@ Options
    List available recipes, output is very terse
 
 -c,  --conf CONF
-   Use CONF file instead of default (~/.pakit.yml)
+   Use CONF file instead of default ($HOME/.pakit.yml)
 
 --create-conf
    Write the default configuration to CONF

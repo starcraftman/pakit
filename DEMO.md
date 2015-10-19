@@ -26,7 +26,7 @@ Run these commands in order to demonstrate pakit.
 
 **Write User Config**
 
-Writes the default config to a file in home, default: `~/.pakit.yml`
+Writes the default config to a file in home, default: `$HOME/.pakit.yml`
 
 ```bash
 pakit --create-conf
@@ -91,7 +91,7 @@ pakit --list
 Now to demonstrate configuration, let us change `ag` from building from the
 last `stable` release to the latest commit (i.e. `unstable`).
 
-Edit your `~/.pakit.yml` file and add the following line at the end. Save and exit.
+Edit your `$HOME/.pakit.yml` file and add the following line at the end. Save and exit.
 
 ```yaml
 ag:

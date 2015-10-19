@@ -15,7 +15,7 @@ See...
 - *pakit.task* for all high level tasks like installing and updating.
 
 Configuration is done by YAML file in your $HOME folder.
-The default is `~/.pakit.yml`.
+The default is `$HOME/.pakit.yml`.
 """
 from __future__ import absolute_import
 

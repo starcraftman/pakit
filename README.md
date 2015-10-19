@@ -70,7 +70,7 @@ export PATH=/tmp/pakit/links/bin:$PATH
 ```
 
 The above exports will only last for the terminal session.
-To make them permanent for bash, edit `~/.bashrc` or `~/.bash_aliases`.
+To make them permanent for bash, edit `$HOME/.bashrc` or `$HOME/.bash_aliases`.
 
 ## More Information
 
