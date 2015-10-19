@@ -24,6 +24,30 @@ from pakit.shell import Command
 PLOG = logging.getLogger('pakit').info
 
 
+def check_package(path):
+    """
+    Ensure the path is a valid python module to import from.
+
+    Args:
+        path: The path of a python module to check.
+
+    Raises:
+        PakitDBError: When the package name is invalid, user must correct.
+    """
+    if not os.path.isdir(path):
+        return
+
+    if os.path.basename(path).find('.') == 0:
+        raise PakitDBError('Cannot index invalid recipe location. '
+                           'Remove the leading period(s) from ' + path)
+
+    init = os.path.join(path, '__init__.py')
+    if not os.path.exists(init):
+        with open(init, 'w') as fout:
+            fout.write('# Written by pakit to mark this folder'
+                       'as a python module')
+
+
 class RecipeDecorator(object):
     """
     Decorate a method and allow optional pre and post functions to
@@ -402,31 +426,6 @@ class RecipeDB(object):
         for key in sorted(self.__instance.__db):
             yield (key, self.__instance.__db[key])
 
-    def index(self, path):
-        """
-        Index all *Recipes* in the path.
-
-        For each file, the Recipe subclass should be named after the file.
-        So for path/ag.py should have a class called Ag.
-
-        Args:
-            path: The folder containing recipes to index.
-        """
-        # TODO: Iterate all classes in file, only index subclassing Recipe
-        sys.path.insert(0, os.path.dirname(path))
-
-        new_recs = glob.glob(os.path.join(path, '*.py'))
-        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
-        if '__init__' in new_recs:
-            new_recs.remove('__init__')
-
-        mod = os.path.basename(path)
-        for cls in new_recs:
-            obj = self.__recipe_obj(mod, cls)
-            self.__db.update({cls: obj})
-
-        sys.path = sys.path[1:]
-
     def get(self, name):
         """
         Get the recipe from the database.
@@ -438,6 +437,32 @@ class RecipeDB(object):
         if obj is None:
             raise PakitDBError('Missing recipe to build: ' + name)
         return obj
+
+    def index(self, path):
+        """
+        Index all *Recipes* in the path.
+
+        For each file, the Recipe subclass should be named after the file.
+        So for path/ag.py should have a class called Ag.
+
+        Args:
+            path: The folder containing recipes to index.
+        """
+        # TODO: Iterate all classes in file, only index subclassing Recipe
+        check_package(path)
+        sys.path.insert(0, os.path.dirname(path))
+
+        new_recs = glob.glob(os.path.join(path, '*.py'))
+        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+        if '__init__' in new_recs:
+            new_recs.remove('__init__')
+
+        mod = os.path.basename(path)
+        for cls in new_recs:
+            obj = self.recipe_obj(mod, cls)
+            self.__db.update({cls: obj})
+
+        sys.path = sys.path[1:]
 
     def names(self, desc=False):
         """
@@ -457,7 +482,7 @@ class RecipeDB(object):
         else:
             return sorted(self.__db.keys())
 
-    def __recipe_obj(self, mod_name, cls_name):
+    def recipe_obj(self, mod_name, cls_name):
         """
         Import and instantiate the recipe class. Then configure it.
 
@@ -469,8 +494,8 @@ class RecipeDB(object):
             The instantiated recipe.
 
         Raises:
-            ImportError: If the module could not be imported.
             AttributeError: The module did not have the required class.
+            ImportError: If the module could not be imported.
         """
         mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)

@@ -296,6 +296,9 @@ class TestParseTasks(object):
 
 class TestMain(object):
     """ Test different argv's passed to main. """
+    def setup_class(self):
+        self.config = tc.env_setup()
+
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):
         main(['pakit', '--list'])
