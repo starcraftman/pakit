@@ -3,7 +3,6 @@ Test pakit.main
 """
 from __future__ import absolute_import
 
-import glob
 import mock
 import os
 import pytest
@@ -24,16 +23,21 @@ import tests.common as tc
 
 
 def test_link_man_pages():
-    src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                       'pakit', 'extra')
-    link_dir = os.path.join(tc.STAGING, 'links')
-    link_man_pages(link_dir)
-    expected_dir = os.path.join(link_dir, 'share', 'man', 'man1')
-    expected_pages = [os.path.basename(fname) for fname in
-                      glob.glob(os.path.join(src, '*.1'))]
-    for page in expected_pages:
-        assert os.path.islink(os.path.join(expected_dir, page))
-    tc.delete_it(link_dir)
+    try:
+        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'pakit', 'extra')
+        fake_man = os.path.join(src, 'pakit.1')
+        with open(fake_man, 'w') as fout:
+            fout.write('hello')
+
+        link_dir = os.path.join(tc.STAGING, 'links')
+        link_man_pages(link_dir)
+        expected_man = os.path.join(link_dir, 'share', 'man', 'man1',
+                                    'pakit.1')
+        assert os.path.islink(expected_man)
+    finally:
+        tc.delete_it(link_dir)
+        tc.delete_it(fake_man)
 
 
 @mock.patch('pakit.main.PLOG')
