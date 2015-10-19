@@ -22,7 +22,8 @@ I have tried to make it easy while maintaining the ability for powerful customiz
 In order to write recipes...
 
 #. You should be able to program python at a basic level. Writing a class with methods
-   should be easy for you. If you want a primer, I recommend: `Dive Into Python`_
+   should be easy for you. If you want a primer, I recommend: `Dive Into Python`
+   (http://www.diveintopython3.net/)
 #. You should understand how pakit works, read the man page and try the demo.
 #. You should read the following important pydoc sections:
 
@@ -311,4 +312,3 @@ If an AssertionException is raised pakit will clean up by:
 - Reseting or deleting the source code.
 
 .. Text replacements and links go here
-.. _Dive Into Python: http://www.diveintopython3.net/

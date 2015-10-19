@@ -22,9 +22,10 @@ except ImportError:
 
 def get_long_desc():
     """ Fetches the latest changelog for pypi """
+    change_file = os.path.join(os.path.dirname(__file__), 'CHANGELOG')
     base_desc = 'Pakit is a package manager that builds from source.\n\
 For More Information: https://github.com/starcraftman/pakit/\n'
-    with open('CHANGELOG') as fin:
+    with open(change_file) as fin:
         lines = fin.readlines()
     return base_desc + '\nChange Log:\n\n' + ''.join(lines)
 
@@ -69,18 +70,35 @@ class ReleaseCommand(Command):
         pass
 
     def run(self):
-        self.copy_files()
+        if os.path.dirname(__file__) == '':
+            setup_dir = os.getcwd()
+        else:
+            setup_dir = os.path.abspath(os.path.dirname(__file__))
+        target = os.path.join('pakit', 'extra')
+
+        old_cwd = os.getcwd()
+        os.chdir(os.path.join(setup_dir, 'docs'))
+        subprocess.call(shlex.split('make man'))
+
+        os.chdir(setup_dir)
+        self.copy_files(target)
+
         cmds = [
-            'make -C ./docs man',
             'python setup.py sdist --formats=gztar,zip',
-            'python setup.py bdist_wheel --universal'
+            'python setup.py bdist_wheel --universal',
         ]
         for cmd in cmds:
             subprocess.call(shlex.split(cmd))
 
-    def copy_files(self):
-        target = os.path.join('pakit', 'extra')
-        to_target = ['CHANGELOG', 'DEMO.md', 'LICENSE', 'README.md']
+        os.chdir(old_cwd)
+
+    def copy_files(self, target):
+        """
+        Copy some files into the package for distribution.
+        """
+        man_dir = os.path.join('docs', '_build', 'man')
+        to_move = ['CHANGELOG', 'DEMO.md', 'LICENSE', 'README.md'] + \
+                  [os.path.join(man_dir, man) for man in os.listdir(man_dir)]
 
         try:
             shutil.rmtree(target)
@@ -90,8 +108,8 @@ class ReleaseCommand(Command):
             os.makedirs(target)
         except OSError:
             pass
-        for path in to_target:
-            shutil.copy(path, target)
+        for fname in to_move:
+            shutil.copy(fname, target)
         shutil.copytree('completion', os.path.join(target, 'completion'))
 
 

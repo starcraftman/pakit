@@ -47,8 +47,10 @@ Fetch the latest from the source. Works unless the build badge says failing.
 
 ```bash
 git clone https://github.com/starcraftman/pakit.git
-export PATH=$(pwd)/pakit/bin:$PATH
+cd pakit
+export PATH=$(pwd)/bin:$PATH
 sudo -H pip install argparse PyYAML
+python setup.py release
 ```
 
 **pip**
