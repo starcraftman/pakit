@@ -5,11 +5,17 @@ Pakit
 
 Description
 -----------
-pakit provides:
+Pakit provides:
 
-#. A Package Manager CLI to install, remove & update programs.
+#. A package manager interface to install, remove & update programs.
 #. A simple Recipe specification to build programs from source code.
 #. Premade recipes for common programs under ``pakit_recipes``.
+
+When you install a program pakit will...
+
+#. download the source into a silo in `pakit.paths.source` and build it.
+#. install the program into a silo under `pakit.paths.prefix`.
+#. link the silo to the `pakit.paths.link` directory.
 
 Synopsis
 --------
@@ -90,13 +96,13 @@ This is an example config:
    ag:
      repo: unstable
 
-Expalnation of Config:
+I will explain each element of the nested dictionary in turn.
 
 pakit.command.timeout
-   The timeout for commands, when no stdout produced for timeout kill process.
+   The timeout for commands, when no stdout produced for timeout terminate the command.
 
 pakit.log.enabled
-   Toggles the file logger. Console are errors always enabled.
+   Toggles the file logger. Console messages are currently always enabled.
 
 pakit.log.file
    Where the file log will be written to.
@@ -106,15 +112,16 @@ pakit.log.level
 
 pakit.paths.link
    Path where all programs will be linked to. You should put the bin folder in
-   this folder on the **$PATH**. For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
+   this folder on the **$PATH**.
+   For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
 
 pakit.paths.prefix
    All recipes will be installed into this path. Using the above config,
-   the recipe **ag** would be installed to **/tmp/pakit/builds/ag**.
+   the recipe **ag** would be installed to `/tmp/pakit/builds/ag`.
 
 pakit.paths.recipes
-   Path to a folder with user created recipes. Path must be a valid package
-   name according to python rules. Importantly this means base folder
+   Path to a folder with user created recipes. Path must be a valid python package
+   according to python conventions. Importantly this means base folder
    can **NOT** be a hidden directory (leading '.').
 
 pakit.paths.source
@@ -130,7 +137,7 @@ pakit.defaults.repo
    Whereas **unstable** should build from recent project commits, it may break.
 
 ag
-   A recipe specific dictionary that will *override* keys of the same
+   A recipe specific dictionary that will **update** keys of the same
    name in `pakit.defaults`.
 
 ag.repo
@@ -140,6 +147,6 @@ More Help
 ---------
 To get more information...
 
-* `pakit --help`
-* `man pakit_recipes`
-* `pydoc pakit`
+* pakit --help
+* man pakit_recipes
+* pydoc pakit

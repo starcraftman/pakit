@@ -37,9 +37,8 @@ Annotated Example
 -----------------
 To quickly explain recipes, I will discuss the **example** recipe
 that comes with pakit.
-It doesn't build anything, it just prints messages at all steps.
+It doesn't build anything, it just demonstrates all major features including optional ones.
 By executing the following commands you can see it in action, pay attention to the output
-They correspond to the methods in the recipe.
 
 .. code-block:: bash
 
@@ -48,8 +47,7 @@ They correspond to the methods in the recipe.
   pakit --remove example exampledep
 
 My annotations will begin with "#" signs like inline python comments.
-I will also use class and method docstrings.
-Some of the features of this example are optional, I will make note of this.
+I will also use method docstrings to explain details.
 
 .. code-block:: python
 
@@ -82,31 +80,28 @@ Some of the features of this example are optional, I will make note of this.
       For instance `pakit --display example`.
       """
       def __init__(self):
-          # Required
           super(Example, self).__init__()
           # Extra attributes are ignored by pakit
           self.src = 'https://github.com/ggreer/the_silver_searcher.git'
           # The homepage of the project, should be information for users
           self.homepage = self.src
-          # A dictionary of Fetchable classes, used to get the source code
+          # A dictionary of Fetchable objects, used to get the source code
           # By convention, should always have 'stable' and 'unstable' keys
           # 'stable' -> point to stable release of source code
-          # 'unstable' -> point to a more recent version, like branch of code
+          # 'unstable' -> point to a more recent version, like a branch of git
           self.repos = {
               'stable': Git(self.src, tag='0.30.0'),
               'unstable': Git(self.src),
           }
           # OPTIONAL: If present, this Recipe requires listed Recipes to be
-          #           installed before it can be.
+          #           installed before it can be
           self.requires = ['exampledep']
 
       def log(self, msg):  # pylint: disable=R0201
           """
-          Simple method prints message followed by current working directory.
+          Stupid method, just for tracing flow.
 
-          You can add any method you want to Recipe so long as pakit's
-          conventions are followed. I currently do no checking  to ensure
-          they are.
+          You can add any method you want to your Recipe subclass.
           """
           print(msg, 'the working directory is', os.getcwd())
 
@@ -189,11 +184,10 @@ Some of the features of this example are optional, I will make note of this.
           """
           self.log('After verify()')
 
-Recipe Basics
--------------
-I have attempted to make pakit recipes small and light.
-Most of the work is done in code you will never see, unless you want to.
-All you need to do is follow the conventions below and pakit will do the rest.
+Recipe Overview
+---------------
+The following sections attempt to give a more in depth rundown of each
+part of a recipe.
 
 **Recipe Naming**
   explains how to name your recipes and subclasses.
@@ -220,17 +214,17 @@ In short:
 #. Every recipe is defined in its own file.
 #. The name of the recipe file, is the name pakit will use to index it in the database.
 #. Each recipe file must contain at least 1 class that is the capitalized name of the recipe file.
-#. That class must inherit from **pakit.Recipe**.
+#. That class must inherit from `pakit.Recipe`.
 
-For example, the default recipe **ag** found in **pakit_recipes/ag.py**.
+For example, the default recipe **ag** found in `pakit_recipes/ag.py`.
 
-#. The recipe is stored in: **pakit_recipes/ag.py**
+#. The recipe is stored in: `pakit_recipes/ag.py`
 #. The class is: **class Ag(Recipe): ...**
 #. It can be installed by: **pakit -i ag**
 
 Recipe Loading
 --------------
-All Recipes are indexed by **pakit.recipe.RecipeDB** on pakit startup.
+All Recipes are indexed by `pakit.recipe.RecipeDB` on pakit startup.
 The database uses a dictionary approach to storage, last Recipe loaded with the same name wins.
 So if both *default* and *user* paths have a Recipe for **ag**, pakit will
 use the *user* version as it was loaded later.
@@ -252,14 +246,15 @@ These subclasses provide convenient means to fetch source code from remote URIs,
 
 Noteworthy Subclasses:
 
-* *Git*: Fetch source from a valid git URI. By default checkout default branch. Optionally specify
-  a branch, tag, or revision to checkout post download.
-* *Hg*: Operates same as Git but for Mercurial repositories.
+* *Git*: Fetch source from a valid git repository.
+  By default checkout default branch.
+  Optionally specify a branch, tag, or revision to checkout post download.
+* *Hg*: The same as Git but for Mercurial repositories.
 * *Archive*: Provides support for retrieving source archives from a specified URI.
-  You must provide the hash of the archive to verify it after download. Extracting
-  the archive to source folder will be done automatically if supported.
-* *Dummy*: A convenience class, should the Recipe not require source code, use this
-  and pakit will simply create an empty folder where the source should be.
+  You must provide the hash of the archive to verify it after download.
+  Extracting the archive to source folder will be done automatically if supported.
+* *Dummy*: A convenience class, should the Recipe not require source code.
+  This class will simply create an empty folder where the source should be.
 
 By convention, repos should have two entries: *stable* and *unstable*.
 The *stable* repo should fetch a tagged or versioned release of code if possible.
@@ -267,29 +262,21 @@ The *unstable* repo can point to a more recent version directly from source.
 
 The repo selected for a Recipe can be configured, see the **pakit** man page for details.
 
-Recipe Pre And Post Methods
----------------------------
-These methods are provided as convenience for certain corner cases like applying custom
-patches (*pre_build()*) to code or modifying runtime scripts post verification (*post_verify*).
-They should be used sparingly.
-
-See the annotated **example** Recipe above for more information.
-You may implement any or none of these methods at your discretion.
-
 Recipe Building
 ---------------
 Once the source code selected is downloaded **pakit** will automatically change directory to the
 source code. It will then invoke the *Sub.build()*.
 By the end of the *Sub.build()*, your program should be installed to the required path.
-The path to install your program is available in the *Recipe.opts* variable, using the *prefix* key.
-Linking will be done automatically by pakit before the verification step.
+The path to install your program is available in the *Sub.opts* variable, using the *prefix* key.
+Linking will be done automatically by pakit after **build()** and
+before the **verify()** method.
 
 A few notes:
 
-#. Any Exception raised during *Sub.build()* will trigger a rollback, halting
-   any further tasks and cleaning up the source code. If it was an update,
+#. Any Exception raised during *Sub.build()* method will trigger a rollback, halting
+   any further tasks and cleaning up the current install. If it was an update,
    the previous working version will be restored.
-#. You are free to use anythin availble in python and its libraries to build your program,
+#. You are free to use anything availble in python and its libraries to build your program,
    even pakit code.
 #. To issue system commands I **STRONGLY** encourage you to use the *Sub.cmd* convenience method
    available on all subclasses.
