@@ -52,15 +52,17 @@ def create_args_parser():
         https://github.com/starcraftman/pakit
 
     Additional Information:
-        - Man pages, `man pakit` or `man pakit_recipes`
-        - `pydoc pakit`
-        - See DEMO.md inside pakit site package.
+        man pakit
+        man pakit_recipes
+        pydoc pakit
 
     Recipes:
-        pakit_recipes/ag.py is an example recipe.
         User made recipes can be put in $HOME/.pakit/recipes by default.
         If two recipes have same name, last one in will be executed.
+        Example recipes can be found in the `pakit_recipes` module.
+        A good example is `pakit_recipes/ag.py`.
     """.format(prog_name.capitalize(), prog_name)
+    mesg = mesg[0:-5]
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
                                      formatter_class=argparse.
                                      RawDescriptionHelpFormatter)
