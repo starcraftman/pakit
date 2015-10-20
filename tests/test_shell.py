@@ -8,10 +8,13 @@ import os
 import pytest
 import shutil
 
-from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
+from pakit.exc import (
+    PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
+)
 from pakit.shell import (
-    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive, cmd_cleanup,
-    get_extract_func, extract_tar_gz
+    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
+    common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
+    walk_and_link, walk_and_unlink
 )
 import pakit.shell
 import tests.common as tc
@@ -45,6 +48,7 @@ def test_hash_archive_sha256():
 
 
 def test_cmd_cleanup():
+    tc.env_setup()
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
     with open(cmd_file, 'wb') as fout:
         fout.write('hello'.encode())
@@ -63,6 +67,72 @@ def test_cmd_cleanup_raises():
         cmd_cleanup()
     assert os.path.exists(cmd_file)
     os.rmdir(cmd_file)
+
+
+def test_common_suffix():
+    path1 = os.path.join('/base', 'prefix', 'ag', 'bin')
+    path2 = os.path.join('/root', 'base', 'prefix', 'ag', 'bin')
+    assert common_suffix(path1, path2) == path1[1:]
+    assert common_suffix(path2, path1) == path1[1:]
+
+
+class TestLinking(object):
+    def setup(self):
+        config = tc.env_setup()
+        paths = config.get('pakit.paths')
+        self.src = paths['prefix']
+        self.dst = paths['link']
+        self.subdir = os.path.join(self.src, 'subdir')
+
+        for path in [self.dst, self.subdir]:
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
+
+        self.fnames = [os.path.join(self.src, 'file' + str(num))
+                       for num in range(0, 6)]
+        self.fnames += [os.path.join(self.subdir, 'file' + str(num))
+                        for num in range(0, 4)]
+        self.dst_fnames = [fname.replace(self.src, self.dst)
+                           for fname in self.fnames]
+        for fname in self.fnames:
+            with open(fname, 'wb') as fout:
+                fout.write('dummy'.encode())
+
+    def teardown(self):
+        tc.delete_it(self.src)
+        tc.delete_it(self.dst)
+
+    def test_walk_and_link_works(self):
+        walk_and_link(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert os.path.islink(fname)
+            assert os.readlink(fname) == fname.replace(self.dst, self.src)
+
+    def test_walk_and_link_raises(self):
+        walk_and_link(self.src, self.dst)
+        with pytest.raises(PakitLinkError):
+            walk_and_link(self.src, self.dst)
+
+    def test_walk_and_unlink(self):
+        walk_and_link(self.src, self.dst)
+        walk_and_unlink(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert not os.path.exists(fname)
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
+        for fname in self.fnames:
+            assert os.path.exists(fname)
+
+    def test_walk_and_unlink_missing(self):
+        walk_and_link(self.src, self.dst)
+        os.remove(self.dst_fnames[0])
+        walk_and_unlink(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert not os.path.exists(fname)
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
+        for fname in self.fnames:
+            assert os.path.exists(fname)
 
 
 class TestExtractFuncs(object):
@@ -86,7 +156,7 @@ class TestExtractFuncs(object):
     def test_rar(self):
         self.__test_ext('rar')
 
-    @mock.patch('pakit.shell.sub')
+    @mock.patch('pakit.shell.subprocess')
     def test_rar_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -116,7 +186,7 @@ class TestExtractFuncs(object):
     def test_tar_xz(self):
         self.__test_ext('tar.xz')
 
-    @mock.patch('pakit.shell.sub')
+    @mock.patch('pakit.shell.subprocess')
     def test_tar_xz_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -128,7 +198,7 @@ class TestExtractFuncs(object):
     def test_7z(self):
         self.__test_ext('7z')
 
-    @mock.patch('pakit.shell.sub')
+    @mock.patch('pakit.shell.subprocess')
     def test_7z_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):

@@ -18,10 +18,10 @@ import os
 import shlex
 import shutil
 import signal
-import subprocess as sub
+import subprocess
 import sys
 from tempfile import NamedTemporaryFile as TempFile
-import threading as thr
+import threading
 import time
 
 import hashlib
@@ -33,7 +33,9 @@ except ImportError:
 import zipfile
 
 import pakit.conf
-from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
+from pakit.exc import (
+    PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
+)
 
 TMP_DIR = '/tmp/pakit'
 
@@ -259,9 +261,106 @@ def hash_archive(archive, hash_alg='sha256'):
     return hasher.hexdigest()
 
 
+def common_suffix(path1, path2):
+    """
+    Given two paths, find the largest common suffix.
+
+    Args:
+        path1: The first path.
+        path2: The second path.
+    """
+    suffix = []
+    parts1 = path1.split(os.path.sep)
+    parts2 = path2.split(os.path.sep)
+
+    if len(parts2) < len(parts1):
+        parts1, parts2 = parts2, parts1
+
+    while len(parts1) and parts1[-1] == parts2[-1]:
+        suffix.insert(0, parts1.pop())
+        parts2.pop()
+
+    return os.path.sep.join(suffix)
+
+
+def walk_and_link(src, dst):
+    """
+    Recurse down the tree from src and symbollically link
+    the files to their counterparts under dst.
+
+    Args:
+        src: The source path with the files to link.
+        dst: The destination path where links should be made.
+
+    Raises:
+        PakitLinkError: When anything goes wrong linking.
+    """
+    for dirpath, _, filenames in os.walk(src, followlinks=True, topdown=True):
+        link_all_files(dirpath, dirpath.replace(src, dst), filenames)
+
+
+def walk_and_unlink(src, dst):
+    """
+    Recurse down the tree from src and unlink the files
+    that have counterparts under dst.
+
+    Args:
+        src: The source path with the files to link.
+        dst: The destination path where links should be removed.
+    """
+    for dirpath, _, filenames in os.walk(src, followlinks=True, topdown=False):
+        unlink_all_files(dirpath, dirpath.replace(src, dst), filenames)
+
+
+def link_all_files(src, dst, filenames):
+    """
+    From src directory link all filenames into dst.
+
+    Args:
+        src: The directory where the source files exist.
+        dst: The directory where the links should be made.
+        filenames: A list of filenames in src.
+    """
+    try:
+        os.makedirs(dst)
+    except OSError:
+        pass  # The folder already existed
+
+    for fname in filenames:
+        sfile = os.path.join(src, fname)
+        dfile = os.path.join(dst, fname)
+        try:
+            os.symlink(sfile, dfile)
+        except OSError:
+            msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
+            logging.error(msg)
+            raise PakitLinkError(msg)
+
+
+def unlink_all_files(_, dst, filenames):
+    """
+    Unlink all links in dst that are in filenames.
+
+    Args:
+        src: The directory where the source files exist.
+        dst: The directory where the links should be made.
+        filenames: A list of filenames in src.
+    """
+    for fname in filenames:
+        try:
+            os.remove(os.path.join(dst, fname))
+        except OSError:
+            pass  # The link was not there
+
+    try:
+        os.rmdir(dst)
+    except OSError:
+        pass  # Folder probably had files left.
+
+
 class Fetchable(object):
     """
-    Extablishes an abstract interface for fetching source code.
+    Establishes an abstract interface for fetching source code.
 
     Subclasses are destined for Recipe.repos to be used to retrieve source
     from the wild.
@@ -519,7 +618,7 @@ class Archive(Fetchable):
 
 class VersionRepo(Fetchable):
     """
-    Base class for all version control downloaders.
+    Base class for all version control support.
 
     When a 'tag' is set, check out a specific revision of the repository.
     When a 'branch' is set, checkout out the latest commit on the branch of
@@ -618,7 +717,7 @@ class VersionRepo(Fetchable):
     @abstractmethod
     def checkout(self):
         """
-        Equivalent to git checkout for the version syste.
+        Equivalent to git checkout for the version system.
         """
         raise NotImplementedError
 
@@ -905,9 +1004,9 @@ class Command(object):
         try:
             self.stdout = TempFile(mode='wb', delete=False, dir=TMP_DIR,
                                    prefix='cmd', suffix='.log')
-            self._proc = sub.Popen(
+            self._proc = subprocess.Popen(
                 self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
-                stdin=stdin, stdout=self.stdout, stderr=sub.STDOUT
+                stdin=stdin, stdout=self.stdout, stderr=subprocess.STDOUT
             )
         except OSError:
             if cmd_dir and not os.path.exists(cmd_dir):
@@ -993,8 +1092,8 @@ class Command(object):
         if not timeout:
             timeout = pakit.conf.CONFIG.get('pakit.command.timeout')
 
-        thrd = thr.Thread(target=(lambda proc: proc.wait()),
-                          args=(self._proc,))
+        thrd = threading.Thread(target=(lambda proc: proc.wait()),
+                                args=(self._proc,))
         thrd.start()
         thread_not_started = True
         while thread_not_started:
