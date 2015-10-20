@@ -33,7 +33,9 @@ except ImportError:
 import zipfile
 
 import pakit.conf
-from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
+from pakit.exc import (
+    PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
+)
 
 TMP_DIR = '/tmp/pakit'
 
@@ -257,6 +259,76 @@ def hash_archive(archive, hash_alg='sha256'):
             block = fin.read(blk_size)
 
     return hasher.hexdigest()
+
+
+class Linker(object):
+    """
+    Link one path to another location.
+
+    Attributes:
+
+
+    """
+    def __init__(self, src, dst, action='link', conflict='fail'):
+        self.src = src
+        self.dst = dst
+        if action == 'link':
+            self.__call__ = functools.partial(walk_and_link, self.src, self.dst)
+        else:
+            self.__call__ = functools.partial(walk_and_unlink, self.src, self.dst)
+
+
+def walk_and_link(src, dst):
+    """
+    Recurse down the tree from src and symbollically link
+    the files to their counterparts under dst.
+
+    Args:
+        src: The source path with the files to link.
+        dst: The destination path where links should be made.
+
+    Raises:
+        PakitLinkError: When anything goes wrong linking.
+    """
+    for dirpath, _, filenames in os.walk(src, followlinks=True):
+        link_dst = dirpath.replace(src, dst)
+        try:
+            os.makedirs(link_dst)
+        except OSError:
+            pass
+
+        for fname in filenames:
+            try:
+                sfile = os.path.join(dirpath, fname)
+                dfile = os.path.join(link_dst, fname)
+                os.symlink(sfile, dfile)
+            except OSError:
+                msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
+                logging.error(msg)
+                raise PakitLinkError(msg)
+
+
+def walk_and_unlink(src, dst):
+    """
+    Recurse down the tree from src and unlink the files
+    that have counterparts under dst.
+
+    Args:
+        src: The source path with the files to link.
+        dst: The destination path where links should be removed.
+    """
+    for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
+        link_dst = dirpath.replace(src, dst)
+        for fname in filenames:
+            try:
+                os.remove(os.path.join(link_dst, fname))
+            except OSError:
+                pass  # link was not there
+
+        try:
+            os.rmdir(link_dst)
+        except OSError:  # pragma: no cover
+            pass
 
 
 class Fetchable(object):

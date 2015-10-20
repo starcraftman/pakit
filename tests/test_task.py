@@ -15,8 +15,8 @@ import pakit.conf
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import RecipeDB
 from pakit.task import (
-    subseq_match, substring_match, walk_and_link, walk_and_unlink,
-    Task, RecipeTask, InstallTask, RemoveTask, UpdateTask, DisplayTask,
+    subseq_match, substring_match, Task, RecipeTask,
+    InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes
 )
 import tests.common as tc
@@ -34,67 +34,6 @@ def test_substring_match():
     assert substring_match(haystack, 'hello')
     assert substring_match(haystack, 'Hello')
     assert not substring_match(haystack, 'HelloW')
-
-
-class TestLinking(object):
-    def setup(self):
-        config = tc.env_setup()
-        paths = config.get('pakit.paths')
-        self.src = paths['prefix']
-        self.dst = paths['link']
-        self.teardown()
-
-        self.subdir = os.path.join(self.src, 'subdir')
-        os.makedirs(self.subdir)
-
-        self.fnames = [os.path.join(self.src, 'file' + str(num))
-                       for num in range(0, 6)]
-        self.fnames += [os.path.join(self.subdir, 'file' + str(num))
-                        for num in range(0, 4)]
-        self.dst_fnames = [fname.replace(self.src, self.dst)
-                           for fname in self.fnames]
-        for fname in self.fnames:
-            with open(fname, 'wb') as fout:
-                fout.write('dummy'.encode())
-
-    def teardown(self):
-        tc.delete_it(self.src)
-        tc.delete_it(self.dst)
-        for path in [self.src, self.dst]:
-            try:
-                os.makedirs(path)
-            except OSError:
-                pass
-
-    def test_walk_and_link_works(self):
-        walk_and_link(self.src, self.dst)
-        for fname in self.dst_fnames:
-            assert os.path.islink(fname)
-            assert os.readlink(fname) == fname.replace(self.dst, self.src)
-
-    def test_walk_and_link_raises(self):
-        walk_and_link(self.src, self.dst)
-        with pytest.raises(PakitLinkError):
-            walk_and_link(self.src, self.dst)
-
-    def test_walk_and_unlink(self):
-        walk_and_link(self.src, self.dst)
-        walk_and_unlink(self.src, self.dst)
-        for fname in self.dst_fnames:
-            assert not os.path.exists(fname)
-        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
-        for fname in self.fnames:
-            assert os.path.exists(fname)
-
-    def test_walk_and_unlink_missing(self):
-        walk_and_link(self.src, self.dst)
-        os.remove(self.dst_fnames[0])
-        walk_and_unlink(self.src, self.dst)
-        for fname in self.dst_fnames:
-            assert not os.path.exists(fname)
-        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
-        for fname in self.fnames:
-            assert os.path.exists(fname)
 
 
 class TestTaskBase(object):

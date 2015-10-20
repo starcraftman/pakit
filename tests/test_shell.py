@@ -8,10 +8,12 @@ import os
 import pytest
 import shutil
 
-from pakit.exc import PakitError, PakitCmdError, PakitCmdTimeout
+from pakit.exc import (
+    PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
+)
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive, cmd_cleanup,
-    get_extract_func, extract_tar_gz
+    get_extract_func, extract_tar_gz, walk_and_link, walk_and_unlink
 )
 import pakit.shell
 import tests.common as tc
@@ -63,6 +65,67 @@ def test_cmd_cleanup_raises():
         cmd_cleanup()
     assert os.path.exists(cmd_file)
     os.rmdir(cmd_file)
+
+
+class TestLinking(object):
+    def setup(self):
+        config = tc.env_setup()
+        paths = config.get('pakit.paths')
+        self.src = paths['prefix']
+        self.dst = paths['link']
+        self.teardown()
+
+        self.subdir = os.path.join(self.src, 'subdir')
+        os.makedirs(self.subdir)
+
+        self.fnames = [os.path.join(self.src, 'file' + str(num))
+                       for num in range(0, 6)]
+        self.fnames += [os.path.join(self.subdir, 'file' + str(num))
+                        for num in range(0, 4)]
+        self.dst_fnames = [fname.replace(self.src, self.dst)
+                           for fname in self.fnames]
+        for fname in self.fnames:
+            with open(fname, 'wb') as fout:
+                fout.write('dummy'.encode())
+
+    def teardown(self):
+        tc.delete_it(self.src)
+        tc.delete_it(self.dst)
+        for path in [self.src, self.dst]:
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
+
+    def test_walk_and_link_works(self):
+        walk_and_link(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert os.path.islink(fname)
+            assert os.readlink(fname) == fname.replace(self.dst, self.src)
+
+    def test_walk_and_link_raises(self):
+        walk_and_link(self.src, self.dst)
+        with pytest.raises(PakitLinkError):
+            walk_and_link(self.src, self.dst)
+
+    def test_walk_and_unlink(self):
+        walk_and_link(self.src, self.dst)
+        walk_and_unlink(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert not os.path.exists(fname)
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
+        for fname in self.fnames:
+            assert os.path.exists(fname)
+
+    def test_walk_and_unlink_missing(self):
+        walk_and_link(self.src, self.dst)
+        os.remove(self.dst_fnames[0])
+        walk_and_unlink(self.src, self.dst)
+        for fname in self.dst_fnames:
+            assert not os.path.exists(fname)
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
+        for fname in self.fnames:
+            assert os.path.exists(fname)
 
 
 class TestExtractFuncs(object):

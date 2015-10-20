@@ -9,69 +9,15 @@ from __future__ import absolute_import, print_function
 from abc import ABCMeta, abstractmethod
 
 import logging
-import os
 import shutil
 
 import pakit.conf
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.recipe import Recipe, RecipeDB
-from pakit.shell import Command
+from pakit.shell import Command, walk_and_link, walk_and_unlink
 
 PREFIX = '\n  '
 USER = logging.getLogger('pakit')
-
-
-def walk_and_link(src, dst):
-    """
-    Recurse down the tree from src and symbollically link
-    the files to their counterparts under dst.
-
-    Args:
-        src: The source path with the files to link.
-        dst: The destination path where links should be made.
-
-    Raises:
-        PakitLinkError: When anything goes wrong linking.
-    """
-    for dirpath, _, filenames in os.walk(src, followlinks=True):
-        link_dst = dirpath.replace(src, dst)
-        try:
-            os.makedirs(link_dst)
-        except OSError:
-            pass
-
-        for fname in filenames:
-            try:
-                sfile = os.path.join(dirpath, fname)
-                dfile = os.path.join(link_dst, fname)
-                os.symlink(sfile, dfile)
-            except OSError:
-                msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
-                logging.error(msg)
-                raise PakitLinkError(msg)
-
-
-def walk_and_unlink(src, dst):
-    """
-    Recurse down the tree from src and unlink the files
-    that have counterparts under dst.
-
-    Args:
-        src: The source path with the files to link.
-        dst: The destination path where links should be removed.
-    """
-    for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
-        link_dst = dirpath.replace(src, dst)
-        for fname in filenames:
-            try:
-                os.remove(os.path.join(link_dst, fname))
-            except OSError:
-                pass  # link was not there
-
-        try:
-            os.rmdir(link_dst)
-        except OSError:  # pragma: no cover
-            pass
 
 
 class Task(object):
