@@ -81,7 +81,6 @@ class RecipeDecorator(object):
     # TODO: Two decorators here, 1) changes dir, 2) looks for pre/post
     # should probably separate them
     def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
-        self.instance = None
         self.func = None
         self.pre_func = None
         self.post_func = None
@@ -146,7 +145,6 @@ class RecipeDecorator(object):
             func: The class method this decorator is wrapping up.
         """
         self.func = func
-        self.instance = instance
         self.pre_func = getattr(instance, 'pre_' + func.__name__, None)
         self.post_func = getattr(instance, 'post_' + func.__name__, None)
 

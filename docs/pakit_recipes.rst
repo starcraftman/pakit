@@ -7,10 +7,10 @@ Conventions
 -----------
 
 - When I write words inside \`backticks\`, the contents should be executed on the shell.
-- When I write *recipe*, I am referring to the general idea of a recipe that pakit uses.
+- When I write *recipe*, I am referring to recipes in general as a concept.
 - When I write *Recipe*, I am referring to the base class for all recipes at `pakit.Recipe`.
 - When I write *Sub.repos*, Sub is just a placeholder for the subclass name you would
-  use when writing your pakit recipe.
+  use when writing your Pakit recipe.
   In this case, I am referring to the repos attribute of said subclass.
   More on this later.
 
@@ -24,7 +24,7 @@ In order to write recipes...
 #. You should be able to program python at a basic level. Writing a class with methods
    should be easy for you. If you want a primer, I recommend: `Dive Into Python`
    (http://www.diveintopython3.net/)
-#. You should understand how pakit works, read the man page and try the demo.
+#. You should understand how Pakit works, read the man page and try the demo.
 #. You should read the following important pydoc sections:
 
    a. \`pydoc pakit.Git\` (Fetches git source code)
@@ -37,7 +37,7 @@ In order to write recipes...
 Annotated Example
 -----------------
 To quickly explain recipes, I will discuss the **example** recipe
-that comes with pakit.
+that comes with Pakit.
 It doesn't build anything, it just demonstrates all major features including optional ones.
 By executing the following commands you can see it in action, pay attention to the output
 
@@ -208,12 +208,12 @@ part of a recipe.
 Recipe Naming
 -------------
 In general, the name you pick for the Recipe file is the one you will use throughout
-pakit to interact with the recipe.
+Pakit to interact with the recipe.
 
 In short:
 
 #. Every recipe is defined in its own file.
-#. The name of the recipe file, is the name pakit will use to index it in the database.
+#. The name of the recipe file, is the name Pakit will use to index it in the database.
 #. Each recipe file must contain at least 1 class that is the capitalized name of the recipe file.
 #. That class must inherit from `pakit.Recipe`.
 
@@ -225,14 +225,14 @@ For example, the default recipe **ag** found in `pakit_recipes/ag.py`.
 
 Recipe Loading
 --------------
-All Recipes are indexed by `pakit.recipe.RecipeDB` on pakit startup.
+All Recipes are indexed by `pakit.recipe.RecipeDB` on startup.
 The database uses a dictionary approach to storage, last Recipe loaded with the same name wins.
-So if both *default* and *user* paths have a Recipe for **ag**, pakit will
+So if both *default* and *user* paths have a Recipe for **ag**, Pakit will
 use the *user* version as it was loaded later.
 
 Now just to clarify:
 
-#. *Default* Recipes will be maintained, tested and provided by **pakit**. This project will
+#. *Default* Recipes will be maintained, tested and provided by Pakit. This project will
    try to ensure these work. Default recipes currently come with pakit in the **pakit_recipes** module.
 
 #. *User* Recipes are ones you write and store in the configured location  `pakit.paths.recipes`
@@ -247,14 +247,14 @@ These subclasses provide convenient means to fetch source code from remote URIs,
 
 Noteworthy Subclasses:
 
-* *Git*: Fetch source from a valid git repository.
+- *Git*: Fetch source from a valid git repository.
   By default checkout default branch.
   Optionally specify a branch, tag, or revision to checkout post download.
-* *Hg*: The same as Git but for Mercurial repositories.
-* *Archive*: Provides support for retrieving source archives from a specified URI.
+- *Hg*: The same as Git but for Mercurial repositories.
+- *Archive*: Provides support for retrieving source archives from a specified URI.
   You must provide the hash of the archive to verify it after download.
   Extracting the archive to source folder will be done automatically if supported.
-* *Dummy*: A convenience class, should the Recipe not require source code.
+- *Dummy*: A convenience class, should the Recipe not require source code.
   This class will simply create an empty folder where the source should be.
 
 By convention, repos should have two entries: *stable* and *unstable*.
@@ -265,11 +265,11 @@ The repo selected for a Recipe can be configured, see the **pakit** man page for
 
 Recipe Building
 ---------------
-Once the source code selected is downloaded **pakit** will automatically change directory to the
+Once the source code selected is downloaded Pakit will automatically change directory to the
 source code. It will then invoke the *Sub.build()*.
 By the end of the *Sub.build()*, your program should be installed to the required path.
 The path to install your program is available in the *Sub.opts* variable, using the *prefix* key.
-Linking will be done automatically by pakit after **build()** and
+Linking will be done automatically by Pakit after **build()** and
 before the **verify()** method.
 
 A few notes:
@@ -278,7 +278,7 @@ A few notes:
    any further tasks and cleaning up the current install. If it was an update,
    the previous working version will be restored.
 #. You are free to use anything available in python and its libraries to build your program,
-   even pakit code.
+   even Pakit code.
 #. To issue system commands I **STRONGLY** encourage you to use the *Sub.cmd* convenience method
    available on all subclasses.
    It acts as a wrapper around  python's subprocess.Popen, enabling useful features:
@@ -305,7 +305,7 @@ to verify the program. This includes, writing files, invoking commands, building
 libraries.
 
 To verify the program, you should use python **assert** statements.
-If an AssertionException is raised pakit will clean up by:
+If an AssertionException is raised Pakit will clean up by:
 
 - Undoing the link step.
 - Deleting the install folder.

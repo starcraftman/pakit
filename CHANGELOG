@@ -1,6 +1,16 @@
-NEXT
+0.2.4
+  - Improve tests with session fixtures and better isolation.
+  - Add recipes for GNU Tar, GNU gettext & xz utils.
+  - Run checks on recipe locations before indexing.
+  - Improve setup.py.
+  - Improve documentation, add pakit_recipes man page detailing recipe writing.
+  - Add example recipe that illustrates all features.
+  - Allow recipe Commands to override environment variables.
+  - Improve build()/verify(), now execute in more appropriate directories,
+    allow for pre/post functions.
   - Add relink command, remakes all symlinks for installed programs.
-  - Add basic dependency management.
+  - Add basic dependency management, Recipes can define 'requires' list of required recipes.
+    Note, still a work in progress.
   - Add Dummy Fetchable for testing & simple recipes.
 
 0.2.3

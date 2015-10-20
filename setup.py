@@ -23,11 +23,11 @@ except ImportError:
 def get_long_desc():
     """ Fetches the latest changelog for pypi """
     change_file = os.path.join(os.path.dirname(__file__), 'CHANGELOG')
-    base_desc = 'Pakit is a package manager that builds from source.\n\
-For More Information: https://github.com/starcraftman/pakit/\n'
+    base_desc = 'Pakit is a package manager that builds programs from source.\
+\n\nFor More Information: https://github.com/starcraftman/pakit'
     with open(change_file) as fin:
         lines = fin.readlines()
-    return base_desc + '\nChange Log:\n\n' + ''.join(lines)
+    return base_desc + '\n\nChange Log:\n\n' + ''.join(lines)
 
 
 def rec_search(wildcard):

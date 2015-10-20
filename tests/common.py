@@ -109,7 +109,6 @@ def env_teardown():
     env_config_teardown()
 
 
-# TODO: Missing test case in test_common
 def env_status():
     """
     Print information about the test bed to check tests aren't

@@ -1,14 +1,14 @@
 ## Expected Command Line
 
-* `pakit --install tmux ag`       -- Install several programs
-* `pakit --update`                -- Update local programs
-* `pakit --remove tmux`           -- Remove program
-* `pakit --list`                  -- List installed programs
-* `pakit --available`             -- List ALL available formula
-* `pakit --search lib`            -- Display matching avilable recipes
-* `pakit --conf ./a.yaml -i ag`   -- Override default config
-* `pakit --display vim ag`        -- Display package information
-* `pakit --relink`                -- Relink all pakit programs
+- `pakit --install tmux ag`       -- Install several programs
+- `pakit --update`                -- Update local programs
+- `pakit --remove tmux`           -- Remove program
+- `pakit --list`                  -- List installed programs
+- `pakit --available`             -- List ALL available formula
+- `pakit --search lib`            -- Display matching avilable recipes
+- `pakit --conf ./a.yaml -i ag`   -- Override default config
+- `pakit --display vim ag`        -- Display package information
+- `pakit --relink`                -- Relink all programs
 
 Short opts in order: -i -u -r -l -a -s -c -d
 
@@ -52,12 +52,12 @@ Core logic implemented in pakit/recipe.py
 Aim is to have very short easily written recipes.
 
 Parts of standard recipe:
-* description: Short 1 line description. First non-empty line of __doc__.
-* more_info: Long as you want. second non-empty line of __doc__ to end.
-* homepage: Where people can get information on the project.
-* repos: A dict of possible source downloaders.
-* build(): A function that builds the source selectable by config.
-* verify(): A function that uses `assert` statements to verify build.
+- description: Short 1 line description. First non-empty line of __doc__.
+- more_info: Long as you want. second non-empty line of __doc__ to end.
+- homepage: Where people can get information on the project.
+- repos: A dict of possible source downloaders.
+- build(): A function that builds the source selectable by config.
+- verify(): A function that uses `assert` statements to verify build.
 
 Example:
 ```py
@@ -94,8 +94,8 @@ In Recipes Constructor to depend on Git and Hg:
     self.requires = ['git', 'hg']
 
 To determine order, will have to make a directed graph  based on requirements requested.
-Then perform a sort or analysis to determine order.
-While pakit single threaded can return a list of tasks to be iterated in order.
+Then perform a topological sort to get a list of execution.
+While Pakit single threaded can return a list of tasks to be iterated in order.
 
 For multithreaded version, should make some queue like adapter for the DAG so that
 can lock and pop off one task at a time when requirements met. Else idle the worker.

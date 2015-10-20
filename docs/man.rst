@@ -11,7 +11,7 @@ Pakit provides:
 #. A simple Recipe specification to build programs from source code.
 #. Premade recipes for common programs under ``pakit_recipes``.
 
-When you install a program pakit will...
+When you install a program Pakit will...
 
 #. download the source into a silo in `pakit.paths.source` and build it.
 #. install the program into a silo under `pakit.paths.prefix`.
@@ -68,7 +68,7 @@ Options
 Completion
 ----------
 At this time only bash completion is available
-You can find it within the pakit module, inside the `extra/completion` folder.
+You can find it within the site package at  `pakit/extra/completion`.
 See that folder's `README.md` for further details.
 
 Config
@@ -147,6 +147,6 @@ More Help
 ---------
 To get more information...
 
-* pakit --help
-* man pakit_recipes
-* pydoc pakit
+- pakit --help
+- man pakit_recipes
+- pydoc pakit

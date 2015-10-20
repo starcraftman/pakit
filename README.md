@@ -12,7 +12,7 @@
 
 ## Description
 
-It is a small, python based package manager that builds from source.
+It is a small, python based package manager that builds programs from source.
 
 ![Pakit Demo](https://github.com/pakit/demo/raw/master/demo.gif)
 
@@ -30,15 +30,20 @@ To use pakit:
 
 **Build Environment**
 
-For now, pakit relies on the users build environemnt. I recommend installing:
-* c++ build environment
-* git
-* mercurial
-* anything a package depends on
+At this point pakit has two limitations to be aware of:
+- Relies on user's build environment.
+- Pakit recipes can only depend on things pakit can build, currently limited pool.
+  User needs to install any dependencies pakit can't build.
 
-For Ubuntu I recommend:
+To use pakit, you should probably have...
+- c++ build environment
+- git
+- mercurial
+- anything a recipe depends on that pakit can't build
+
+For Ubuntu install these packages:
 ```bash
-sudo apt-get install build-essential automake  python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
+sudo apt-get install build-essential automake autoreconf python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
 ```
 
 **Github**
@@ -47,7 +52,7 @@ Fetch the latest from the source. Works unless the build badge says failing.
 
 ```bash
 git clone https://github.com/starcraftman/pakit.git
-export PATH=$(pwd)/bin:$PATH
+export PATH=$(pwd)/pakit/bin:$PATH
 sudo -H pip install argparse PyYAML
 python pakit/setup.py release
 ```
@@ -62,9 +67,10 @@ sudo -H pip install pakit
 
 **PATH**
 
-By default, pakit will install programs under `paths.prefix` and link everything to `paths.link`.
-To use the built programs, `paths.link`/bin must be on your $PATH.
-So for example, with the default value of `paths.link`, you would need to:
+By default, pakit will install programs under `pakit.paths.prefix`
+ and link everything to `pakit.paths.link`.
+To use the built programs, `pakit.paths.link`/bin must be on your $PATH.
+So for example, with the default value of `pakit.paths.link`, you would need to:
 
 ```bash
 export PATH=/tmp/pakit/links/bin:$PATH
@@ -77,19 +83,13 @@ To make them permanent for bash, edit `$HOME/.bashrc` or `$HOME/.bash_aliases`.
 
 From inside the pakit source folder:
 
-* Help: `pakit --help`
-
-* Consult man: `man pakit`
-
-* Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
-
-* Install all development packages: `python setup.py deps`
-
-* Run the test suite: `tox`
-
-* See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
-
-* Read `DESIGN.md` for details on design. A bit out of date.
+- Help: `pakit --help`
+- Consult man: `man pakit`
+- Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
+- Install all development packages: `python setup.py deps`
+- Run the test suite: `tox`
+- See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
+- Read `DESIGN.md` for details on design. A bit out of date.
 
 ## Overview
 
@@ -105,20 +105,20 @@ in the config.
 
 To be clear this is NOT a replacement for system package managers like apt, yast and so on.
 It is intended primarily to be a supplementary package manage like homebrew or pip.
-You install bleeding edge packages with it and then put onto your PATH the paths.link location.
+You install bleeding edge packages with it and then put onto your PATH the `pakit.paths.link` location.
 Later on, if I can, I may try to add bootstrapping logic for primitive/embedded areas
 or just to isolate against bad dev environments.
 
 Expected Feature Overview:
-* Python only, with minimal dependencies.
-* Package manager interface, install remove and update recipes.
-* 100% tested, framework & supported recipes.
-* Should work on any POSIX system, emphasis on Linux.
-* Simple recipe specification.
-* Configuration via a single YAML file.
-* Available via [`pip`](https://pypi.python.org/pypi/pakit).
-* Traceability via logs for every command.
-* Premade & tested recipes available for use.
+- Python only, with minimal dependencies.
+- Package manager interface, install remove and update recipes.
+- 100% tested, framework & supported recipes.
+- Should work on any POSIX system, emphasis on Linux.
+- Simple recipe specification.
+- Configuration via a single YAML file.
+- Available via [`pip`](https://pypi.python.org/pypi/pakit).
+- Traceability via logs for every command.
+- Premade & tested recipes available for use.
 
 See [DESIGN.md](https://github.com/starcraftman/pakit/blob/master/DESIGN.md) for more details.
 
