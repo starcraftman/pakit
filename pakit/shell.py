@@ -261,23 +261,48 @@ def hash_archive(archive, hash_alg='sha256'):
     return hasher.hexdigest()
 
 
-class Linker(object):
+def link_resolver_backup(**_):
     """
-    Link one path to another location.
+    Backup existing destination file to a pakit backup directory
+    rooted in link_dir.
+    Note that this directory must mirror the dfile's structure.
 
-    Attributes:
-
-
+    Kwargs:
+        sfile: Source file to point link at.
+        dfile: Destination link.
+        link_dir: The root of the link directory where all links go.
+        restore: If True, undo resolver action, otherwise ignore.
     """
-    def __init__(self, src, dst, action='link', conflict='fail'):
-        self.src = src
-        self.dst = dst
-        if action == 'link':
-            self.__call__ = functools.partial(walk_and_link, self.src, self.dst)
-        else:
-            self.__call__ = functools.partial(walk_and_unlink, self.src, self.dst)
+    # TODO: Mirror structure into a backup dir to restore on unlink
+    pass
 
 
+def link_resolver_remove(**kwargs):
+    """
+    Remove conflicting file if possible given current permissions.
+    Will fail otherwise.
+
+    Kwargs:
+        sfile: Source file to point link at.
+        dfile: Destination link.
+        link_dir: The root of the link directory where all links go.
+        restore: If True, undo resolver action, otherwise ignore.
+    """
+    os.remove(kwargs.get('dfile'))
+
+
+def link_resolver_fail(**_):
+    """
+    Do nothing to existing destination of links.
+    Failure will trigger exception that halts processing and rolls back state.
+
+    Kwargs:
+        No importance.
+    """
+    pass
+
+
+# FIXME: Getting heavily indented ...
 def walk_and_link(src, dst):
     """
     Recurse down the tree from src and symbollically link
@@ -297,15 +322,20 @@ def walk_and_link(src, dst):
         except OSError:
             pass
 
+        resolver = getattr(sys.modules[__name__], 'link_resolver_fail')
         for fname in filenames:
+            sfile = os.path.join(dirpath, fname)
+            dfile = os.path.join(link_dst, fname)
             try:
-                sfile = os.path.join(dirpath, fname)
-                dfile = os.path.join(link_dst, fname)
                 os.symlink(sfile, dfile)
             except OSError:
-                msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
-                logging.error(msg)
-                raise PakitLinkError(msg)
+                try:
+                    resolver(sfile=sfile, dfile=dfile, link_dir=link_dst)
+                    os.symlink(sfile, dfile)
+                except OSError:
+                    msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
+                    logging.error(msg)
+                    raise PakitLinkError(msg)
 
 
 def walk_and_unlink(src, dst):

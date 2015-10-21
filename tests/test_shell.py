@@ -12,8 +12,9 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 from pakit.shell import (
-    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive, cmd_cleanup,
-    get_extract_func, extract_tar_gz, walk_and_link, walk_and_unlink
+    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
+    cmd_cleanup, get_extract_func, extract_tar_gz,
+    walk_and_link, walk_and_unlink
 )
 import pakit.shell
 import tests.common as tc
