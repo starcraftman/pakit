@@ -48,6 +48,11 @@ def test_hash_archive_sha256():
 
 
 def test_cmd_cleanup():
+    try:
+        os.makedirs(os.path.basename(pakit.shell.TMP_DIR))
+    except OSError:
+        pass
+
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
     with open(cmd_file, 'wb') as fout:
         fout.write('hello'.encode())

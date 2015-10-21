@@ -261,7 +261,7 @@ def hash_archive(archive, hash_alg='sha256'):
     return hasher.hexdigest()
 
 
-def link_resolver_backup(**_):
+def link_resolve_backup(sfile, dfile, restore=False):
     """
     Backup existing destination file to a pakit backup directory
     rooted in link_dir.
@@ -274,10 +274,10 @@ def link_resolver_backup(**_):
         restore: If True, undo resolver action, otherwise ignore.
     """
     # TODO: Mirror structure into a backup dir to restore on unlink
-    pass
+    print(sfile, dfile, restore)
 
 
-def link_resolver_remove(**kwargs):
+def link_resolve_remove(*args, **_):
     """
     Remove conflicting file if possible given current permissions.
     Will fail otherwise.
@@ -285,13 +285,12 @@ def link_resolver_remove(**kwargs):
     Kwargs:
         sfile: Source file to point link at.
         dfile: Destination link.
-        link_dir: The root of the link directory where all links go.
         restore: If True, undo resolver action, otherwise ignore.
     """
-    os.remove(kwargs.get('dfile'))
+    os.remove(args[1])
 
 
-def link_resolver_fail(**_):
+def link_resolve_fail(*_):
     """
     Do nothing to existing destination of links.
     Failure will trigger exception that halts processing and rolls back state.
@@ -302,7 +301,6 @@ def link_resolver_fail(**_):
     pass
 
 
-# FIXME: Getting heavily indented ...
 def walk_and_link(src, dst):
     """
     Recurse down the tree from src and symbollically link
@@ -315,27 +313,8 @@ def walk_and_link(src, dst):
     Raises:
         PakitLinkError: When anything goes wrong linking.
     """
-    for dirpath, _, filenames in os.walk(src, followlinks=True):
-        link_dst = dirpath.replace(src, dst)
-        try:
-            os.makedirs(link_dst)
-        except OSError:
-            pass
-
-        resolver = getattr(sys.modules[__name__], 'link_resolver_fail')
-        for fname in filenames:
-            sfile = os.path.join(dirpath, fname)
-            dfile = os.path.join(link_dst, fname)
-            try:
-                os.symlink(sfile, dfile)
-            except OSError:
-                try:
-                    resolver(sfile=sfile, dfile=dfile, link_dir=link_dst)
-                    os.symlink(sfile, dfile)
-                except OSError:
-                    msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
-                    logging.error(msg)
-                    raise PakitLinkError(msg)
+    for dirpath, _, filenames in os.walk(src, followlinks=True, topdown=True):
+        link_all_files(dirpath, dirpath.replace(src, dst), filenames)
 
 
 def walk_and_unlink(src, dst):
@@ -347,18 +326,67 @@ def walk_and_unlink(src, dst):
         src: The source path with the files to link.
         dst: The destination path where links should be removed.
     """
-    for dirpath, _, filenames in os.walk(src, topdown=False, followlinks=True):
-        link_dst = dirpath.replace(src, dst)
-        for fname in filenames:
-            try:
-                os.remove(os.path.join(link_dst, fname))
-            except OSError:
-                pass  # link was not there
+    for dirpath, _, filenames in os.walk(src, followlinks=True, topdown=False):
+        unlink_all_files(dirpath, dirpath.replace(src, dst), filenames)
 
+
+def link_all_files(src, dst, filenames):
+    """
+    From src directory link all filenames into dst.
+
+    Args:
+        src: The directory where the source files exist.
+        dst: The directory where the links should be made.
+        filenames: A list of filenames in src.
+    """
+    try:
+        os.makedirs(dst)
+    except OSError:
+        pass  # The folder already existed
+
+    for fname in filenames:
+        sfile = os.path.join(src, fname)
+        dfile = os.path.join(dst, fname)
+        resolver = getattr(sys.modules[__name__], 'link_resolve_fail')
+        attempt_link_with_resolver(sfile, dfile, resolver)
+
+
+def attempt_link_with_resolver(sfile, dfile, resolver):
+    """
+    Link sfile to dfile path. If it fails, attempt to resolve
+    any problems with resolver.
+    """
+    try:
+        os.symlink(sfile, dfile)
+    except OSError:
         try:
-            os.rmdir(link_dst)
-        except OSError:  # pragma: no cover
-            pass
+            resolver(sfile, dfile)
+            os.symlink(sfile, dfile)
+        except OSError:
+            msg = 'Could not symlink {0} -> {1}'.format(sfile, dfile)
+            logging.error(msg)
+            raise PakitLinkError(msg)
+
+
+def unlink_all_files(_, dst, filenames):
+    """
+    Unlink all links in dst that are in filenames.
+
+    Args:
+        src: The directory where the source files exist.
+        dst: The directory where the links should be made.
+        filenames: A list of filenames in src.
+    """
+    for fname in filenames:
+        try:
+            os.remove(os.path.join(dst, fname))
+        except OSError:
+            pass  # The link was not there
+
+    try:
+        os.rmdir(dst)
+    except OSError:
+        pass  # Folder probably had files left.
 
 
 class Fetchable(object):
