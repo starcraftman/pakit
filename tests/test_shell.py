@@ -13,7 +13,7 @@ from pakit.exc import (
 )
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
-    cmd_cleanup, get_extract_func, extract_tar_gz,
+    common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink
 )
 import pakit.shell
@@ -71,6 +71,30 @@ def test_cmd_cleanup_raises():
         cmd_cleanup()
     assert os.path.exists(cmd_file)
     os.rmdir(cmd_file)
+
+
+def test_common_suffix():
+    path1 = os.path.join('/base', 'prefix', 'ag', 'bin')
+    path2 = os.path.join('/root', 'base', 'prefix', 'ag', 'bin')
+    assert common_suffix(path1, path2) == path1[1:]
+    assert common_suffix(path2, path1) == path1[1:]
+
+
+# TODO: Make meaningful tests, probably class.
+def test_link_resolve_backup():
+    sfile = os.path.join('/tmp', 'pakit', 'prefix', 'ag', 'bin', 'ag')
+    dfile = os.path.join('/tmp', 'pakit', 'links', 'bin', 'ag')
+    pakit.shell.link_resolve_backup(sfile, dfile)
+
+
+def test_link_resolve_remove():
+    dfile = os.path.join('/tmp', 'pakit', 'links', 'bin', 'ag')
+    with pytest.raises(OSError):
+        pakit.shell.link_resolve_remove(0, dfile)
+
+
+def test_link_resolve_fail():
+    pakit.shell.link_resolve_fail()
 
 
 class TestLinking(object):

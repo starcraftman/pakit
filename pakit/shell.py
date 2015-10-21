@@ -261,26 +261,51 @@ def hash_archive(archive, hash_alg='sha256'):
     return hasher.hexdigest()
 
 
+def common_suffix(path1, path2):
+    """
+    Given two paths, find the largest common suffix.
+
+    Args:
+        path1: The first path.
+        path2: The second path.
+    """
+    suffix = []
+    parts1 = path1.split(os.path.sep)
+    parts2 = path2.split(os.path.sep)
+
+    if len(parts2) < len(parts1):
+        parts1, parts2 = parts2, parts1
+
+    while len(parts1):
+        if parts1[-1] != parts2[-1]:
+            break
+
+        suffix.insert(0, parts1.pop())
+        parts2.pop()
+
+    return os.path.sep.join(suffix)
+
+
 def link_resolve_backup(sfile, dfile, restore=False):
     """
     Backup existing destination file to a pakit backup directory
     rooted in link_dir.
-    Note that this directory must mirror the dfile's structure.
+    The hidden folder will be named `.pakit_archive`.
 
     Kwargs:
         sfile: Source file to point link at.
         dfile: Destination link.
-        link_dir: The root of the link directory where all links go.
         restore: If True, undo resolver action, otherwise ignore.
     """
     # TODO: Mirror structure into a backup dir to restore on unlink
-    print(sfile, dfile, restore)
+    link_dir = dfile.replace('/' + common_suffix(sfile, dfile), '')
+    logging.error('%s -> %s, %s. Restore %s',
+                  sfile, dfile, link_dir, str(restore))
 
 
-def link_resolve_remove(*args, **_):
+def link_resolve_remove(*args):
     """
-    Remove conflicting file if possible given current permissions.
-    Will fail otherwise.
+    Remove conflicting file if possible with current permissions.
 
     Kwargs:
         sfile: Source file to point link at.
@@ -292,11 +317,7 @@ def link_resolve_remove(*args, **_):
 
 def link_resolve_fail(*_):
     """
-    Do nothing to existing destination of links.
-    Failure will trigger exception that halts processing and rolls back state.
-
-    Kwargs:
-        No importance.
+    Simply do nothing with respect to conflicting file at destination.
     """
     pass
 
