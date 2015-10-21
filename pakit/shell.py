@@ -302,7 +302,7 @@ def link_resolve_backup(sfile, dfile, restore=False):
 
     try:
         os.makedirs(os.path.dirname(backup_file))
-    except OSError:
+    except OSError:  # pragma: no cover
         pass
 
     shutil.move(dfile, backup_file)
