@@ -276,10 +276,7 @@ def common_suffix(path1, path2):
     if len(parts2) < len(parts1):
         parts1, parts2 = parts2, parts1
 
-    while len(parts1):
-        if parts1[-1] != parts2[-1]:
-            break
-
+    while len(parts1) and parts1[-1] == parts2[-1]:
         suffix.insert(0, parts1.pop())
         parts2.pop()
 
@@ -297,10 +294,18 @@ def link_resolve_backup(sfile, dfile, restore=False):
         dfile: Destination link.
         restore: If True, undo resolver action, otherwise ignore.
     """
-    # TODO: Mirror structure into a backup dir to restore on unlink
-    link_dir = dfile.replace('/' + common_suffix(sfile, dfile), '')
+    suffix = common_suffix(sfile, dfile)
+    link_dir = dfile.replace('/' + suffix, '')
     logging.error('%s -> %s, %s. Restore %s',
                   sfile, dfile, link_dir, str(restore))
+    backup_file = os.path.join(link_dir, '.pakit_archive', suffix)
+
+    try:
+        os.makedirs(os.path.dirname(backup_file))
+    except OSError:
+        pass
+
+    shutil.move(dfile, backup_file)
 
 
 def link_resolve_remove(*args):

@@ -48,11 +48,7 @@ def test_hash_archive_sha256():
 
 
 def test_cmd_cleanup():
-    try:
-        os.makedirs(os.path.basename(pakit.shell.TMP_DIR))
-    except OSError:
-        pass
-
+    tc.env_setup()
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
     with open(cmd_file, 'wb') as fout:
         fout.write('hello'.encode())
@@ -80,21 +76,46 @@ def test_common_suffix():
     assert common_suffix(path2, path1) == path1[1:]
 
 
-# TODO: Make meaningful tests, probably class.
-def test_link_resolve_backup():
-    sfile = os.path.join('/tmp', 'pakit', 'prefix', 'ag', 'bin', 'ag')
-    dfile = os.path.join('/tmp', 'pakit', 'links', 'bin', 'ag')
-    pakit.shell.link_resolve_backup(sfile, dfile)
+class TestLinkResolve(object):
+    def setup(self):
+        config = tc.env_setup()
+        paths = config.get('pakit.paths')
+        self.src = paths['prefix']
+        self.dst = paths['link']
+        self.sfile = os.path.join(self.src, 'ag', 'bin', 'ag')
+        self.dfile = os.path.join(self.dst, 'bin', 'ag')
 
+        for path in [os.path.dirname(self.sfile), os.path.dirname(self.dfile)]:
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
 
-def test_link_resolve_remove():
-    dfile = os.path.join('/tmp', 'pakit', 'links', 'bin', 'ag')
-    with pytest.raises(OSError):
-        pakit.shell.link_resolve_remove(0, dfile)
+        for fname in [self.sfile, self.dfile]:
+            with open(fname, 'w') as fout:
+                fout.write('dummy')
 
+    def teardown(self):
+        tc.delete_it(self.src)
+        tc.delete_it(self.dst)
 
-def test_link_resolve_fail():
-    pakit.shell.link_resolve_fail()
+    def test_link_resolve_backup(self):
+        assert os.path.exists(self.dfile)
+        pakit.shell.link_resolve_backup(self.sfile, self.dfile)
+        assert not os.path.exists(self.dfile)
+        backup_file = os.path.join(self.dst, '.pakit_archive',
+                                   common_suffix(self.sfile, self.dfile))
+        assert os.path.exists(backup_file)
+
+    def test_link_resolve_remove(self):
+        assert os.path.exists(self.dfile)
+        pakit.shell.link_resolve_remove(self.sfile, self.dfile)
+        assert not os.path.exists(self.dfile)
+
+    def test_link_resolve_fail(self):
+        assert os.path.exists(self.dfile)
+        pakit.shell.link_resolve_fail(self.sfile, self.dfile)
+        assert os.path.exists(self.dfile)
 
 
 class TestLinking(object):
@@ -103,10 +124,13 @@ class TestLinking(object):
         paths = config.get('pakit.paths')
         self.src = paths['prefix']
         self.dst = paths['link']
-        self.teardown()
-
         self.subdir = os.path.join(self.src, 'subdir')
-        os.makedirs(self.subdir)
+
+        for path in [self.dst, self.subdir]:
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
 
         self.fnames = [os.path.join(self.src, 'file' + str(num))
                        for num in range(0, 6)]
@@ -121,11 +145,6 @@ class TestLinking(object):
     def teardown(self):
         tc.delete_it(self.src)
         tc.delete_it(self.dst)
-        for path in [self.src, self.dst]:
-            try:
-                os.makedirs(path)
-            except OSError:
-                pass
 
     def test_walk_and_link_works(self):
         walk_and_link(self.src, self.dst)
