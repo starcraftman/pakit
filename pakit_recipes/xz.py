@@ -16,7 +16,7 @@ class Xz(Recipe):
         }
 
     def build(self):
-        self.cmd('./autogen.sh')
+        self.cmd('autoreconf -fiv')
         self.cmd('./configure --prefix={prefix}')
         self.cmd('make')
         self.cmd('make install')
