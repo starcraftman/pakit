@@ -14,6 +14,7 @@ class Xz(Recipe):
             'stable': Git(self.src, tag='v5.2.2'),
             'unstable': Git(self.src),
         }
+        self.requires = ['gettext']
 
     def build(self):
         self.cmd('autoreconf -fiv')
