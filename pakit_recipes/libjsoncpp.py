@@ -18,7 +18,7 @@ class Libjsoncpp(Recipe):
         }
         self.opts = {
             'cmake': '-DCMAKE_BUILD_TYPE=release '
-                     '-DJSONCPP_LIB_BUILD_SHARED=ON',
+                     '-DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON'
         }
 
     def build(self):
