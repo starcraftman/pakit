@@ -3,6 +3,7 @@ Test pakit.main
 """
 from __future__ import absolute_import
 
+import copy
 import mock
 import os
 import pytest
@@ -47,12 +48,11 @@ def test_link_man_pages():
 
 @mock.patch('pakit.main.PLOG')
 def test_environment_check(mock_log):
-    config = tc.env_setup()
-    bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
+    bin_dir = os.path.join(tc.CONF.get('pakit.paths.link'), 'bin')
     old_path = os.environ['PATH']
     os.environ['PATH'] = os.environ['PATH'].replace(bin_dir, '')
 
-    environment_check(config)
+    environment_check(tc.CONF)
     mock_log.assert_called_with('  For Most Shells: export PATH=%s:$PATH',
                                 bin_dir)
 
@@ -136,11 +136,12 @@ class TestSearchConfig(object):
 
 class TestWriteConfig(object):
     def setup(self):
-        self.config = tc.env_setup()
+        self.old_conf = pakit.conf.CONFIG
         self.conf_file = os.path.join(tc.STAGING, 'conf.yaml')
 
     def teardown(self):
         tc.delete_it(self.conf_file)
+        pakit.conf.CONFIG = self.old_conf
 
     @mock.patch('pakit.main.sys')
     def test_write_config(self, mock_sys):
@@ -151,7 +152,8 @@ class TestWriteConfig(object):
 
     def test_write_config_dir(self):
         os.mkdir(self.conf_file)
-        self.config.filename = self.conf_file
+        config = copy.deepcopy(tc.CONF)
+        config.filename = self.conf_file
         with pytest.raises(PakitError):
             write_config(self.conf_file)
 
@@ -219,9 +221,6 @@ class TestArgs(object):
 
 
 class TestOrderTasks(object):
-    def setup_class(self):
-        tc.env_setup()
-
     def test_no_requires(self):
         tasks = order_tasks(['providesb'], InstallTask)
         assert len(tasks) == 1
@@ -239,8 +238,7 @@ class TestOrderTasks(object):
 
 
 class TestParseTasks(object):
-    def setup_class(self):
-        self.config = tc.env_setup()
+    def setup(self):
         self.parser = create_args_parser()
 
     def test_parse_install(self):
@@ -305,8 +303,12 @@ class TestParseTasks(object):
 
 class TestMain(object):
     """ Test different argv's passed to main. """
-    def setup_class(self):
-        self.config = tc.env_setup()
+
+    def setup(self):
+        self.old_conf = pakit.conf.CONFIG
+
+    def teardown(self):
+        pakit.conf.CONFIG = self.old_conf
 
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):

@@ -15,10 +15,6 @@ import tests.common as tc
 
 class TestYamlMixin(object):
     """ Specifically test mixin separate from targets. """
-    @classmethod
-    def setup_class(cls):
-        tc.env_setup()
-
     def setup(self):
         self.config_file = os.path.join(tc.STAGING, 'file.yaml')
         self.config = YamlMixin(self.config_file)
@@ -58,10 +54,6 @@ class TestYamlMixin(object):
 
 class TestConfig(object):
     """ Test the operation of Config class. """
-    @classmethod
-    def setup_class(cls):
-        tc.env_setup()
-
     def setup(self):
         self.config_file = os.path.join(tc.STAGING, 'pakit.yml')
         self.config = Config(self.config_file)
@@ -154,7 +146,7 @@ class TestConfig(object):
 
 class TestInstalledConfig(object):
     def setup(self):
-        self.config = tc.env_setup()
+        self.config = tc.CONF
         self.idb_file = os.path.join(tc.STAGING, 'installed.yml')
         self.idb = InstallDB(self.idb_file)
         self.recipe = RecipeDB().get('ag')

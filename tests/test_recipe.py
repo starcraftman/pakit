@@ -73,7 +73,7 @@ def test_decorator_tempd():
 
 class TestRecipe(object):
     def setup(self):
-        self.config = tc.env_setup()
+        self.config = tc.CONF
         self.recipe = RecipeDB().get('ag')
 
     def test_repo_set_fail(self):
@@ -181,9 +181,6 @@ class TestRecipe(object):
 
 
 class TestRecipeDB(object):
-    def setup(self):
-        self.config = tc.env_setup()
-
     def test__contains__(self):
         assert 'ag' in RecipeDB()
         assert 'aaaa' not in RecipeDB()
@@ -210,7 +207,7 @@ class TestRecipeDB(object):
         test_formulas = os.path.join(os.path.dirname(__file__), 'formula')
         old_db = RecipeDB._RecipeDB__instance
         RecipeDB._RecipeDB__instance = None
-        RecipeDB(self.config).index(test_formulas)
+        RecipeDB(tc.CONF).index(test_formulas)
         assert 'cyclea' in RecipeDB()
         RecipeDB._RecipeDB__instance = old_db
 

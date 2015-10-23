@@ -1,8 +1,11 @@
 """
 Test tests.common
 """
+from __future__ import absolute_import, print_function
+
 import mock
 import os
+import shutil
 
 import tests.common as tc
 
@@ -33,17 +36,25 @@ class TestEnvConfig(object):
         tc.delete_it(self.config_bak)
 
     def test_env_config_without_backup(self):
-        assert not os.path.exists(self.config)
-        assert not os.path.exists(self.config_bak)
+        try:
+            bak_conf = self.config + 'bak'
+            if os.path.exists(self.config):
+                shutil.move(self.config, bak_conf)
 
-        tc.env_config_setup()
-        assert os.path.exists(self.config)
-        assert not os.path.exists(self.config_bak)
-        assert_files_same(self.config, tc.TEST_CONFIG)
+            assert not os.path.exists(self.config)
+            assert not os.path.exists(self.config_bak)
 
-        tc.env_config_teardown()
-        assert not os.path.exists(self.config)
-        assert not os.path.exists(self.config_bak)
+            tc.env_config_setup()
+            assert os.path.exists(self.config)
+            assert not os.path.exists(self.config_bak)
+            assert_files_same(self.config, tc.TEST_CONFIG)
+
+            tc.env_config_teardown()
+            assert not os.path.exists(self.config)
+            assert not os.path.exists(self.config_bak)
+        finally:
+            if os.path.exists(bak_conf):
+                shutil.move(bak_conf, self.config)
 
     def test_env_config_with_backup(self):
         template = self.config + '_temp'
@@ -86,6 +97,13 @@ def test_env_teardown(mock_delete_it, mock_shutil):
     assert mock_shutil.move.called
 
 
+def test_env_status(mock_print):
+    tc.env_status()
+    mock_print.assert_any_call('IDB Entries: ', [])
+    mock_print.assert_any_call('Contents Link Dir: ', [])
+    mock_print.assert_any_call('Contents Prefix Dir: ', [])
+
+
 def test_delete_it_file():
     afile = 'dummy'
     with open(afile, 'wb') as fout:
@@ -102,3 +120,9 @@ def test_delete_it_dir():
             fout.write('A simple line.'.encode())
     tc.delete_it('tdir')
     assert not os.path.exists('tdir')
+
+
+def test_mock_print(mock_print):
+    assert isinstance(mock_print, mock.MagicMock)
+    print('hello')
+    mock_print.assert_called_with('hello')

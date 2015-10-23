@@ -310,6 +310,10 @@ def walk_and_unlink(src, dst):
     """
     for dirpath, _, filenames in os.walk(src, followlinks=True, topdown=False):
         unlink_all_files(dirpath, dirpath.replace(src, dst), filenames)
+    try:
+        os.makedirs(dst)
+    except OSError:
+        pass
 
 
 def link_all_files(src, dst, filenames):

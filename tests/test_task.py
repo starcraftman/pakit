@@ -3,13 +3,11 @@ Test pakit.task
 """
 from __future__ import absolute_import, print_function
 
-import glob
 import logging
 import mock
 import os
 import pytest
 import shutil
-import sys
 
 import pakit.conf
 from pakit.exc import PakitCmdError, PakitLinkError
@@ -39,7 +37,7 @@ def test_substring_match():
 class TestTaskBase(object):
     """ Shared setup, most task tests will want this. """
     def setup(self):
-        self.config = tc.env_setup()
+        self.config = tc.CONF
         self.recipe = RecipeDB().get('ag')
 
     def teardown(self):
@@ -85,8 +83,7 @@ class TestTaskRecipe(TestTaskBase):
 
 class TestTaskInstall(TestTaskBase):
     def test_is_not_installed(self):
-        task = InstallTask(self.recipe)
-        task.run()
+        InstallTask(self.recipe).run()
         name = self.recipe.name
 
         paths = pakit.conf.CONFIG.get('pakit.paths')
@@ -106,7 +103,7 @@ class TestTaskInstall(TestTaskBase):
 
 class TestTaskRollback(object):
     def setup(self):
-        self.config = tc.env_setup()
+        self.config = tc.CONF
         self.recipe = None
 
     def teardown(self):
@@ -117,6 +114,7 @@ class TestTaskRollback(object):
             self.recipe.repo.clean()
         except PakitCmdError:
             pass
+        os.makedirs(self.recipe.link_dir)
 
     def test_install_build_error(self):
         self.recipe = RecipeDB().get('build')
@@ -131,7 +129,7 @@ class TestTaskRollback(object):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
         assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
-        assert not os.path.exists(self.recipe.link_dir)
+        assert os.path.exists(self.recipe.link_dir)
 
     def test_install_verify_error(self):
         self.recipe = RecipeDB().get('verify')
@@ -139,7 +137,7 @@ class TestTaskRollback(object):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
         assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
-        assert not os.path.exists(self.recipe.link_dir)
+        assert os.path.exists(self.recipe.link_dir)
 
     def test_update_rollback_error(self):
         self.recipe = RecipeDB().get('update')
@@ -156,26 +154,21 @@ class TestTaskRollback(object):
 
 
 class TestTaskRemove(TestTaskBase):
-    def test_is_not_installed(self):
-        if sys.version[0] == '2':
-            print_mod = '__builtin__.print'
-        else:
-            print_mod = 'builtins.print'
-        with mock.patch(print_mod) as mock_print:
-            task = RemoveTask(self.recipe)
-            task.run()
-            mock_print.assert_called_with('ag: Not Installed')
+    def test_is_not_installed(self, mock_print):
+        RemoveTask(self.recipe).run()
+        mock_print.assert_called_with('ag: Not Installed')
 
     def test_is_installed(self):
         InstallTask(self.recipe).run()
-        task = RemoveTask(self.recipe)
-        task.run()
+        assert self.recipe.name in pakit.conf.IDB
+
+        RemoveTask(self.recipe).run()
+        assert self.recipe.name not in pakit.conf.IDB
 
         paths = pakit.conf.CONFIG.get('pakit.paths')
         assert os.path.exists(paths['prefix'])
-        globbed = glob.glob(os.path.join(paths['prefix'], '*'))
-        assert globbed == [os.path.join(paths['prefix'], 'installed.yml')]
-        assert not os.path.exists(paths['link'])
+        assert os.path.exists(paths['link'])
+        assert os.listdir(paths['link']) == []
 
 
 class TestTaskUpdate(TestTaskBase):
@@ -248,15 +241,10 @@ class TestTaskQuery(TestTaskBase):
         assert len(out) == 3
         assert out[-1].find('  ' + self.recipe.name) == 0
 
-    def test_list_installed_short(self):
-        if sys.version[0] == '2':
-            print_mod = '__builtin__.print'
-        else:
-            print_mod = 'builtins.print'
-        with mock.patch(print_mod) as mock_print:
-            InstallTask(self.recipe).run()
-            ListInstalled(True).run()
-            mock_print.assert_called_with('ag')
+    def test_list_installed_short(self, mock_print):
+        InstallTask(self.recipe).run()
+        ListInstalled(True).run()
+        mock_print.assert_called_with('ag')
 
     def test_list_available(self):
         task = ListAvailable()
@@ -267,15 +255,10 @@ class TestTaskQuery(TestTaskBase):
         assert out[0] == 'Available Recipes:'
         assert out[2:] == expect
 
-    def test_list_available_short(self):
-        if sys.version[0] == '2':
-            print_mod = '__builtin__.print'
-        else:
-            print_mod = 'builtins.print'
-        with mock.patch(print_mod) as mock_print:
-            ListAvailable(True).run()
-            expect = ' '.join(RecipeDB().names(desc=False))
-            mock_print.assert_called_with(expect)
+    def test_list_available_short(self, mock_print):
+        ListAvailable(True).run()
+        expect = ' '.join(RecipeDB().names(desc=False))
+        mock_print.assert_called_with(expect)
 
     def test_search_names(self):
         results = SearchTask(RecipeDB().names(), ['doxygen']).run()

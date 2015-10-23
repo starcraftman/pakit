@@ -48,7 +48,6 @@ def test_hash_archive_sha256():
 
 
 def test_cmd_cleanup():
-    tc.env_setup()
     cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
     with open(cmd_file, 'wb') as fout:
         fout.write('hello'.encode())
@@ -78,10 +77,8 @@ def test_common_suffix():
 
 class TestLinking(object):
     def setup(self):
-        config = tc.env_setup()
-        paths = config.get('pakit.paths')
-        self.src = paths['prefix']
-        self.dst = paths['link']
+        self.src = os.path.join(tc.STAGING, 'src')
+        self.dst = os.path.join(tc.STAGING, 'dst')
         self.subdir = os.path.join(self.src, 'subdir')
 
         for path in [self.dst, self.subdir]:
@@ -123,6 +120,7 @@ class TestLinking(object):
         assert not os.path.exists(self.subdir.replace(self.src, self.dst))
         for fname in self.fnames:
             assert os.path.exists(fname)
+        assert os.path.exists(self.dst)
 
     def test_walk_and_unlink_missing(self):
         walk_and_link(self.src, self.dst)
@@ -133,11 +131,22 @@ class TestLinking(object):
         assert not os.path.exists(self.subdir.replace(self.src, self.dst))
         for fname in self.fnames:
             assert os.path.exists(fname)
+        assert os.path.exists(self.dst)
+
+    def test_walk_and_unlink_mkdirs(self):
+        link_file = os.path.join(self.dst, 'NotSymLink')
+        with open(link_file, 'w') as fout:
+            fout.write('Hello')
+
+        assert os.path.exists(link_file)
+        walk_and_link(self.src, self.dst)
+        walk_and_unlink(self.src, self.dst)
+        assert os.path.exists(self.dst)
+        assert os.path.exists(link_file)
 
 
 class TestExtractFuncs(object):
     def setup(self):
-        self.config = tc.env_setup()
         self.arc_dir = tc.ARCS
         self.target = os.path.join(tc.STAGING, 'extract')
         self.expect_file = os.path.join(self.target, 'example.txt')
@@ -207,8 +216,7 @@ class TestExtractFuncs(object):
 
 class TestDummy(object):
     def setup(self):
-        self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
                                      'dummy')
         self.dummy = Dummy(target=self.test_dir)
 
@@ -246,8 +254,7 @@ class TestDummy(object):
 
 class TestArchive(object):
     def setup(self):
-        self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
                                      'tmux')
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
                                hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
@@ -318,8 +325,7 @@ class TestArchive(object):
 
 class TestGit(object):
     def setup(self):
-        self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
                                      'git')
         git_url = os.path.join(tc.STAGING, 'git')
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
@@ -414,8 +420,7 @@ class TestGit(object):
 
 class TestHg(object):
     def setup(self):
-        self.config = tc.env_setup()
-        self.test_dir = os.path.join(self.config.get('pakit.paths.source'),
+        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
                                      'hg')
         hg_url = os.path.join(tc.STAGING, 'hg')
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
