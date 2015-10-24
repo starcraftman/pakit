@@ -15,7 +15,6 @@ from pakit.main import (
     create_args_parser, environment_check, main, link_man_pages, parse_tasks,
     search_for_config, order_tasks, write_config
 )
-from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes
@@ -254,12 +253,17 @@ class TestParseTasks(object):
         assert isinstance(tasks[0], RemoveTask)
 
     def test_parse_update(self):
-        recipe = RecipeDB().get('ag')
-        pakit.conf.IDB.add(recipe)
+        """
+        Not ideal, but mucking around internally saves hassle.
+        """
+        recipe_name = 'ag'
+        pakit.conf.IDB._InstallDB__conf = {recipe_name: None}
+
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
-        assert UpdateTask(recipe.name) in tasks
-        pakit.conf.IDB.remove(recipe.name)
+        assert UpdateTask(recipe_name) in tasks
+
+        pakit.conf.IDB._InstallDB__conf = {}
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())
@@ -303,16 +307,9 @@ class TestParseTasks(object):
 
 class TestMain(object):
     """ Test different argv's passed to main. """
-
-    def setup(self):
-        self.old_conf = pakit.conf.CONFIG
-
-    def teardown(self):
-        pakit.conf.CONFIG = self.old_conf
-
     @mock.patch('pakit.main.PLOG')
     def test_normal_args(self, mock_plog):
-        main(['pakit', '--list'])
+        main(['pakit', '--conf', tc.TEST_CONFIG, '--list'])
         assert mock_plog.called
 
     @mock.patch('pakit.main.sys')
@@ -324,12 +321,12 @@ class TestMain(object):
     def test_args_bad(self, mock_argsys):
         """ NB: I mock argparse._sys, preventing the short circuit
             sys.exit that would stop code, hence hitting two sys.exits. """
-        main(['pakit', 'hello'])
+        main(['pakit', '--conf', tc.TEST_CONFIG, 'hello'])
         mock_argsys.exit.assert_called_with(2)
 
     @mock.patch('pakit.main.PLOG')
     def test_no_update_needed(self, mock_plog):
-        main(['pakit', '--update'])
+        main(['pakit', '--conf', tc.TEST_CONFIG, '--update'])
         mock_plog.assert_called_with('Nothing to update.')
 
     @mock.patch('pakit.main.parse_tasks')
@@ -341,5 +338,5 @@ class TestMain(object):
     @mock.patch('pakit.main.PLOG')
     def test_recipe_not_found(self, mock_plog):
         expect = 'Missing recipe to build: iiiii'
-        main(['pakit', '-i', 'iiiii'])
+        main(['pakit', '--conf', tc.TEST_CONFIG, '-i', 'iiiii'])
         mock_plog.assert_called_with(expect)
