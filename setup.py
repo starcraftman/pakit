@@ -23,8 +23,7 @@ except ImportError:
 def get_long_desc():
     """ Fetches the latest changelog for pypi """
     change_file = os.path.join(os.path.dirname(__file__), 'CHANGELOG')
-    base_desc = 'Pakit is a package manager that builds programs from source.\
-\n\nFor More Information: https://github.com/starcraftman/pakit'
+    base_desc = 'For More Information: https://github.com/starcraftman/pakit'
     with open(change_file) as fin:
         lines = fin.readlines()
     return base_desc + '\n\nChange Log:\n\n' + ''.join(lines)
@@ -152,7 +151,7 @@ TEST_DEPS = ['coverage', 'flake8', 'mock', 'pytest', 'tox']
 setup(
     name='pakit',
     version=pakit.__version__,
-    description='Build and manage programs simply',
+    description='A python based package manager that builds from source',
     long_description=get_long_desc(),
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
