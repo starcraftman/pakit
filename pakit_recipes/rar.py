@@ -4,12 +4,12 @@ import os
 from pakit import Archive, Recipe
 
 
-class Unrar(Recipe):
+class Rar(Recipe):
     """
     Command line program to extract rar files
     """
     def __init__(self):
-        super(Unrar, self).__init__()
+        super(Rar, self).__init__()
         self.homepage = 'http://www.rarlab.com'
         self.repos = {
             'stable': Archive('http://www.rarlab.com/rar/'
