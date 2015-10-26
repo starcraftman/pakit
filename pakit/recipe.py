@@ -227,7 +227,7 @@ class Recipe(object):
 
         Users should not be using this directly.
         """
-        self.opts.update(config.get_opts(self.name))
+        self.opts.update(config.opts_for(self.name))
         self.opts.update({
             'prefix': os.path.join(self.opts.get('prefix'), self.name),
             'source': os.path.join(self.opts.get('source'), self.name)
@@ -498,7 +498,7 @@ class RecipeDB(object):
         mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)
         cls = getattr(mod, cls_name.capitalize())
-        source_dir = os.path.join(self.__config.get('pakit.paths.source'),
+        source_dir = os.path.join(self.__config.path_to('source'),
                                   cls_name)
         cls.build = RecipeDecorator(source_dir)(cls.build)
         cls.verify = RecipeDecorator(use_tempd=True)(cls.verify)

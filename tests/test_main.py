@@ -47,7 +47,7 @@ def test_link_man_pages():
 
 @mock.patch('pakit.main.PLOG')
 def test_environment_check(mock_log):
-    bin_dir = os.path.join(tc.CONF.get('pakit.paths.link'), 'bin')
+    bin_dir = os.path.join(tc.CONF.path_to('link'), 'bin')
     old_path = os.environ['PATH']
     os.environ['PATH'] = os.environ['PATH'].replace(bin_dir, '')
 

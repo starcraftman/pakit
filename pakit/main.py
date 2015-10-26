@@ -23,7 +23,6 @@ from pakit.task import (
     DisplayTask, RelinkRecipes, SearchTask
 )
 import pakit.conf
-import pakit.shell
 
 
 PLOG = logging.getLogger('pakit').info
@@ -103,7 +102,7 @@ def environment_check(config):
 
     Guarantee built programs always first in $PATH for Commands.
     """
-    bin_dir = os.path.join(config.get('pakit.paths.link'), 'bin')
+    bin_dir = os.path.join(config.path_to('link'), 'bin')
     if os.environ['PATH'].find(bin_dir) == -1:
         PLOG('To use built recipes %s must be on shell $PATH.', bin_dir)
         PLOG('  For Most Shells: export PATH=%s:$PATH', bin_dir)
@@ -138,21 +137,20 @@ def global_init(config_file):
         except OSError:
             pass
 
-    prefix = config.get('pakit.paths.prefix')
-    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'installed.yml'))
+    prefix = config.path_to('prefix')
+    pakit.conf.IDB = InstallDB(os.path.join(prefix, 'idb.yml'))
     logging.debug('InstallDB: %s', pakit.conf.IDB)
-    pakit.shell.TMP_DIR = os.path.dirname(prefix)
 
     recipes = RecipeDB(config)
     default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                            'pakit_recipes')
     recipes.index(default)
     try:
-        recipes.index(config.get('pakit.paths.recipes'))
-    except KeyError:
+        recipes.index(config.path_to('recipes'))
+    except KeyError:  # pragma: no cover
         pass
 
-    link_man_pages(config.get('pakit.paths.link'))
+    link_man_pages(config.path_to('link'))
     environment_check(config)
 
     return config

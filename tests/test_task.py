@@ -43,8 +43,7 @@ class TestTaskBase(object):
     def teardown(self):
         RemoveTask(self.recipe).run()
         try:
-            os.remove(os.path.join(os.path.dirname(self.recipe.install_dir),
-                                   'installed.yml'))
+            os.remove(pakit.conf.IDB.filename)
         except OSError:
             pass
         try:

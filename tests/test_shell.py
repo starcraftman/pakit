@@ -57,17 +57,6 @@ def test_cmd_cleanup():
     assert not os.path.exists(cmd_file)
 
 
-def test_cmd_cleanup_raises():
-    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
-    os.makedirs(cmd_file)
-
-    assert os.path.exists(cmd_file)
-    with pytest.raises(OSError):
-        cmd_cleanup()
-    assert os.path.exists(cmd_file)
-    os.rmdir(cmd_file)
-
-
 def test_common_suffix():
     path1 = os.path.join('/base', 'prefix', 'ag', 'bin')
     path2 = os.path.join('/root', 'base', 'prefix', 'ag', 'bin')
@@ -216,8 +205,7 @@ class TestExtractFuncs(object):
 
 class TestDummy(object):
     def setup(self):
-        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
-                                     'dummy')
+        self.test_dir = os.path.join(tc.CONF.path_to('source'), 'dummy')
         self.dummy = Dummy(target=self.test_dir)
 
     def teardown(self):
@@ -254,8 +242,7 @@ class TestDummy(object):
 
 class TestArchive(object):
     def setup(self):
-        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
-                                     'tmux')
+        self.test_dir = os.path.join(tc.CONF.path_to('source'), 'tmux')
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
                                hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
                                'ebca4657dd879c35916ad362')
@@ -325,8 +312,7 @@ class TestArchive(object):
 
 class TestGit(object):
     def setup(self):
-        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
-                                     'git')
+        self.test_dir = os.path.join(tc.CONF.path_to('source'), 'git')
         git_url = os.path.join(tc.STAGING, 'git')
         self.repo = Git(git_url, target=self.test_dir, tag='0.29.0')
 
@@ -420,8 +406,7 @@ class TestGit(object):
 
 class TestHg(object):
     def setup(self):
-        self.test_dir = os.path.join(tc.CONF.get('pakit.paths.source'),
-                                     'hg')
+        self.test_dir = os.path.join(tc.CONF.path_to('source'), 'hg')
         hg_url = os.path.join(tc.STAGING, 'hg')
         self.repo = Hg(hg_url, target=self.test_dir, tag='0.2')
 

@@ -271,7 +271,7 @@ class RelinkRecipes(Task):
         """
         logging.debug('Relinking All Programs')
 
-        dst = pakit.conf.CONFIG.get('pakit.paths.link')
+        dst = pakit.conf.CONFIG.path_to('link')
         Command('rm -rf ' + dst).wait()
         for _, recipe in RecipeDB():
             walk_and_link(recipe.install_dir, dst)

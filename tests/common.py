@@ -83,7 +83,7 @@ def env_setup():
 
     RecipeDB().index(os.path.join(os.path.dirname(TEST_CONFIG), 'formula'))
     logging.info('Test recipes: %s', RecipeDB().names())
-    shutil.rmtree(os.path.join(CONF.get('pakit.paths.link'), 'share'))
+    shutil.rmtree(os.path.join(CONF.path_to('link'), 'share'))
 
     return CONF
 
@@ -117,14 +117,14 @@ def env_status():
     To see, ensure you use: py.test -s
     """
     folders = [folder for folder
-               in os.listdir(os.path.dirname(CONF.get('pakit.paths.link')))
+               in os.listdir(os.path.dirname(CONF.path_to('link')))
                if folder.find('cmd') == -1]
     try:
-        link_d = os.listdir(CONF.get('pakit.paths.link'))
+        link_d = os.listdir(CONF.path_to('link'))
     except OSError:
         link_d = 'DOES NOT EXIST'
     try:
-        prefix_d = os.listdir(CONF.get('pakit.paths.prefix'))
+        prefix_d = os.listdir(CONF.path_to('prefix'))
     except OSError:
         prefix_d = 'DOES NOT EXIST'
     print('\n')

@@ -20,6 +20,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 from tempfile import NamedTemporaryFile as TempFile
 import threading
 import time
@@ -37,7 +38,15 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 
-TMP_DIR = '/tmp/pakit'
+TMP_DIR = tempfile.mkdtemp(prefix='pakit_cmd_stdout_')
+
+
+@atexit.register
+def cmd_cleanup():
+    """
+    Cleans up any command stdout files left over,
+    """
+    shutil.rmtree(TMP_DIR)
 
 
 def wrap_extract(extract_func):
@@ -142,17 +151,25 @@ def extract_tar_xz(filename, tmp_dir):
     """
     Extracts a tar.xz archive to a temp dir
     """
+    tar_file = filename.split('.')
+    tar_file = tar_file[0:-2] if 'tar' in tar_file else tar_file[0:-1]
+    tar_file = os.path.join(os.path.dirname(filename),
+                            '.'.join(tar_file + ['tar']))
     try:
         os.makedirs(tmp_dir)
     except OSError:  # pragma: no cover
         pass
     try:
-        # Note: Requires GNU tar 1.22, released 2009
-        Command('tar -C {0} -xvf {1}'.format(tmp_dir, filename)).wait()
+        Command('xz --keep --decompress ' + filename).wait()
+        Command('tar -C {0} -xf {1}'.format(tmp_dir, tar_file)).wait()
     except (OSError, PakitCmdError):
-        raise PakitCmdError('Need `tar --version` >= 1.22 to extract: '
+        raise PakitCmdError('Need commands `xz` and `tar` to extract: '
                             + filename)
     finally:
+        try:
+            os.remove(tar_file)
+        except OSError:
+            pass
         try:
             os.rmdir(tmp_dir)
         except OSError:
@@ -934,20 +951,6 @@ class Hg(VersionRepo):
         cmd.wait()
         cmd = Command('hg update', self.target)
         cmd.wait()
-
-
-# TODO: Make this unecessary
-@atexit.register
-def cmd_cleanup():
-    """
-    Cleans up any command stdout files left over,
-    """
-    for filename in glob.glob(os.path.join(TMP_DIR, 'cmd*')):
-        try:
-            os.remove(filename)
-        except OSError:
-            logging.error('Could not delete file %s.', filename)
-            raise
 
 
 class Command(object):

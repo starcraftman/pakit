@@ -231,28 +231,6 @@ class Config(YamlMixin):
 
         return obj[leaf]
 
-    def get_opts(self, recipe_name):
-        """
-        Retrieves from config all options needed for *recipe_name*.
-
-        Args:
-            recipe_name: The recipe to look for.
-
-        Returns:
-            A dictionary that starts with everything under
-            config['pakit']['defaults'] and updates the dictionary
-            with the values in:
-                - config['pakit']['paths']
-                - config[recipe_name]
-        """
-        opts = copy.deepcopy(self.get('pakit.defaults'))
-        opts.update(self.get('pakit.paths'))
-        try:
-            opts.update(self.get(recipe_name))
-        except KeyError:
-            pass
-        return opts
-
     def reset(self):
         """
         Reset the config to default.
@@ -278,6 +256,43 @@ class Config(YamlMixin):
                 new_obj = obj.get(key)
             obj = new_obj
         obj[leaf] = val
+
+    def opts_for(self, recipe_name):
+        """
+        Retrieves from config all options needed for *recipe_name*.
+
+        Args:
+            recipe_name: The recipe to look for.
+
+        Returns:
+            A dictionary that starts with everything under
+            config['pakit']['defaults'] and updates the dictionary
+            with the values in:
+                - config['pakit']['paths']
+                - config[recipe_name]
+        """
+        opts = copy.deepcopy(self.get('pakit.defaults'))
+        opts.update(self.get('pakit.paths'))
+        try:
+            opts.update(self.get(recipe_name))
+        except KeyError:
+            pass
+        return opts
+
+    def path_to(self, key):
+        """
+        Get the path to ...
+
+        Args:
+            key: A key in `pakit.paths` dictionary.
+
+        Returns:
+            The specific path requested.
+
+        Raises:
+            KeyError: The key was not present.
+        """
+        return self.get('pakit.paths.' + key)
 
     def read(self):
         """

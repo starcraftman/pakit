@@ -8,6 +8,7 @@ import os
 import pytest
 import subprocess as sub
 
+import pakit.conf
 from pakit.conf import Config, InstallDB, YamlMixin
 from pakit.recipe import RecipeDB
 import tests.common as tc
@@ -113,15 +114,23 @@ class TestConfig(object):
         config = Config(self.config_file)
         assert config.get('pakit.command.timeout') == 120
 
+    def test_path_to(self):
+        expect = pakit.conf.TEMPLATE['pakit']['paths']['link']
+        assert self.config.path_to('link') == expect
+
+    def test_path_to_raises(self):
+        with pytest.raises(KeyError):
+            self.config.path_to('bad_key')
+
     def test_get_raises(self):
         with pytest.raises(KeyError):
             self.config.get('pakit.paths.prefixxx')
 
-    def test_get_opts(self):
+    def test_opts_for(self):
         """ Requires the testing pakit.yml. """
         config_file = os.path.join(os.path.dirname(__file__), 'pakit.yml')
         config = Config(config_file)
-        opts = config.get_opts('ag')
+        opts = config.opts_for('ag')
         assert opts.get('repo') == 'unstable'
         assert opts.get('prefix') == '/tmp/test_pakit/builds'
 
@@ -147,7 +156,7 @@ class TestConfig(object):
 class TestInstalledConfig(object):
     def setup(self):
         self.config = tc.CONF
-        self.idb_file = os.path.join(tc.STAGING, 'installed.yml')
+        self.idb_file = os.path.join(tc.STAGING, 'test_idb.yml')
         self.idb = InstallDB(self.idb_file)
         self.recipe = RecipeDB().get('ag')
 
