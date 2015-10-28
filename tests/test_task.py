@@ -10,8 +10,8 @@ import pytest
 import shutil
 
 import pakit.conf
+import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakit.recipe import RecipeDB
 from pakit.task import (
     subseq_match, substring_match, Task, RecipeTask,
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
@@ -38,7 +38,7 @@ class TestTaskBase(object):
     """ Shared setup, most task tests will want this. """
     def setup(self):
         self.config = tc.CONF
-        self.recipe = RecipeDB().get('ag')
+        self.recipe = pakit.recipe.RDB.get('ag')
 
     def teardown(self):
         RemoveTask(self.recipe).run()
@@ -116,30 +116,31 @@ class TestTaskRollback(object):
         os.makedirs(self.recipe.link_dir)
 
     def test_install_build_error(self):
-        self.recipe = RecipeDB().get('build')
+        self.recipe = pakit.recipe.RDB.get('build')
         with pytest.raises(PakitCmdError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
-        assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
+        assert os.path.exists(self.recipe.source_dir)
+        assert os.path.exists(self.recipe.link_dir)
 
     def test_install_link_error(self):
-        self.recipe = RecipeDB().get('link')
+        self.recipe = pakit.recipe.RDB.get('link')
         with pytest.raises(PakitLinkError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
-        assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
+        assert os.path.exists(self.recipe.source_dir)
         assert os.path.exists(self.recipe.link_dir)
 
     def test_install_verify_error(self):
-        self.recipe = RecipeDB().get('verify')
+        self.recipe = pakit.recipe.RDB.get('verify')
         with pytest.raises(AssertionError):
             InstallTask(self.recipe).run()
         assert os.listdir(os.path.dirname(self.recipe.install_dir)) == []
-        assert os.listdir(os.path.dirname(self.recipe.source_dir)) == []
+        assert os.path.exists(self.recipe.source_dir)
         assert os.path.exists(self.recipe.link_dir)
 
     def test_update_rollback_error(self):
-        self.recipe = RecipeDB().get('update')
+        self.recipe = pakit.recipe.RDB.get('update')
 
         self.recipe.repo = 'stable'
         InstallTask(self.recipe).run()
@@ -248,7 +249,7 @@ class TestTaskQuery(TestTaskBase):
     def test_list_available(self):
         task = ListAvailable()
         out = task.run().split('\n')
-        expect = ['  ' + line for line in RecipeDB().names(desc=True)]
+        expect = ['  ' + line for line in pakit.recipe.RDB.names(desc=True)]
         print(expect)
         print(out)
         assert out[0] == 'Available Recipes:'
@@ -256,16 +257,16 @@ class TestTaskQuery(TestTaskBase):
 
     def test_list_available_short(self, mock_print):
         ListAvailable(True).run()
-        expect = ' '.join(RecipeDB().names(desc=False))
+        expect = ' '.join(pakit.recipe.RDB.names(desc=False))
         mock_print.assert_called_with(expect)
 
     def test_search_names(self):
-        results = SearchTask(RecipeDB().names(), ['doxygen']).run()
+        results = SearchTask(pakit.recipe.RDB.names(), ['doxygen']).run()
         assert results[1:] == ['doxygen']
 
     def test_search_desc(self):
-        ack = RecipeDB().get('ack')
-        results = SearchTask(RecipeDB().names(desc=True),
+        ack = pakit.recipe.RDB.get('ack')
+        results = SearchTask(pakit.recipe.RDB.names(desc=True),
                              [ack.description]).run()
         assert results[1:] == [str(ack)]
 

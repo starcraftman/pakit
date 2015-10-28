@@ -14,7 +14,7 @@ from pakit.exc import (
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
-    walk_and_link, walk_and_unlink
+    walk_and_link, walk_and_unlink, vcs_factory
 )
 import pakit.shell
 import tests.common as tc
@@ -41,20 +41,16 @@ def test_get_extract_func_not_found():
 def test_hash_archive_sha256():
     expect_hash = ('795f4b4446b0ea968b9201c25e8c1ef8a6ade710ebca4657dd879c'
                    '35916ad362')
-    arc = Archive(tc.TAR, target='./temp', hash=expect_hash)
+    arc = Archive(tc.TAR_FILE, target='./temp', hash=expect_hash)
     arc.download()
     assert hash_archive(arc.arc_file) == expect_hash
     os.remove(arc.arc_file)
 
 
-def test_cmd_cleanup():
-    cmd_file = os.path.join(pakit.shell.TMP_DIR, 'cmd1')
-    with open(cmd_file, 'wb') as fout:
-        fout.write('hello'.encode())
-
-    assert os.path.exists(cmd_file)
+@mock.patch('pakit.shell.shutil')
+def test_cmd_cleanup(mock_shutil):
     cmd_cleanup()
-    assert not os.path.exists(cmd_file)
+    mock_shutil.rmtree.assert_called_with(pakit.shell.TMP_DIR)
 
 
 def test_common_suffix():
@@ -62,6 +58,18 @@ def test_common_suffix():
     path2 = os.path.join('/root', 'base', 'prefix', 'ag', 'bin')
     assert common_suffix(path1, path2) == path1[1:]
     assert common_suffix(path2, path1) == path1[1:]
+
+
+def test_vcs_factory():
+    print(os.listdir('/tmp'))
+    repo = vcs_factory(tc.GIT)
+    assert isinstance(repo, Git)
+    assert repo.uri == tc.GIT
+
+
+def test_vcs_factory_unsupported():
+    with pytest.raises(PakitError):
+        vcs_factory(tc.TAR)
 
 
 class TestLinking(object):
@@ -403,6 +411,10 @@ class TestGit(object):
         assert str(repo_branch) == expect
         assert str(repo_tag) == 'Git: tag: {0}, uri: {1}'.format(tag, uri)
 
+    def test_valid_uri(self):
+        assert Git.valid_uri(self.repo.uri)
+        assert not Git.valid_uri('www.google.com')
+
 
 class TestHg(object):
     def setup(self):
@@ -466,6 +478,10 @@ class TestHg(object):
             assert get_hash(self.repo.target) != latest_hash
             self.repo.update()
             assert get_hash(self.repo.target) == latest_hash
+
+    def test_valid_uri(self):
+        assert Hg.valid_uri(self.repo.uri)
+        assert not Hg.valid_uri('www.google.com')
 
 
 class TestCommand(object):

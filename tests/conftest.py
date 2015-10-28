@@ -33,12 +33,13 @@ def mock_print():
         yield mock_obj
 
 
-# For puzzling problems, executes before/after each test
-# @pytest.yield_fixture(scope='function', autouse=True)
-# def around_all_tests():
-    # """
-    # Fixture sets up the testing environment for pakit as a whole.
-    # """
-    # # before
-    # yield
-    # # after
+@pytest.yield_fixture(scope='function', autouse=True)
+def around_all_tests():
+    """
+    Executes before and after EVERY test.
+
+    Can be helpful for tracking bugs impacting test bed.
+    """
+    # before
+    yield
+    # after

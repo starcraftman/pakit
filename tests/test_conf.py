@@ -9,8 +9,8 @@ import pytest
 import subprocess as sub
 
 import pakit.conf
-from pakit.conf import Config, InstallDB, YamlMixin
-from pakit.recipe import RecipeDB
+import pakit.recipe
+from pakit.conf import Config, InstallDB, YamlMixin, RecipeURIDB
 import tests.common as tc
 
 
@@ -65,33 +65,45 @@ class TestConfig(object):
     def test__str__(self):
         print()
         print(str(self.config))
-        user_recs = os.path.expanduser('~/.pakit/recipes')
-        expect = [
-            'Config File: {0}'.format(self.config.filename),
-            'Contents:',
-            '{',
-            '  "pakit": {',
-            '    "command": {',
-            '      "timeout": 120',
-            '    },',
-            '    "defaults": {',
-            '      "repo": "stable"',
-            '    },',
-            '    "log": {',
-            '      "enabled": true,',
-            '      "file": "/tmp/pakit/main.log",',
-            '      "level": "debug"',
-            '    },',
-            '    "paths": {',
-            '      "link": "/tmp/pakit/links",',
-            '      "prefix": "/tmp/pakit/builds",',
-            '      "recipes": "{0}",'.format(user_recs),
-            '      "source": "/tmp/pakit/src"',
-            '    }',
-            '  }',
-            '}',
-        ]
-        assert str(self.config).split('\n') == expect
+        expect = """Config File: PLACE0
+Contents:
+{
+  "pakit": {
+    "command": {
+      "timeout": 120
+    },
+    "defaults": {
+      "repo": "stable"
+    },
+    "log": {
+      "enabled": true,
+      "file": "/tmp/pakit/main.log",
+      "level": "debug"
+    },
+    "paths": {
+      "link": "/tmp/pakit/links",
+      "prefix": "/tmp/pakit/builds",
+      "recipes": "PLACE1",
+      "source": "/tmp/pakit/src"
+    },
+    "recipe": {
+      "update_interval": 86400,
+      "uris": [
+        {
+          "uri": "https://github.com/pakit/base_recipes"
+        },
+        {
+          "uri": "user_recipes"
+        }
+      ]
+    }
+  }
+}"""
+
+        expect = expect.replace('PLACE0', self.config.filename)
+        expect = expect.replace('PLACE1', os.path.expanduser('~/.pakit'))
+        print(expect)
+        assert str(self.config) == expect
 
     def test__contains__(self):
         assert 'pakit' in self.config
@@ -153,12 +165,12 @@ class TestConfig(object):
         assert self.config.get('pakit.paths.prefix') == '/tmp/pakit/builds'
 
 
-class TestInstalledConfig(object):
+class TestInstallDB(object):
     def setup(self):
         self.config = tc.CONF
         self.idb_file = os.path.join(tc.STAGING, 'test_idb.yml')
         self.idb = InstallDB(self.idb_file)
-        self.recipe = RecipeDB().get('ag')
+        self.recipe = pakit.recipe.RDB.get('ag')
 
     def teardown(self):
         tc.delete_it(self.idb_file)
@@ -192,6 +204,20 @@ class TestInstalledConfig(object):
         self.idb.set('ag', 'ag')
         actual = sorted([key + obj for key, obj in self.idb])
         assert actual == ['ackack', 'agag']
+
+    def test__delitem__(self):
+        self.idb.add(self.recipe)
+        assert self.idb['ag']['hash'] == self.recipe.repo.src_hash
+        del self.idb['ag']
+        with pytest.raises(KeyError):
+            self.idb['ag']
+
+    def test__getitem__(self):
+        self.idb.add(self.recipe)
+        assert self.idb['ag']['hash'] == self.recipe.repo.src_hash
+        self.idb.remove('ag')
+        with pytest.raises(KeyError):
+            self.idb['ag']
 
     def test_add(self):
         self.idb.add(self.recipe)
@@ -236,3 +262,50 @@ class TestInstalledConfig(object):
         entry = new_idb.get('ag')
         assert entry is not None
         assert entry['hash'] == self.recipe.repo.src_hash
+
+
+class TestRecipeURIDB(object):
+    def setup(self):
+        self.filename = os.path.join(tc.STAGING, 'rdb.yml')
+        self.rdb = RecipeURIDB(self.filename)
+
+    def teardown(self):
+        tc.delete_it(self.filename)
+
+    def test_add_local(self):
+        self.rdb.add('local', 'local', False)
+        assert self.rdb['local']['path'] == 'local'
+        assert self.rdb['local']['is_vcs'] is False
+
+    def test_add_remote(self):
+        self.rdb.add('remote_uri', 'remote_path', True)
+        assert self.rdb['remote_uri']['path'] == 'remote_path'
+        assert self.rdb['remote_uri']['is_vcs']
+
+    def test_add_remote_kwargs(self):
+        kwargs = {'tag': '0.30.0'}
+        self.rdb.add('remote_uri', 'remote_path', True, kwargs)
+        assert self.rdb['remote_uri']['path'] == 'remote_path'
+        assert self.rdb['remote_uri']['is_vcs']
+        assert self.rdb['remote_uri']['kwargs'] == kwargs
+
+    def test_update_time(self):
+        self.rdb.add('local', 'local', False)
+        old_time = self.rdb['local']['time']
+        self.rdb.update_time('local')
+        assert self.rdb['local']['time'] > old_time
+
+    def test_need_updates(self):
+        key = 'remote_uri'
+        self.rdb.add(key, 'remote_path', True)
+        self.rdb[key]['time'] = self.rdb[key]['time'] - 10000
+        assert self.rdb.need_updates(5000) == ['remote_uri']
+
+    def test_select_path_preferred(self):
+        preferred = '/tmp/first'
+        assert self.rdb.select_path(preferred) == preferred
+
+    def test_select_path_collision(self):
+        preferred = '/tmp/first'
+        self.rdb.add('first', preferred, False)
+        assert self.rdb.select_path(preferred) == preferred + '_1'

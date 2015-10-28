@@ -9,7 +9,12 @@ pakit:
   paths:
     link: /tmp/test_pakit/link
     prefix: /tmp/test_pakit/builds
-    recipes: /tmp
+    recipes: /tmp/test_pakit/recipes
     source: /tmp/test_pakit/src
+  recipe:
+    update_interval: 86400
+    uris:
+    - uri: https://github.com/pakit/base_recipes
+    - uri: https://github.com/pakit/test_recipes
 ag:
   repo: unstable

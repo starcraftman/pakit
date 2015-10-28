@@ -3,13 +3,18 @@ Test pakit.recipe
 """
 from __future__ import absolute_import, print_function
 
+import copy
 import mock
 import os
 import pytest
 import shutil
+import sys
 
+import pakit.recipe
 from pakit.exc import PakitError
-from pakit.recipe import Recipe, RecipeDB, RecipeDecorator, check_package
+from pakit.recipe import (
+    Recipe, RecipeDB, RecipeDecorator, RecipeManager, check_package
+)
 import tests.common as tc
 
 
@@ -74,7 +79,7 @@ def test_decorator_tempd():
 class TestRecipe(object):
     def setup(self):
         self.config = tc.CONF
-        self.recipe = RecipeDB().get('ag')
+        self.recipe = pakit.recipe.RDB.get('ag')
 
     def test_repo_set_fail(self):
         with pytest.raises(KeyError):
@@ -182,36 +187,142 @@ class TestRecipe(object):
 
 class TestRecipeDB(object):
     def test__contains__(self):
-        assert 'ag' in RecipeDB()
-        assert 'aaaa' not in RecipeDB()
+        assert 'ag' in pakit.recipe.RDB
+        assert 'aaaa' not in pakit.recipe.RDB
 
     def test__iter__(self):
-        actual = sorted([key for key, _ in RecipeDB()])
+        actual = sorted([key for key, _ in pakit.recipe.RDB])
         assert len(actual) != 0
         assert 'ag' in actual
 
     def test_get_found(self):
-        obj = RecipeDB().get('ag')
+        obj = pakit.recipe.RDB.get('ag')
         assert isinstance(obj, Recipe)
         assert obj.name == 'ag'
 
     def test_get_not_found(self):
         with pytest.raises(PakitError):
-            RecipeDB().get('xyzxyz')
+            pakit.recipe.RDB.get('xyzxyz')
 
     def test_names(self):
         for prog in ['ag', 'vim']:
-            assert prog in RecipeDB().names()
+            assert prog in pakit.recipe.RDB.names()
 
     def test_index(self):
-        test_formulas = os.path.join(os.path.dirname(__file__), 'formula')
-        old_db = RecipeDB._RecipeDB__instance
-        RecipeDB._RecipeDB__instance = None
-        RecipeDB(tc.CONF).index(test_formulas)
-        assert 'cyclea' in RecipeDB()
-        RecipeDB._RecipeDB__instance = old_db
+        test_uri = tc.CONF.get('pakit.recipe.uris')[1]['uri']
+        recipe_base = os.path.basename(test_uri)
+        test_recipes = os.path.join(tc.CONF.path_to('recipes'), recipe_base)
+        rdb = RecipeDB(tc.CONF)
+        rdb.index(test_recipes)
+        assert 'cyclea' in rdb
 
     def test_recipe_obj(self):
-        recipe = RecipeDB().recipe_obj('pakit_recipes', 'ag')
-        assert isinstance(recipe, Recipe)
-        assert recipe.name == 'ag'
+        recipes_path = os.path.join(tc.CONF.path_to('recipes'), 'test_recipes')
+        try:
+            sys.path.insert(0, os.path.dirname(recipes_path))
+            recipe = pakit.recipe.RDB.recipe_obj('base_recipes', 'ag')
+            assert isinstance(recipe, Recipe)
+            assert recipe.name == 'ag'
+        finally:
+            if recipes_path in sys.path:
+                sys.path.remove(recipes_path)
+
+
+class TestRecipeManager(object):
+    def setup(self):
+        self.git_uri = os.path.join(tc.STAGING, 'git')
+        self.config = copy.deepcopy(tc.CONF)
+        self.config.set('pakit.recipe.uris', [{'uri': self.git_uri}])
+        self.config.set('pakit.paths.recipes',
+                        os.path.join(tc.STAGING, 'test_recipes'))
+        self.manager = None
+
+    def teardown(self):
+        if self.manager:
+            tc.delete_it(self.manager.uri_db.filename)
+        tc.delete_it(self.config.path_to('recipes'))
+        os.makedirs(self.config.path_to('recipes'))
+
+    def test_init_new_uris_vcs(self):
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        expect = os.path.join(self.config.path_to('recipes'),
+                              self.manager.uri_db[self.git_uri]['path'],
+                              '.git')
+        assert os.path.exists(expect)
+
+    def test_init_new_uris_vcs_unsupported(self):
+        self.config.set('pakit.recipe.uris',
+                        [{'uri': 'https://www.google.ca'}])
+        self.manager = RecipeManager(self.config)
+        with pytest.raises(PakitError):
+            self.manager.init_new_uris()
+
+    def test_init_new_uris_vcs_kwargs(self):
+        uri = {'tag': '0.31.0', 'uri': self.git_uri}
+        self.config.set('pakit.recipe.uris', [uri])
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        expect = os.path.join(self.config.path_to('recipes'),
+                              self.manager.uri_db[self.git_uri]['path'],
+                              '.git')
+        assert os.path.exists(expect)
+
+    def test_init_new_uris_local_path(self):
+        uri = 'user_recipes'
+        expect = os.path.join(self.config.path_to('recipes'), uri)
+        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        assert os.path.exists(expect)
+
+    def test_init_new_uris_local_path_exists(self):
+        uri = 'user_recipes'
+        expect = os.path.join(self.config.path_to('recipes'), uri)
+        os.makedirs(expect)
+        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        assert os.path.exists(expect)
+
+    def test_paths(self):
+        uri = 'user_recipes'
+        expect = [os.path.join(self.config.path_to('recipes'), uri)]
+        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        assert self.manager.paths == expect
+
+    def test_check_for_deletions(self):
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+
+        path = os.path.join(self.config.path_to('recipes'),
+                            self.manager.uri_db[self.git_uri]['path'])
+        tc.delete_it(path)
+        assert not os.path.exists(path)
+        assert self.git_uri in self.manager.uri_db
+        self.manager.check_for_deletions()
+        assert self.git_uri not in self.manager.uri_db
+
+    def test_check_for_updates_interval(self):
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        interval = self.config.get('pakit.recipe.update_interval')
+        old_time = self.manager.uri_db[self.git_uri]['time'] - 2 * interval
+        self.manager.uri_db[self.git_uri]['time'] = old_time
+        self.manager.uri_db.write()
+
+        self.manager.check_for_updates()
+        assert self.manager.uri_db[self.git_uri]['time'] != old_time
+
+    def test_check_for_updates_kwargs(self):
+        self.manager = RecipeManager(self.config)
+        self.manager.init_new_uris()
+        uri = {'tag': '0.31.0', 'uri': self.git_uri}
+        self.config.set('pakit.recipe.uris', [uri])
+        self.manager = RecipeManager(self.config)
+
+        old_time = self.manager.uri_db[self.git_uri]['time']
+        self.manager.check_for_updates()
+        assert self.manager.uri_db[self.git_uri]['time'] != old_time

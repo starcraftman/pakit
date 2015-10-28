@@ -13,6 +13,7 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 import atexit
 import functools
 import glob
+import inspect
 import logging
 import os
 import shlex
@@ -379,6 +380,33 @@ def unlink_all_files(_, dst, filenames):
         pass  # Folder probably had files left.
 
 
+def vcs_factory(uri, **kwargs):
+    """
+    Given a uri, match it with the right VersionRepo subclass.
+
+    Args:
+        uri: The version control URI.
+
+    Returns:
+        The instantiated VersionRepo subclass. Any kwargs, are
+        passed along to the constructor of the subclass.
+
+    Raises:
+        PakitError: The URI is not supported.
+    """
+    subclasses = []
+    for _, obj in inspect.getmembers(sys.modules[__name__]):
+        if inspect.isclass(obj) and issubclass(obj, VersionRepo):
+            subclasses.append(obj)
+    subclasses.remove(VersionRepo)
+
+    for cls in subclasses:
+        if cls.valid_uri(uri):
+            return cls(uri, **kwargs)
+
+    raise PakitError('Unssupported URI: ' + uri)
+
+
 class Fetchable(object):
     """
     Establishes an abstract interface for fetching source code.
@@ -623,7 +651,7 @@ class Archive(Fetchable):
         If the URI is a local file, simply copy it.
         """
         if not os.path.isfile(self.uri):
-            resp = ulib.urlopen(self.uri)
+            resp = ulib.urlopen(self.uri, timeout=30)
             with open(self.arc_file, 'wb') as fout:
                 fout.write(resp.read())
         elif self.uri != self.arc_file:
@@ -735,6 +763,16 @@ class VersionRepo(Fetchable):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def valid_uri(uri):
+        """
+        Validate that the supplied uri is handled by this class.
+
+        Returns:
+            True if the URI is valid for this class, else False.
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def checkout(self):
         """
@@ -822,6 +860,21 @@ class Git(VersionRepo):
             cmd.wait()
             hash_line = cmd.output()[0]
             return hash_line.split()[-1]
+
+    @staticmethod
+    def valid_uri(uri):
+        """
+        Validate that the supplied uri is handled by this class.
+
+        Returns:
+            True if the URI is valid for this class, else False.
+        """
+        try:
+            cmd = Command('git ls-remote ' + uri)
+            cmd.wait()
+            return cmd.rcode == 0
+        except PakitError:
+            return False
 
     def checkout(self):
         """
@@ -919,6 +972,21 @@ class Hg(VersionRepo):
             hash_line = cmd.output()[0]
             return hash_line.split()[-1]
 
+    @staticmethod
+    def valid_uri(uri):
+        """
+        Validate that the supplied uri is handled by this class.
+
+        Returns:
+            True if the URI is valid for this class, else False.
+        """
+        try:
+            cmd = Command('hg identify ' + uri)
+            cmd.wait()
+            return cmd.rcode == 0
+        except PakitError:
+            return False
+
     def checkout(self):
         """
         Checkout the right tag or branch.
@@ -1015,12 +1083,12 @@ class Command(object):
                 self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
                 stdin=stdin, stdout=self.stdout, stderr=subprocess.STDOUT
             )
-        except OSError:
+        except OSError as exc:
             if cmd_dir and not os.path.exists(cmd_dir):
                 raise PakitCmdError('Command directory does not exist: '
                                     + self._cmd_dir)
             else:
-                raise PakitCmdError('Command not available: ' + self._cmd[0])
+                raise PakitCmdError('General OSError:\n' + str(exc))
 
     def __del__(self):
         """
@@ -1068,8 +1136,10 @@ class Command(object):
         if self._proc is None or not os.path.exists(self.stdout.name):
             return []  # pragma: no cover
 
-        with open(self.stdout.name, 'r') as out:
-            lines = [line.rstrip() for line in out.readlines()]
+        # TODO: Need to detect encoding of terminal.
+        with open(self.stdout.name, 'rb') as out:
+            lines = [line.decode('utf-8', 'replace').rstrip()
+                     for line in out.readlines()]
 
         return lines[-last_n:]
 

@@ -1,8 +1,10 @@
 """
 All configuration of pakit is done here.
 
+YamlMixin: A mixin class that can read/write yaml files.
 Config: Handles global configuration of pakit.
 InstallDB: Handles the database of installed programs.
+RecipeURIDB: Store and track recipe URIs.
 """
 from __future__ import absolute_import
 
@@ -31,8 +33,15 @@ TEMPLATE = {
         'paths': {
             'link': '/tmp/pakit/links',
             'prefix': '/tmp/pakit/builds',
-            'recipes': os.path.expanduser('~/.pakit/recipes'),
+            'recipes': os.path.expanduser('~/.pakit'),
             'source': '/tmp/pakit/src',
+        },
+        'recipe': {
+            'update_interval': 60 * 60 * 24,
+            'uris': [
+                {'uri': 'https://github.com/pakit/base_recipes'},
+                {'uri': 'user_recipes'},
+            ],
         },
     },
 }
@@ -100,39 +109,16 @@ class YamlMixin(object):
 
 class Config(YamlMixin):
     """
-    The main configuration file, users can modify global behaviour here.
+    The main configuration class, users can modify global behaviour here.
 
-    For example, after parsing the YAML the config may hold:
-        config = {
-            'pakit': {
-                'command': {
-                    'timeout': 120
-                },
-                'defaults': {
-                    'repo': 'stable',
-                },
-                'log': {
-                    'enabled': True,
-                    'file': '/tmp/pakit/main.log',
-                    'level': 'debug',
-                },
-                'paths': {
-                    'link': '/tmp/pakit/links',
-                    'prefix': '/tmp/pakit/builds',
-                    'recipes': '/home/username/.pakit/recipes',
-                    'source': '/tmp/pakit/src',
-                },
-            },
-            'ag': {
-                'repo': 'unstable'
-            }
-        }
+    The yaml file is read and mapped to a tiered python dictionary.
+    See pakit.conf.TEMPLATE for the defaults.
 
-    Details:
+    Details of config:
 
     pakit.command.timeout
         The timeout for commands.
-        When no stdout produced for timeout kill process.
+        When no stdout produced for timeout seconds kill the process.
 
     pakit.log.enabled
         Toggles the file logger. Console errors are always enabled.
@@ -154,13 +140,28 @@ class Config(YamlMixin):
         installed under `/tmp/pakit/builds/ag`.
 
     pakit.paths.recipes
-        Path to a folder with user created recipes.
-        Path must be a valid package name that can be imported.
-        Importantly this means base folder
-        can NOT be a hidden directory (leading '.').
+        Path to a folder where all recipes will be stored.
+        All recipes will be specified in the `pakit.recipe.uris` node.
 
     pakit.paths.source
         The path where source code will be downloaded & built.
+
+    pakit.recipe.update_interval
+        After a recipe uri has not been updated for update_interval seconds
+        check for updates.
+
+    pakit.recipe.uris
+        The list contains a series of dictionaries that specify recipes.
+        Recipes are indexed in the order of the list.
+        Each dictionary must contain the 'uri' key as described below.
+        Any other keys will be passed to pakit.shell.vcs_factory as kwargs.
+        Remotely fetched recipes will be periodically updated.
+
+        The 'uri' key must be one of ...
+
+        - A version control uri supported by `pakit.shell.vcs_factory`
+          like git or mercurial.
+        - A simple folder name to be used in `pakit.paths.recipes`.
 
     pakit.defaults
         A dictionary of default options made available to all recipes.
@@ -183,21 +184,20 @@ class Config(YamlMixin):
     """
     def __init__(self, filename):
         super(Config, self).__init__(filename)
-        self.__conf = copy.deepcopy(TEMPLATE)
+        self.conf = copy.deepcopy(TEMPLATE)
         if os.path.exists(self.filename):
             self.read()
 
     def __str__(self):
-        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        pretty_js = json.dumps(self.conf, sort_keys=True, indent=2)
         pretty_js = '\n'.join([line.rstrip() for line
                                in pretty_js.split('\n')])
         return 'Config File: {fname}\nContents:\n{jso}'.format(
             fname=self.filename, jso=pretty_js)
 
     def __contains__(self, key_str):
-        obj = self.__conf
+        obj = self.conf
         for key in key_str.split('.'):
-            logging.error(key)
             if key not in obj:
                 return False
             obj = obj[key]
@@ -219,7 +219,7 @@ class Config(YamlMixin):
         Raises:
             KeyError: The key does not exist.
         """
-        obj = self.__conf
+        obj = self.conf
         leaf = key_str.split('.')[-1]
         try:
             for key in key_str.split('.')[0:-1]:
@@ -235,7 +235,7 @@ class Config(YamlMixin):
         """
         Reset the config to default.
         """
-        self.__conf = copy.deepcopy(TEMPLATE)
+        self.conf = copy.deepcopy(TEMPLATE)
 
     def set(self, key_str, val):
         """
@@ -247,7 +247,7 @@ class Config(YamlMixin):
                 to conf['pakit']['paths']['prefix'].
             val: The value to assign to the key.
         """
-        obj = self.__conf
+        obj = self.conf
         leaf = key_str.split('.')[-1]
         for key in key_str.split('.')[0:-1]:
             new_obj = obj.get(key, None)
@@ -298,13 +298,13 @@ class Config(YamlMixin):
         """
         Read the config into memory.
         """
-        self.__conf = self.read_from()
+        self.conf = self.read_from()
 
     def write(self):
         """
         Write the config to the file.
         """
-        self.write_to(self.__conf)
+        self.write_to(self.conf)
 
 
 class InstallDB(YamlMixin):
@@ -321,71 +321,162 @@ class InstallDB(YamlMixin):
     """
     def __init__(self, filename):
         super(InstallDB, self).__init__(filename)
-        self.__conf = {}
+        self.conf = {}
         if os.path.exists(self.filename):
             self.read()
 
     def __str__(self):
-        pretty_js = json.dumps(self.__conf, sort_keys=True, indent=2)
+        pretty_js = json.dumps(self.conf, sort_keys=True, indent=2)
         pretty_js = '\n'.join([line.rstrip() for line
                                in pretty_js.split('\n')])
         return 'Config File: {fname}\nContents:\n{jso}'.format(
             fname=self.filename, jso=pretty_js)
 
     def __iter__(self):
-        for key in sorted(self.__conf):
-            yield (key, copy.deepcopy(self.__conf[key]))
+        for key in sorted(self.conf):
+            yield (key, copy.deepcopy(self.conf[key]))
 
     def __contains__(self, key):
-        return key in self.__conf
+        return key in self.conf
 
-    def get(self, prog):
+    def __delitem__(self, key):
+        self.remove(key)
+
+    def __getitem__(self, key):
+        return self.conf[key]
+
+    def __setitem__(self, key, value):
+        self.set(key, value)
+
+    def get(self, key, default=None):
         """
-        Get the entry for prog.
+        Get the entry for key.
 
         Returns;
-            A dictionary containing the information on *prog*.
+            A dictionary containing the information associated with key*.
             If not present, returns None.
         """
-        return self.__conf.get(prog)
+        return self.conf.get(key, default)
 
     def set(self, key, value):
         """
         Set the *key* in the database to *value*.
         """
-        self.__conf[key] = value
+        self.conf[key] = value
 
-    def add(self, recipe):
+    def add(self, *args):
         """
         Update the database for recipe.
+        Handles some internal entries like timestamps.
 
         Args:
             recipe: The Recipe object to add to the database.
         """
-        time_s = time.time()
-        self.__conf[recipe.name] = {
-            'date': time.strftime('%H:%M:%S %d/%m/%y', time.localtime(time_s)),
+        recipe = args[0]
+        timestamp = time.time()
+        self[recipe.name] = {
+            'date': time.strftime('%H:%M:%S %d/%m/%y',
+                                  time.localtime(timestamp)),
             'hash': recipe.repo.src_hash,
             'repo': recipe.repo_name,
-            'timestamp': time_s,
+            'time': timestamp,
         }
         self.write()
 
-    def remove(self, prog):
+    def remove(self, recipe):
         """
-        Remove *prog* from the database.
+        Remove recipe from the database.
         """
-        del self.__conf[prog]
+        del self.conf[recipe]
         self.write()
 
     def read(self):
         """
         Read the config into memory.
         """
-        self.__conf = self.read_from()
+        self.conf = self.read_from()
 
     def write(self):
         """
         Write to the config file.
         """
-        self.write_to(self.__conf)
+        self.write_to(self.conf)
+
+
+class RecipeURIDB(InstallDB):
+    """
+    Store information on configured recipe uris and the paths to index them.
+    """
+    def __init__(self, filename):
+        super(RecipeURIDB, self).__init__(filename)
+
+    def add(self, *args):
+        """
+        Add an entry to the database based on the uri.
+        Will overwrite the entry if it exists in the database prior.
+
+        Args:
+            uri: A uri that is unique in the database.
+            path: An absolute path to the recipes.
+            is_vcs: True if and only if it is a version control repository.
+            kwargs: Optional, a dict of kwargs for the vcs_factory.
+        """
+        uri, path, is_vcs = args[0], args[1], args[2]
+        kwargs = args[3] if len(args) == 4 else None
+        self[uri] = {
+            'is_vcs': is_vcs,
+            'path': path,
+        }
+        if isinstance(kwargs, type({})) and len(kwargs):
+            self[uri]['kwargs'] = kwargs
+        self.update_time(uri)
+
+    def update_time(self, uri):
+        """
+        Update the timestmap on a uri in the database.
+
+        Args:
+            uri: A valid uri in the database.
+        """
+        timestamp = time.time()
+        self[uri].update({
+            'date': time.strftime('%H:%M:%S %d/%m/%y',
+                                  time.localtime(timestamp)),
+            'time': timestamp,
+        })
+
+    def select_path(self, preferred):
+        """
+        Select a path that is unique within the database.
+
+        Args:
+            preferred: The preferred path.
+
+        Returns:
+            The selected path that is unique in the database.
+        """
+        existing = [self[key]['path'] for key in self.conf]
+        new_path = preferred
+        cnt = 0
+        while new_path in existing:
+            cnt += 1
+            new_path = preferred + '_' + str(cnt)
+
+        return new_path
+
+    def need_updates(self, interval):
+        """
+        Returns a list of uris that should be updated because they are older
+        than the supplied interval.
+
+        Args:
+            interval: A number of seconds, uris that haven't been updated
+                in this interval will be selected.
+        """
+        to_update = []
+        for uri in self.conf:
+            remote = self[uri]
+            if remote['is_vcs'] and (time.time() - remote['time']) > interval:
+                to_update.append(uri)
+
+        return to_update

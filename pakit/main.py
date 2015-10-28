@@ -13,16 +13,16 @@ import os
 import sys
 import traceback
 
+import pakit.conf
+import pakit.recipe
 from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
 from pakit.graph import DiGraph, topological_sort
-from pakit.recipe import RecipeDB
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
     DisplayTask, RelinkRecipes, SearchTask
 )
-import pakit.conf
 
 
 PLOG = logging.getLogger('pakit').info
@@ -130,6 +130,7 @@ def global_init(config_file):
     pakit.conf.CONFIG = config
     log_init(config)
     logging.debug('Global Config: %s', config)
+    PLOG('Loaded config from: ' + config.filename)
 
     for path in config.get('pakit.paths').values():
         try:
@@ -141,14 +142,14 @@ def global_init(config_file):
     pakit.conf.IDB = InstallDB(os.path.join(prefix, 'idb.yml'))
     logging.debug('InstallDB: %s', pakit.conf.IDB)
 
-    recipes = RecipeDB(config)
-    default = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                           'pakit_recipes')
-    recipes.index(default)
-    try:
-        recipes.index(config.path_to('recipes'))
-    except KeyError:  # pragma: no cover
-        pass
+    manager = pakit.recipe.RecipeManager(config)
+    manager.check_for_deletions()
+    manager.check_for_updates()
+    manager.init_new_uris()
+    recipe_db = pakit.recipe.RecipeDB(config)
+    for path in manager.paths:
+        recipe_db.index(path)
+    pakit.recipe.RDB = recipe_db
 
     link_man_pages(config.path_to('link'))
     environment_check(config)
@@ -242,7 +243,7 @@ def add_deps_for(recipe_name, graph):
     if recipe_name in graph:
         return
 
-    recipe = RecipeDB().get(recipe_name)
+    recipe = pakit.recipe.RDB.get(recipe_name)
     graph.add_vertex(recipe_name)
 
     requires = getattr(recipe, 'requires', [])
@@ -339,7 +340,8 @@ def parse_tasks_search(args):
     Parse args for DisplayTask(s).
     """
     if args.search:
-        return [SearchTask(RecipeDB().names(desc=True), args.search)]
+        recipe_names = pakit.recipe.RDB.names(desc=True)
+        return [SearchTask(recipe_names, args.search)]
     else:
         return []
 
@@ -461,9 +463,8 @@ def main(argv=None):
     if args.create_conf:
         write_config(args.conf)
 
-    config = global_init(args.conf)
+    global_init(args.conf)
     logging.debug('CLI: %s', args)
-    PLOG('Loading config from: ' + config.filename)
 
     try:
         tasks = parse_tasks(args)

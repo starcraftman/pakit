@@ -12,8 +12,8 @@ import logging
 import shutil
 
 import pakit.conf
+import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakit.recipe import Recipe, RecipeDB
 from pakit.shell import Command, walk_and_link, walk_and_unlink
 
 PREFIX = '\n  '
@@ -53,10 +53,10 @@ class RecipeTask(Task):
     """
     def __init__(self, recipe):
         super(RecipeTask, self).__init__()
-        if isinstance(recipe, Recipe):
+        if isinstance(recipe, pakit.recipe.Recipe):
             self.__recipe = recipe
         else:
-            self.__recipe = RecipeDB().get(recipe)
+            self.__recipe = pakit.recipe.RDB.get(recipe)
 
     def __str__(self):
         return '{cls}: {recipe}'.format(cls=self.name,
@@ -122,9 +122,6 @@ class InstallTask(RecipeTask):
                 Command('rm -rf ' + self.recipe.install_dir).wait()
             except PakitCmdError:  # pragma: no cover
                 pass
-
-        # In all cases, remove the source code
-        self.recipe.repo.clean()
 
     def run(self):
         """
@@ -273,7 +270,7 @@ class RelinkRecipes(Task):
 
         dst = pakit.conf.CONFIG.path_to('link')
         Command('rm -rf ' + dst).wait()
-        for _, recipe in RecipeDB():
+        for _, recipe in pakit.recipe.RDB:
             walk_and_link(recipe.install_dir, dst)
 
 
@@ -324,11 +321,11 @@ class ListAvailable(Task):
         """
         logging.debug('List Available Recipes')
         if self.short:
-            print(' '.join(RecipeDB().names(desc=False)))
+            print(' '.join(pakit.recipe.RDB.names(desc=False)))
             return
 
         available = ['Program      Description']
-        available.extend(RecipeDB().names(desc=True))
+        available.extend(pakit.recipe.RDB.names(desc=True))
 
         msg = 'Available Recipes:'
         msg += PREFIX + PREFIX.join(available)

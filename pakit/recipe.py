@@ -1,14 +1,15 @@
-# pylint: disable=W0212
 """
 The Recipe class and RecipeDB are found here.
 
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
 RecipeDecorator: Provides some functionality by wrapping Recipes at runtime.
+RecipeManager: Retrieves and manages remote recipe sources.
 """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 
+import copy
 import functools
 import glob
 import logging
@@ -17,11 +18,13 @@ import shutil
 import sys
 import tempfile
 
-from pakit.exc import PakitDBError
-from pakit.shell import Command
+from pakit.conf import RecipeURIDB
+from pakit.exc import PakitDBError, PakitError
+from pakit.shell import Command, vcs_factory
 
 
 PLOG = logging.getLogger('pakit').info
+RDB = None
 
 
 def check_package(path):
@@ -406,23 +409,16 @@ class RecipeDB(object):
     """
     An object database that can import recipes dynamically.
     """
-    __instance = None
-
-    def __new__(cls, config=None):
-        """ Used to implement singleton. """
-        if cls.__instance is None:
-            cls.__instance = super(RecipeDB, cls).__new__(cls)
-            cls.__instance.__db = {}
-            if config is not None:
-                cls.__instance.__config = config
-        return cls.__instance
+    def __init__(self, config):
+        self.config = config
+        self.rdb = {}
 
     def __contains__(self, name):
-        return name in self.__db
+        return name in self.rdb
 
     def __iter__(self):
-        for key in sorted(self.__instance.__db):
-            yield (key, self.__instance.__db[key])
+        for key in sorted(self.rdb):
+            yield (key, self.rdb[key])
 
     def get(self, name):
         """
@@ -431,7 +427,7 @@ class RecipeDB(object):
         Raises:
             PakitDBError: Could not resolve the name to a recipe.
         """
-        obj = self.__db.get(name)
+        obj = self.rdb.get(name)
         if obj is None:
             raise PakitDBError('Missing recipe to build: ' + name)
         return obj
@@ -447,20 +443,22 @@ class RecipeDB(object):
             path: The folder containing recipes to index.
         """
         # TODO: Iterate all classes in file, only index subclassing Recipe
-        check_package(path)
-        sys.path.insert(0, os.path.dirname(path))
+        try:
+            check_package(path)
+            sys.path.insert(0, os.path.dirname(path))
 
-        new_recs = glob.glob(os.path.join(path, '*.py'))
-        new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
-        if '__init__' in new_recs:
-            new_recs.remove('__init__')
+            new_recs = glob.glob(os.path.join(path, '*.py'))
+            new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+            if '__init__' in new_recs:
+                new_recs.remove('__init__')
 
-        mod = os.path.basename(path)
-        for cls in new_recs:
-            obj = self.recipe_obj(mod, cls)
-            self.__db.update({cls: obj})
-
-        sys.path = sys.path[1:]
+            mod = os.path.basename(path)
+            for cls in new_recs:
+                obj = self.recipe_obj(mod, cls)
+                self.rdb.update({cls: obj})
+        finally:
+            if os.path.dirname(path) in sys.path:
+                sys.path.remove(os.path.dirname(path))
 
     def names(self, desc=False):
         """
@@ -476,9 +474,9 @@ class RecipeDB(object):
             Otherwise, it is a list of recipes and their description.
         """
         if desc:
-            return sorted([str(recipe) for recipe in self.__db.values()])
+            return sorted([str(recipe) for recipe in self.rdb.values()])
         else:
-            return sorted(self.__db.keys())
+            return sorted(self.rdb.keys())
 
     def recipe_obj(self, mod_name, cls_name):
         """
@@ -498,10 +496,130 @@ class RecipeDB(object):
         mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
         mod = getattr(mod, cls_name)
         cls = getattr(mod, cls_name.capitalize())
-        source_dir = os.path.join(self.__config.path_to('source'),
+        source_dir = os.path.join(self.config.path_to('source'),
                                   cls_name)
         cls.build = RecipeDecorator(source_dir)(cls.build)
         cls.verify = RecipeDecorator(use_tempd=True)(cls.verify)
         obj = cls()
-        obj.set_config(self.__config)
+        obj.set_config(self.config)
         return obj
+
+
+class RecipeManager(object):
+    """
+    Manage the retrieval and updating of recipe sources remote and local.
+    This class works in conjunction with RecipeDB to provide recipes to pakit.
+
+    Attributes:
+        active_kwargs: Indexed on uri, value is kwargs for the factory.
+        active_uris: Actively configured sources.
+        root: Where all recipes will be downloaded and stored.
+        uri_db: A database to help keep track of recipe sources.
+            Indexed based on uri.
+    """
+    def __init__(self, config):
+        """
+        Initialize the state of the Recipe manager based on configuration.
+
+        Args:
+            config: The pakit configuration.
+        """
+        self.interval = config.get('pakit.recipe.update_interval')
+        self.root = config.path_to('recipes')
+        self.uri_db = RecipeURIDB(os.path.join(self.root, 'uris.yml'))
+        self.active_kwargs = {}
+        self.active_uris = []
+        for kwargs in copy.deepcopy(config.get('pakit.recipe.uris')):
+            uri = kwargs.pop('uri')
+            self.active_uris.append(uri)
+            if len(kwargs):
+                self.active_kwargs[uri] = kwargs
+
+    @property
+    def paths(self):
+        """
+        Returns the paths to all active recipe locations on the system.
+        """
+        return [self.uri_db[uri]['path'] for uri in self.active_uris]
+
+    def check_for_deletions(self):
+        """
+        Check if any entries in the uri_db are stale.
+
+        Purge any uri_db entries that have been deleted from their path.
+        """
+        to_remove = []
+        for uri, remote in self.uri_db:
+            if not os.path.exists(remote['path']):
+                to_remove.append(uri)
+
+        for uri in to_remove:
+            self.uri_db.remove(uri)
+        self.uri_db.write()
+
+    def check_for_updates(self):
+        """
+        Check if any of the active URIs needs updating.
+
+        A recipe remote will be update if it is version controlled and ...
+            - it has not been updated since interval
+            - the kwargs between uri_db and active_kwargs differ
+        """
+        need_updates = self.uri_db.need_updates(self.interval)
+        vcs_uris = [uri for uri, entry in self.uri_db if entry['is_vcs']]
+        for uri in set(self.active_uris).intersection(vcs_uris):
+            db_kwargs = self.uri_db[uri].get('kwargs', {})
+            kwargs = self.active_kwargs.get(uri, {})
+            repo = vcs_factory(uri, **kwargs)
+            repo.target = self.uri_db[uri]['path']
+
+            if uri in need_updates or db_kwargs != kwargs:
+                PLOG('Updating remote with URI %s.', uri)
+                with repo:
+                    PLOG('Remote with uri %s, now up to date.', uri)
+                    self.uri_db.update_time(uri)
+                    self.uri_db[uri]['kwargs'] = kwargs
+
+        self.uri_db.write()
+
+    def init_new_uris(self):
+        """
+        For new uris not present in the uri_db:
+            - Select a unique name inside recipes folder
+            - Add an entry to the uri_db
+            - If the uri is local, create the folder at the path.
+            - If the uri is remote, clone the version repository
+              with optional kwargs.
+
+        Raises:
+            PakitError: User attempted to use an unsupported URI.
+        """
+        for uri in set(self.active_uris).difference(self.uri_db.conf.keys()):
+            repo = None
+            kwargs = self.active_kwargs.get(uri, {})
+
+            try:
+                repo = vcs_factory(uri, **kwargs)
+            except PakitError:
+                if uri.find('/') != -1 or uri.find('.') != -1:
+                    raise
+
+            preferred = os.path.join(self.root, os.path.basename(uri))
+            path = self.uri_db.select_path(preferred)
+            self.uri_db.add(uri, path, repo is not None, kwargs)
+
+            if repo:
+                repo.target = path
+                PLOG('New recipe remote: %s\n'
+                     'Please wait while it downloads.', uri)
+                with repo:
+                    PLOG('Recipes from %s now available at %s.', uri,
+                         repo.target)
+            else:
+                try:
+                    PLOG('Local recipes sourced from %s', path)
+                    os.makedirs(path)
+                except OSError:
+                    pass
+
+        self.uri_db.write()

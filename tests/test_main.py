@@ -10,6 +10,7 @@ import pytest
 import shutil
 
 import pakit.conf
+import pakit.recipe
 from pakit.exc import PakitError
 from pakit.main import (
     create_args_parser, environment_check, main, link_man_pages, parse_tasks,
@@ -70,16 +71,6 @@ class TestSearchConfig(object):
         self.home_pakit_conf = os.path.join(os.path.expanduser('~'), '.pakit',
                                             '.pakit.yaml')
 
-        # Preserve these if they exist
-        self.home_conf_existed = False
-        if os.path.exists(self.home_conf):
-            self.home_conf_existed = True
-            shutil.move(self.home_conf, self.home_conf + '_bak')
-        self.home_pakit_conf_existed = False
-        if os.path.exists(self.home_pakit_conf):
-            self.home_pakit_conf_existed = True
-            shutil.move(self.home_pakit_conf, self.home_pakit_conf + '_bak')
-
         os.makedirs(os.path.dirname(self.third_conf))
         try:
             os.makedirs(os.path.dirname(self.home_pakit_conf))
@@ -94,10 +85,7 @@ class TestSearchConfig(object):
         os.chdir(self.orig_dir)
         tc.delete_it(self.test_dir)
         tc.delete_it(self.home_conf)
-        if self.home_conf_existed:
-            shutil.move(self.home_conf + '_bak', self.home_conf)
-        if self.home_pakit_conf_existed:
-            shutil.move(self.home_pakit_conf + '_bak', self.home_pakit_conf)
+        tc.delete_it(self.home_pakit_conf)
 
     def test_search_config_cur_dir(self):
         assert search_for_config() == self.third_conf
@@ -135,12 +123,14 @@ class TestSearchConfig(object):
 
 class TestWriteConfig(object):
     def setup(self):
+        self.old_rdb = pakit.recipe.RDB
         self.old_conf = pakit.conf.CONFIG
         self.conf_file = os.path.join(tc.STAGING, 'conf.yaml')
 
     def teardown(self):
         tc.delete_it(self.conf_file)
         pakit.conf.CONFIG = self.old_conf
+        pakit.recipe.RDB = self.old_rdb
 
     @mock.patch('pakit.main.sys')
     def test_write_config(self, mock_sys):
@@ -257,13 +247,13 @@ class TestParseTasks(object):
         Not ideal, but mucking around internally saves hassle.
         """
         recipe_name = 'ag'
-        pakit.conf.IDB._InstallDB__conf = {recipe_name: None}
+        pakit.conf.IDB.conf = {recipe_name: None}
 
         args = self.parser.parse_args('--update'.split())
         tasks = parse_tasks(args)
         assert UpdateTask(recipe_name) in tasks
 
-        pakit.conf.IDB._InstallDB__conf = {}
+        pakit.conf.IDB._conf = {}
 
     def test_parse_list(self):
         args = self.parser.parse_args('--list'.split())

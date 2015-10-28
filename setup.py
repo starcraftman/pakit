@@ -21,7 +21,11 @@ except ImportError:
 
 
 def get_long_desc():
-    """ Fetches the latest changelog for pypi """
+    """
+    Creates a long description for pypi.
+    If possible, by converting the README.md with pandoc.
+    """
+    # TODO: Leverage pandoc.
     change_file = os.path.join(os.path.dirname(__file__), 'CHANGELOG')
     base_desc = 'For More Information: https://github.com/starcraftman/pakit'
     with open(change_file) as fin:
@@ -30,7 +34,12 @@ def get_long_desc():
 
 
 def rec_search(wildcard):
-    """ Search for matching files. """
+    """
+    Traverse all subfolders and match files against the wildcard.
+
+    Returns:
+        A list of all matching files absolute paths.
+    """
     matched = []
     for dirpath, _, files in os.walk(os.getcwd()):
         fn_files = [os.path.join(dirpath, fn_file) for fn_file
@@ -40,7 +49,9 @@ def rec_search(wildcard):
 
 
 class CleanCommand(Command):
-    """ Equivalent of make clean """
+    """
+    Equivalent of make clean.
+    """
     user_options = []
 
     def initialize_options(self):
@@ -59,7 +70,9 @@ class CleanCommand(Command):
 
 
 class ReleaseCommand(Command):
-    """ Prepare for twine upload by building distributions """
+    """
+    Prepare for twine upload by building distributions.
+    """
     user_options = []
 
     def initialize_options(self):
@@ -113,7 +126,9 @@ class ReleaseCommand(Command):
 
 
 class InstallDeps(Command):
-    """ Install dependencies to run & test. """
+    """
+    Install dependencies to run & test.
+    """
     user_options = []
 
     def initialize_options(self):
@@ -129,7 +144,9 @@ class InstallDeps(Command):
 
 
 class PyTest(TestCommand):
-    """ Testing is done with py.test """
+    """
+    Testing is done with py.test
+    """
     user_options = []
 
     def initialize_options(self):

@@ -5,85 +5,15 @@ from __future__ import absolute_import, print_function
 
 import mock
 import os
-import shutil
 
 import tests.common as tc
-
-
-def assert_files_same(file1, file2):
-    """
-    Return true iff file1 has same contents as file2.
-    """
-    with open(file1, 'r') as fin:
-        lines1 = fin.readlines()
-
-    with open(file2, 'r') as fin:
-        lines2 = fin.readlines()
-
-    assert len(lines1) == len(lines2)
-    for num, line in enumerate(lines1):
-        assert line == lines2[num]
-
-
-class TestEnvConfig(object):
-    def setup(self):
-        self.config = os.path.abspath('./.pakit.yml')
-        self.config_bak = self.config + '_bak'
-        self.message = 'hello world'
-
-    def teardown(self):
-        tc.delete_it(self.config)
-        tc.delete_it(self.config_bak)
-
-    def test_env_config_without_backup(self):
-        try:
-            bak_conf = self.config + 'bak'
-            if os.path.exists(self.config):
-                shutil.move(self.config, bak_conf)
-
-            assert not os.path.exists(self.config)
-            assert not os.path.exists(self.config_bak)
-
-            tc.env_config_setup()
-            assert os.path.exists(self.config)
-            assert not os.path.exists(self.config_bak)
-            assert_files_same(self.config, tc.TEST_CONFIG)
-
-            tc.env_config_teardown()
-            assert not os.path.exists(self.config)
-            assert not os.path.exists(self.config_bak)
-        finally:
-            if os.path.exists(bak_conf):
-                shutil.move(bak_conf, self.config)
-
-    def test_env_config_with_backup(self):
-        template = self.config + '_temp'
-        with open(self.config, 'w') as fout:
-            fout.write(self.message)
-        with open(template, 'w') as fout:
-            fout.write(self.message)
-
-        assert os.path.exists(self.config)
-        assert not os.path.exists(self.config_bak)
-
-        tc.env_config_setup()
-        assert os.path.exists(self.config)
-        assert os.path.exists(self.config_bak)
-        assert_files_same(self.config, tc.TEST_CONFIG)
-        assert_files_same(self.config_bak, template)
-
-        tc.env_config_teardown()
-        assert os.path.exists(self.config)
-        assert not os.path.exists(self.config_bak)
-        assert_files_same(self.config, template)
-
-        os.remove(template)
 
 
 def test_env_setup():
     tc.env_setup()
     expect = ['arcs', 'git', 'hg', 'tmux.tar.gz']
-    assert sorted(os.listdir(tc.STAGING)) == expect
+    for exp in expect:
+        assert exp in os.listdir(tc.STAGING)
 
 
 @mock.patch('tests.common.shutil')

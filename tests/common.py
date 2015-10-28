@@ -2,44 +2,49 @@
 Common code used to streamline testing.
 
 pytest documentation: http://pytest.org/latest/contents.html
+
+See STAGING_REPO for test bed details.
 """
 from __future__ import absolute_import, print_function
 
-import logging
 import os
 import shlex
 import shutil
 import subprocess
-try:
-    import urllib2 as ulib
-except ImportError:
-    import urllib.request as ulib  # pylint: disable=E0611,F0401
 
+from pakit.main import global_init, search_for_config
 import pakit.conf
-from pakit.main import global_init
-from pakit.recipe import RecipeDB
+import pakit.recipe
 
-STAGING = '/tmp/staging'
+CONF = None
+PAKIT_CONFS = []
 TEST_CONFIG = os.path.join(os.path.dirname(__file__), 'pakit.yml')
-ARCS_URL = 'https://github.com/pakit/arc_fmts'
+STAGING_REPO = 'https://github.com/pakit/test_staging'
+STAGING = '/tmp/staging'
 ARCS = os.path.join(STAGING, 'arcs')
 GIT = 'https://github.com/ggreer/the_silver_searcher'
-HG = 'https://bitbucket.org/sjl/hg-prompt/'
+HG = 'https://bitbucket.org/sjl/hg-prompt'
 TAR = 'https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz'
 TAR_FILE = os.path.join(STAGING, 'tmux.tar.gz')
 PATHS = [STAGING]
-CONF = None
 
 
 def env_config_setup():
     """
     Copies config to first position looked, `./.pakit.yml`
+    Ensures NO other configuration possibly considered.
 
-    See pakit.main.search_for_config for details.
+    NB: Not covered by tests, essentially just search_for_config
+    with some file moves.
     """
+    global PAKIT_CONFS
+    conf_file = search_for_config(1)
+    while conf_file != 1:
+        shutil.move(conf_file, conf_file + '_bak')
+        PAKIT_CONFS.append(conf_file)
+        conf_file = search_for_config(1)
+
     config_dst = '.pakit.yml'
-    if os.path.exists(config_dst):
-        shutil.move(config_dst, config_dst + '_bak')
     shutil.copy(TEST_CONFIG, config_dst)
 
 
@@ -47,10 +52,10 @@ def env_config_teardown():
     """
     Cleans up test config.
     """
-    config_dst = '.pakit.yml'
-    delete_it(config_dst)
-    if os.path.exists(config_dst + '_bak'):
-        shutil.move(config_dst + '_bak', config_dst)
+    delete_it('.pakit.yml')
+
+    for conf_file in PAKIT_CONFS:
+        shutil.move(conf_file + '_bak', conf_file)
 
 
 def env_setup():
@@ -61,29 +66,20 @@ def env_setup():
     if CONF:
         return CONF
 
-    logging.info('INIT ENV')
+    print('\n-----INIT ENV')
     env_config_setup()
     CONF = global_init(TEST_CONFIG)
     PATHS.append(CONF.get('pakit.log.file'))
     PATHS.extend(list(CONF.get('pakit.paths').values()))
 
+    delete_it(os.path.join(CONF.path_to('link'), 'share'))
     delete_it(STAGING)
-    cmds = [
-        'git clone --recursive {0} {1}'.format(ARCS_URL, ARCS),
-        'git clone --recursive {0} {1}'.format(GIT,
-                                               os.path.join(STAGING, 'git')),
-        'hg clone {0} {1}'.format(HG, os.path.join(STAGING, 'hg')),
-    ]
-    for cmd in cmds:
-        subprocess.call(shlex.split(cmd))
+    cmd = 'git clone --recursive {0} {1}'.format(STAGING_REPO, STAGING)
+    subprocess.call(shlex.split(cmd))
 
-    resp = ulib.urlopen(TAR)
-    with open(TAR_FILE, 'wb') as fout:
-        fout.write(resp.read())
-
-    RecipeDB().index(os.path.join(os.path.dirname(TEST_CONFIG), 'formula'))
-    logging.info('Test recipes: %s', RecipeDB().names())
-    shutil.rmtree(os.path.join(CONF.path_to('link'), 'share'))
+    print('\n-----Test recipes:\n', pakit.recipe.RDB.names())
+    print()
+    print('\n-----INIT ENV FINISHED')
 
     return CONF
 
@@ -92,7 +88,7 @@ def env_teardown():
     '''
     Teardown the testing environment.
     '''
-    logging.info('DESTROY ENV')
+    print('\n-----DESTROY ENV')
     src_log = [path for path in PATHS if '.log' in path][-1]
     dst_log = os.path.join('/tmp', 'test.log')
     try:
@@ -107,6 +103,7 @@ def env_teardown():
         delete_it(path)
 
     env_config_teardown()
+    print('\n-----DESTROY ENV FINISHED')
 
 
 def env_status():

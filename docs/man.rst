@@ -24,46 +24,46 @@ Synopsis
 Options
 -------
 -a, --available
-   List available recipes
+    List available recipes
 
 --available-short
-   List available recipes, output is very terse
+    List available recipes, output is very terse
 
 -c,  --conf CONF
-   Use CONF file instead of default ($HOME/.pakit.yml)
+    Use CONF file instead of default ($HOME/.pakit.yml)
 
 --create-conf
-   Write the default configuration to CONF
+    Write the default configuration to CONF
 
 -d, --display RECIPE [RECIPE...]
-   Show detailed information on RECIPE(s)
+    Show detailed information on RECIPE(s)
 
 -h, --help
-   Show a short help message
+    Show a short help message
 
 -i, --install RECIPE [RECIPE...]
-   Installs the RECIPE(s) to the system
+    Installs the RECIPE(s) to the system
 
 -k, --search WORD [WORD...]
-   Search names & descriptions for WORD(s)
+    Search names & descriptions for WORD(s)
 
 -l, --list
-   List installed recipes
+    List installed recipes
 
 --list-short
-   List installed recipes, output is very terse
+    List installed recipes, output is very terse
 
 --relink
-   Relink installed recipes
+    Relink installed recipes
 
 -r, --remove RECIPE [RECIPE...]
-   Removes the RECIPE(s) on the system
+    Removes the RECIPE(s) on the system
 
 -u, --update
-   Updates all recipes on the system
+    Updates all recipes on the system
 
 -v, --version
-   Show the program version number
+    Show the program version number
 
 Completion
 ----------
@@ -79,69 +79,96 @@ This is an example config:
 
 .. code-block:: yaml
 
-   pakit:
-     command:
-       timeout 120
-     defaults:
-       repo: stable
-     log:
-       enabled: true
-       file: /tmp/pakit/main.log
-       level: debug
-     paths:
-       link: /tmp/pakit/links
-       prefix: /tmp/pakit/builds
-       recipes: /home/starcraftman/.pakit/recipes
-       source: /tmp/pakit/src
-   ag:
-     repo: unstable
+  pakit:
+    command:
+      timeout 120
+    defaults:
+      repo: stable
+    log:
+      enabled: true
+      file: /tmp/pakit/main.log
+      level: debug
+    paths:
+      link: /tmp/pakit/links
+      prefix: /tmp/pakit/builds
+      recipes: /home/starcraftman/.pakit
+      source: /tmp/pakit/src
+    recipe:
+      update_interval: 86400
+      uris:
+      - uri: https://github.com/pakit/base_recipes
+      - uri: user_recipes
+      - uri: https://github.com/pakit/example
+        branch: dev
+      - uri: https://github.com/pakit/example
+        tag: 0.2.2
+  ag:
+    repo: unstable
 
 I will explain each element of the nested dictionary in turn.
 
 pakit.command.timeout
-   The timeout for commands, when no stdout produced for timeout terminate the command.
+    The timeout for commands.
+    When no stdout produced for timeout seconds kill the process.
 
 pakit.log.enabled
-   Toggles the file logger. Console messages are currently always enabled.
+    Toggles the file logger. Console errors are always enabled.
 
 pakit.log.file
-   Where the file log will be written to.
+    Where the file log will be written to.
 
 pakit.log.level
-   The level to write to the file log.
+    The level to write to the file log.
 
 pakit.paths.link
-   Path where all programs will be linked to. You should put the bin folder in
-   this folder on the **$PATH**.
-   For the above config, **PATH=/tmp/pakit/links/bin:$PATH**.
+    Path where all programs will be linked to.
+    You should put the bin folder in this folder on the `$PATH`.
+    For the above config, `PATH=/tmp/pakit/links/bin:$PATH`.
 
 pakit.paths.prefix
-   All recipes will be installed into this path. Using the above config,
-   the recipe **ag** would be installed to `/tmp/pakit/builds/ag`.
+    All recipes will be installed inside their own silos here.
+    Using the above config, the recipe `ag` would be
+    installed under `/tmp/pakit/builds/ag`.
 
 pakit.paths.recipes
-   Path to a folder with user created recipes. Path must be a valid python package
-   according to python conventions. Importantly this means base folder
-   can **NOT** be a hidden directory (leading '.').
+    Path to a folder where all recipes will be stored.
+    All recipes will be specified in the `pakit.recipe.uris` node.
 
 pakit.paths.source
-   The path where source code will be downloaded & built.
+    The path where source code will be downloaded & built.
+
+pakit.recipe.update_interval
+    After a recipe uri has not been updated for update_interval seconds
+    check for updates.
+
+pakit.recipe.uris
+    The list contains a series of dictionaries that specify recipes.
+    Recipes are indexed in the order of the list.
+    Each dictionary must contain the 'uri' key as described below.
+    Any other keys will be passed to pakit.shell.vcs_factory as kwargs.
+    Remotely fetched recipes will be periodically updated.
+
+    The 'uri' key must be one of ...
+
+    - A version control uri supported by `pakit.shell.vcs_factory`
+      like git or mercurial.
+    - A simple folder name to be used in `pakit.paths.recipes`.
 
 pakit.defaults
-   A dictionary of default options made available to all recipes.
-   Anything in this, will be available inside recipes as **self.opts**.
+    A dictionary of default options made available to all recipes.
+    Anything in this, will be available inside recipes as self.opts.
 
 pakit.defaults.repo
-   The default source repository to use.
-   By convention, **stable** will always fetch a stable release.
-   Whereas **unstable** should build from recent project commits, it may break.
+    The default source repository to use.
+    By convention, "stable" should always fetch a stable versioned release.
+    Whereas "unstable" should build from recent project commits.
 
 ag
-   A recipe specific dictionary that will **update** keys of the same
-   name in `pakit.defaults`.
+    A recipe specific dictionary that will override keys of the same
+    name in `pakit.defaults`.
 
 ag.repo
-   Setting **unstable** here overrides the value of `pakit.defaults.repo`.
+    Setting "unstable" here overrides the value of "pakit.defaults.repo".
 
 More Help
 ---------
