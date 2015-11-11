@@ -10,7 +10,7 @@
 [![Version](https://img.shields.io/pypi/v/pakit.svg)](https://pypi.python.org/pypi/pakit)
 [![Status](https://img.shields.io/pypi/status/pakit.svg)](https://pypi.python.org/pypi/pakit)
 
-[Development On Github](https://github.com/starcraftman/pakit)
+[Fork Me On Github](https://github.com/starcraftman/pakit)
 
 ## Description
 
@@ -30,9 +30,13 @@ When you install a program Pakit will...
 
 Want a longer explanation? See the [Overview](https://github.com/starcraftman/pakit#overview) section.
 
-![Pakit Demo](https://github.com/pakit/demo/raw/master/demo.gif)
+## Demo
 
-**[Try the demo yourself after installing!](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)**
+The following demonstration covers most of the basic functions.
+
+[![Pakit Demo](https://github.com/pakit/demo/raw/master/demo.gif)](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
+
+Try the [demo](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo) yourself after installing pakit.
 
 ## Install Pakit
 
@@ -42,14 +46,16 @@ To use pakit:
 1. Fetch pakit via **pip** or **github**.
 1. Modify your **$PATH**.
 
-**Build Environment**
+### Build Environment
 
 At this point pakit has two limitations to be aware of:
+
 - Relies on user's build environment.
 - Pakit recipes can only depend on things pakit can build, currently limited pool.
   User needs to install any dependencies pakit can't build.
 
 To use pakit, I suggest you have...
+
 - c++ build environment
 - git
 - mercurial
@@ -60,7 +66,7 @@ For Ubuntu install these packages:
 sudo apt-get install build-essential automake autoreconf python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
 ```
 
-**Github**
+### Github
 
 Fetch the latest from the source. Works unless the build badge says failing.
 
@@ -71,7 +77,7 @@ sudo -H pip install argparse PyYAML
 python pakit/setup.py release
 ```
 
-**pip**
+### pip
 
 Install the latest stable pip release. It might be old but working.
 
@@ -79,7 +85,7 @@ Install the latest stable pip release. It might be old but working.
 sudo -H pip install pakit
 ```
 
-**PATH**
+### PATH
 
 By default, pakit will install programs under `pakit.paths.prefix`
  and link everything to `pakit.paths.link`.
@@ -122,6 +128,7 @@ particular flags to the `vim` or `ag` build, you'd just put them in an entry
 in the config.
 
 Expected Feature Overview:
+
 - Python only, with minimal dependencies.
 - Package manager interface, install remove and update recipes.
 - 100% tested, framework & supported recipes.

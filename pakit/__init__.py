@@ -1,9 +1,16 @@
 """
-pakit: Build and manage programs simply.
+pakit: A python based package manager that builds programs from source
 
-- A Package Manager CLI to install, remove & update programs.
-- A simple Recipe specification to build programs from source code.
-- Premade recipes for common programs under ``pakit_recipes``.
+1. A Package Manager CLI to install, remove & update programs.
+2. A simple Recipe specification to build programs from source code.
+3. Premade recipes for common programs available maintained by pakit at
+   https://github.com/pakit/base_recipes) maintained by pakit.
+
+When you install a program Pakit will...
+
+1. download the source into a silo in `pakit.paths.source` and build it.
+2. install the program into a silo under `pakit.paths.prefix`.
+3. link the silo to the `pakit.paths.link` directory.
 
 See...
 - *pakit.conf* for information on configuration, including defaults.

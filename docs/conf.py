@@ -233,10 +233,11 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('man', 'pakit', 'Build and manage programs simply',
-        ['Jeremy Pallats/starcraft.man'], 1),
+    ('man', 'pakit',
+     'A python based package manager that builds programs from source',
+     ['Jeremy Pallats/starcraft.man'], 1),
     ('pakit_recipes', 'pakit_recipes', 'Learn about writing pakit recipes',
-        ['Jeremy Pallats/starcraft.man'], 1),
+     ['Jeremy Pallats/starcraft.man'], 1),
 ]
 
 # If true, show URL addresses after external links.

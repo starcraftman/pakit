@@ -20,17 +20,33 @@ except ImportError:
     sys.exit(1)
 
 
+def get_short_desc():
+    """
+    Fetch one line description from pakit's code.
+    """
+    line = pakit.__doc__.split('\n')[1]
+    desc = line.split(':')[1]
+    return desc.strip()
+
+
 def get_long_desc():
     """
     Creates a long description for pypi.
     If possible, by converting the README.md with pandoc.
     """
-    # TODO: Leverage pandoc.
-    change_file = os.path.join(os.path.dirname(__file__), 'CHANGELOG')
-    base_desc = 'For More Information: https://github.com/starcraftman/pakit'
-    with open(change_file) as fin:
-        lines = fin.readlines()
-    return base_desc + '\n\nChange Log:\n\n' + ''.join(lines)
+    rst_file = os.path.join(os.getcwd(), 'README.rst')
+    try:
+        subprocess.check_call(['python', './docs/pand.py'])
+        with open(rst_file) as fin:
+            lines = fin.readlines()
+        return '\n' + ''.join(lines)
+    except subprocess.CalledProcessError:
+        return '\nFor more information: https://github.com/starcraftman/pakit'
+    finally:
+        try:
+            os.remove(rst_file)
+        except OSError:
+            pass
 
 
 def rec_search(wildcard):
@@ -168,7 +184,7 @@ TEST_DEPS = ['coverage', 'flake8', 'mock', 'pytest', 'tox']
 setup(
     name='pakit',
     version=pakit.__version__,
-    description='A python based package manager that builds from source',
+    description=get_short_desc(),
     long_description=get_long_desc(),
     url='https://github.com/starcraftman/pakit',
     author=MY_NAME,
