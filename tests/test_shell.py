@@ -14,7 +14,7 @@ from pakit.exc import (
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
-    walk_and_link, walk_and_unlink, vcs_factory
+    walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory
 )
 import pakit.shell
 import tests.common as tc
@@ -140,6 +140,22 @@ class TestLinking(object):
         walk_and_unlink(self.src, self.dst)
         assert os.path.exists(self.dst)
         assert os.path.exists(link_file)
+
+    def test_walk_and_unlink_all(self):
+        walk_and_link(self.src, self.dst)
+
+        not_link = os.path.join(self.dst, 'notlink')
+        with open(not_link, 'w') as fout:
+            fout.write('Hello')
+
+        walk_and_unlink_all(self.dst, self.src)
+        assert os.path.exists(not_link)
+        for fname in self.dst_fnames:
+            assert not os.path.exists(fname)
+        assert not os.path.exists(self.subdir.replace(self.src, self.dst))
+        for fname in self.fnames:
+            assert os.path.exists(fname)
+        assert os.path.exists(self.dst)
 
 
 class TestExtractFuncs(object):

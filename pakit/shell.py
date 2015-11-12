@@ -334,6 +334,32 @@ def walk_and_unlink(src, dst):
         pass
 
 
+def walk_and_unlink_all(link_root, build_root):
+    """
+    Walk the tree from bottom up and remove all symbolic links
+    pointing into the build_root. Cleans up any empty folders.
+
+    Args:
+        build_root: The path where all installations are. Any symlink
+            pakit makes will have this as a prefix of the target path.
+        link_root: All links are located below this folder.
+    """
+    for dirpath, _, filenames in os.walk(link_root, followlinks=True,
+                                         topdown=False):
+        to_remove = []
+        for fname in filenames:
+            abs_file = os.path.join(dirpath, fname)
+            if os.path.realpath(abs_file).find(build_root) == 0:
+                to_remove.append(fname)
+
+        unlink_all_files(dirpath, dirpath, to_remove)
+
+    try:
+        os.makedirs(link_root)
+    except OSError:
+        pass
+
+
 def link_all_files(src, dst, filenames):
     """
     From src directory link all filenames into dst.

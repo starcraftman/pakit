@@ -14,7 +14,9 @@ import shutil
 import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakit.shell import Command, walk_and_link, walk_and_unlink
+from pakit.shell import (
+    Command, walk_and_link, walk_and_unlink, walk_and_unlink_all
+)
 
 PREFIX = '\n  '
 USER = logging.getLogger('pakit')
@@ -269,7 +271,8 @@ class RelinkRecipes(Task):
         logging.debug('Relinking All Programs')
 
         dst = pakit.conf.CONFIG.path_to('link')
-        Command('rm -rf ' + dst).wait()
+        walk_and_unlink_all(dst, pakit.conf.CONFIG.path_to('prefix'))
+
         for _, recipe in pakit.recipe.RDB:
             walk_and_link(recipe.install_dir, dst)
 
