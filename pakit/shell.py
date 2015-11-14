@@ -433,6 +433,29 @@ def vcs_factory(uri, **kwargs):
     raise PakitError('Unssupported URI: ' + uri)
 
 
+def write_config(config_file):
+    """
+    Writes the DEFAULT config to the config file.
+    Overwrites the file if present.
+
+    Raises:
+        PakitError: File exists and is a directory.
+        PakitError: File could not be written to.
+    """
+    try:
+        os.remove(config_file)
+    except OSError:
+        if os.path.isdir(config_file):
+            raise PakitError('Config path is a directory.')
+
+    try:
+        config = pakit.conf.Config(config_file)
+        config.reset()
+        config.write()
+    except (IOError, OSError):
+        raise PakitError('Failed to write to ' + config.filename)
+
+
 class Fetchable(object):
     """
     Establishes an abstract interface for fetching source code.
@@ -882,10 +905,9 @@ class Git(VersionRepo):
         Return the current hash of the repository.
         """
         with self:
-            cmd = Command('git log -1 ', self.target)
+            cmd = Command('git rev-parse HEAD', self.target)
             cmd.wait()
-            hash_line = cmd.output()[0]
-            return hash_line.split()[-1]
+            return cmd.output()[0]
 
     @staticmethod
     def valid_uri(uri):
@@ -993,10 +1015,9 @@ class Hg(VersionRepo):
         Return the current hash of the repository.
         """
         with self:
-            cmd = Command('hg parents', self.target)
+            cmd = Command('hg identify', self.target)
             cmd.wait()
-            hash_line = cmd.output()[0]
-            return hash_line.split()[-1]
+            return cmd.output()[0].split()[0]
 
     @staticmethod
     def valid_uri(uri):

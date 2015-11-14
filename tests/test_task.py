@@ -10,12 +10,14 @@ import pytest
 import shutil
 
 import pakit.conf
+import pakit.main
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.task import (
-    subseq_match, substring_match, Task, RecipeTask,
+    subseq_match, create_substring_matcher, Task, RecipeTask,
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
-    ListInstalled, ListAvailable, SearchTask, RelinkRecipes
+    ListInstalled, ListAvailable, SearchTask, RelinkRecipes,
+    CreateConfig
 )
 import tests.common as tc
 
@@ -27,11 +29,38 @@ def test_subseq_match():
     assert not subseq_match(haystack, 'Good')
 
 
-def test_substring_match():
-    haystack = 'Hello World!'
-    assert substring_match(haystack, 'hello')
-    assert substring_match(haystack, 'Hello')
-    assert not substring_match(haystack, 'HelloW')
+class TestSubstring(object):
+    def test_nocase_desc(self):
+        matcher = create_substring_matcher(case=False, names_only=False)
+        recipe = pakit.recipe.RDB.get('ag')
+        assert matcher(recipe, 'ag')
+        assert matcher(recipe, 'Ag')
+        assert matcher(recipe, 'grep like')
+        assert matcher(recipe, 'Grep like')
+
+    def test_case_desc(self):
+        matcher = create_substring_matcher(case=True, names_only=False)
+        recipe = pakit.recipe.RDB.get('ag')
+        assert matcher(recipe, 'ag')
+        assert not matcher(recipe, 'Ag')
+        assert not matcher(recipe, 'grep like')
+        assert matcher(recipe, 'Grep like')
+
+    def test_substring_match_case_names(self):
+        matcher = create_substring_matcher(case=True, names_only=True)
+        recipe = pakit.recipe.RDB.get('ag')
+        assert matcher(recipe, 'ag')
+        assert not matcher(recipe, 'Ag')
+        assert not matcher(recipe, 'grep like')
+        assert not matcher(recipe, 'Grep like')
+
+    def test_substring_match_nocase_names(self):
+        matcher = create_substring_matcher(case=False, names_only=True)
+        recipe = pakit.recipe.RDB.get('ag')
+        assert matcher(recipe, 'ag')
+        assert matcher(recipe, 'Ag')
+        assert not matcher(recipe, 'grep like')
+        assert not matcher(recipe, 'Grep like')
 
 
 class TestTaskBase(object):
@@ -233,6 +262,18 @@ class TestTaskRelink(TestTaskBase):
         assert os.path.islink(os.path.join(recipe.link_dir, 'bin', 'ag'))
 
 
+class TestTaskCreateConfig(object):
+    def test_write(self, mock_print):
+        try:
+            conf_file = os.path.join(tc.STAGING, 'dummy.yml')
+            CreateConfig(conf_file).run()
+            assert os.path.exists(conf_file)
+            expect = 'Wrote default config to'
+            mock_print.assert_any_call(expect, conf_file)
+        finally:
+            tc.delete_it(conf_file)
+
+
 class TestTaskQuery(TestTaskBase):
     def test_list_installed(self):
         InstallTask(self.recipe).run()
@@ -260,14 +301,10 @@ class TestTaskQuery(TestTaskBase):
         expect = ' '.join(pakit.recipe.RDB.names(desc=False))
         mock_print.assert_called_with(expect)
 
-    def test_search_names(self):
-        results = SearchTask(pakit.recipe.RDB.names(), ['doxygen']).run()
-        assert results[1:] == ['doxygen']
-
-    def test_search_desc(self):
+    def test_search_task(self):
+        args = pakit.main.create_args_parser().parse_args('search ack'.split())
         ack = pakit.recipe.RDB.get('ack')
-        results = SearchTask(pakit.recipe.RDB.names(desc=True),
-                             [ack.description]).run()
+        results = SearchTask(args).run()
         assert results[1:] == [str(ack)]
 
     def test_display_info(self):

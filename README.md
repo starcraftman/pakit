@@ -135,7 +135,7 @@ Expected Feature Overview:
 - Should work on any POSIX system, emphasis on Linux.
 - Simple recipe specification.
 - Configuration via a single YAML file.
-- Available via [`pip`](https://pypi.python.org/pypi/pakit).
+- Available via [pip](https://pypi.python.org/pypi/pakit).
 - Traceability via logs for every command.
 - Premade & tested recipes available for use.
 

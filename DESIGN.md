@@ -1,47 +1,22 @@
-## Expected Command Line
+## First Command Line
 
-- `pakit --install tmux ag`       -- Install several programs
-- `pakit --update`                -- Update local programs
-- `pakit --remove tmux`           -- Remove program
-- `pakit --list`                  -- List installed programs
-- `pakit --available`             -- List ALL available formula
-- `pakit --search lib`            -- Display matching avilable recipes
-- `pakit --conf ./a.yaml -i ag`   -- Override default config
-- `pakit --display vim ag`        -- Display package information
-- `pakit --relink`                -- Relink all programs
+- `pakit install tmux ag`       -- Install several programs
+- `pakit update`                -- Update local programs
+- `pakit remove tmux`           -- Remove program
+- `pakit list`                  -- List installed programs
+- `pakit available`             -- List ALL available formula
+- `pakit search lib`            -- Display matching avilable recipes
+- `pakit --conf a.yaml list`    -- Override default config
+- `pakit display vim ag`        -- Display package information
+- `pakit relink`                -- Relink all programs
 
-Short opts in order: -i -u -r -l -a -s -c -d
+Short opts: No longer supported with subcommand model.
 
 ## Configuration
 
-File config by a YAML file, default at `$HOME/.pakit.yml`.
-
-```yaml
-# Default options passed to all recipes self.opts, can be overwridden by specific opts.
-defaults:
-  repo: unstable
-paths:
-  # Where all builds will go, each under /tmp/pakit/builds/recipe.name folder
-  prefix: /tmp/pakit/builds
-  # Where builds will link to, should go on your PATH
-  link: /tmp/pakit/links
-  # Where source code will go
-  source: /tmp/pakit/src
-  # User can define a series of folders with recipes
-  recipes:
-    - path1
-    - path2
-log:
-  enabled: true
-  file: /tmp/pakit/main.log
-# Example of specific options, for recipe in 'ag.py'
-# Note that here ag will be built with 'stable' repo instead of default.
-ag:
-  repo: stable
-  # These two options will be available in build/verify funcs via self.opts.
-  option_1: hello
-  option_2: world
-```
+See one of the following for up to date configuration:
+- pydoc pakit.conf
+- man pakit
 
 ## Recipe Specification
 
@@ -55,35 +30,12 @@ Parts of standard recipe:
 - description: Short 1 line description. First non-empty line of __doc__.
 - more_info: Long as you want. second non-empty line of __doc__ to end.
 - homepage: Where people can get information on the project.
-- repos: A dict of possible source downloaders.
+- repos: A dict of possible source downloaders. See pakit.shell.Fetchable and subclasses.
 - build(): A function that builds the source selectable by config.
 - verify(): A function that uses `assert` statements to verify build.
 
-Example:
-```py
-""" Formula for building ag """
-from pakit import Git, Recipe
-
-
-class Ag(Recipe):
-    """ Grep like tool optimized for speed """
-    def __init__(self):
-        super(Ag, self).__init__()
-        self.src = 'https://github.com/ggreer/the_silver_searcher'
-        self.homepage = self.src
-        self.repos = {
-            'stable': Git(self.src, tag='0.30.0'),
-            'unstable': Git(self.src),
-        }
-
-    def build(self):
-        self.cmd('./build.sh --prefix {prefix}')
-        self.cmd('make install')
-
-    def verify(self):
-        lines = self.cmd('{link}/bin/ag --version')
-        assert lines[0].find('ag version') != -1
-```
+Example recipe with heavy documentation available with base_recipes.
+Please see ~/.pakit/base_recipes/example.py for more details.
 
 ## Dependencies:
 

@@ -14,7 +14,8 @@ from pakit.exc import (
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
-    walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory
+    walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
+    write_config
 )
 import pakit.shell
 import tests.common as tc
@@ -70,6 +71,32 @@ def test_vcs_factory():
 def test_vcs_factory_unsupported():
     with pytest.raises(PakitError):
         vcs_factory(tc.TAR)
+
+
+class TestWriteConfig(object):
+    def setup(self):
+        self.old_rdb = pakit.recipe.RDB
+        self.old_conf = pakit.conf.CONFIG
+        self.conf_file = os.path.join(tc.STAGING, 'conf.yaml')
+
+    def teardown(self):
+        tc.delete_it(self.conf_file)
+        pakit.conf.CONFIG = self.old_conf
+        pakit.recipe.RDB = self.old_rdb
+
+    def test_write_config(self):
+        assert not os.path.exists(self.conf_file)
+        write_config(self.conf_file)
+        assert os.path.exists(self.conf_file)
+
+    def test_write_config_dir(self):
+        os.mkdir(self.conf_file)
+        with pytest.raises(PakitError):
+            write_config(self.conf_file)
+
+    def test_write_config_perms(self):
+        with pytest.raises(PakitError):
+            write_config('/ttt.yml')
 
 
 class TestLinking(object):
@@ -442,7 +469,7 @@ class TestHg(object):
         tc.delete_it(self.test_dir)
 
     def test_hash(self):
-        assert self.repo.src_hash == '80:a6ec48f03985'
+        assert self.repo.src_hash == 'a6ec48f03985'
 
     def test_download_with_tag(self):
         with self.repo:
@@ -466,7 +493,7 @@ class TestHg(object):
         repo.download()
         repo.tag = 'manipulating'
         with repo:
-            assert repo.src_hash == '12:3c7ab75c2eea'
+            assert repo.src_hash == '3c7ab75c2eea'
 
     def test_reset(self):
         temp_file = os.path.join(self.repo.target, 'tempf')
@@ -481,9 +508,9 @@ class TestHg(object):
             """
             Required because with now forces right commit
             """
-            cmd = Command('hg parents', target)
+            cmd = Command('hg identify', target)
             cmd.wait()
-            return cmd.output()[0].split()[-1]
+            return cmd.output()[0].split()[0]
 
         self.repo.branch = 'default'
         with self.repo:

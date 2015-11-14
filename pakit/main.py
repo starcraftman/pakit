@@ -6,6 +6,7 @@ Acts as an intermediary between program arguments and pakit Tasks.
 from __future__ import absolute_import, print_function
 
 import argparse
+from argparse import RawDescriptionHelpFormatter as RawDescriptionHelp
 import glob
 import logging
 import logging.handlers
@@ -21,7 +22,7 @@ from pakit.exc import PakitError, PakitDBError
 from pakit.graph import DiGraph, topological_sort
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
-    DisplayTask, RelinkRecipes, SearchTask
+    DisplayTask, RelinkRecipes, SearchTask, CreateConfig
 )
 
 
@@ -63,35 +64,80 @@ def create_args_parser():
     """.format(prog_name.capitalize(), prog_name)
     mesg = mesg[0:-5]
     parser = argparse.ArgumentParser(prog=prog_name, description=mesg,
-                                     formatter_class=argparse.
-                                     RawDescriptionHelpFormatter)
-    mut1 = parser.add_mutually_exclusive_group()
+                                     formatter_class=RawDescriptionHelp)
     parser.add_argument('-v', '--version', action='version',
                         version='pakit {0}\nALPHA!'.format(__version__))
-    parser.add_argument('-a', '--available', default=False,
-                        action='store_true', help='list available recipes')
-    parser.add_argument('--available-short', default=False,
-                        action='store_true',
-                        help='list available recipes, terse output')
-    parser.add_argument('-c', '--conf', help='yaml config file')
-    parser.add_argument('--create-conf', default=False, action='store_true',
-                        help='write the default config to CONF')
-    parser.add_argument('-d', '--display', nargs='+', metavar='RECIPE',
-                        help='show detailed information about RECIPE(s)')
-    mut1.add_argument('-i', '--install', nargs='+',
-                      metavar='RECIPE', help='install specified RECIPE(s)')
-    mut1.add_argument('-k', '--search', nargs='+', metavar='WORD',
-                      help='search names & descriptions for WORD')
-    parser.add_argument('-l', '--list', default=False,
-                        action='store_true', help='list installed recipes')
-    parser.add_argument('--list-short', default=False, action='store_true',
-                        help='list installed recipes, terse output')
-    parser.add_argument('--relink', default=False, action='store_true',
-                        help='relink installed recipes')
-    mut1.add_argument('-r', '--remove', nargs='+',
-                      metavar='RECIPE', help='remove specified RECIPE(s)')
-    mut1.add_argument('-u', '--update', default=False, action='store_true',
-                      help='update all installed recipes')
+    parser.add_argument('-c', '--conf', help='the yaml config file to use')
+    subs = parser.add_subparsers(title='subcommands',
+                                 description='For additional help: '
+                                 'pakit <subcommand> -h')
+
+    sub = subs.add_parser('install',
+                          description='Install specified RECIPE(s).')
+    sub.add_argument('recipes', nargs='+', metavar='RECIPE',
+                     help='one or more RECIPE(s) to install')
+    sub.set_defaults(func=parse_install)
+
+    sub = subs.add_parser('remove', description='Remove specified RECIPE(s).')
+    sub.add_argument('recipes', nargs='+', metavar='RECIPE',
+                     help='one or more RECIPE(s) to remove')
+    sub.set_defaults(func=parse_remove)
+
+    sub = subs.add_parser('update',
+                          description='Update all recipes installed. '
+                          'Alternatively, just specified RECIPE(s)')
+    sub.add_argument('recipes', nargs='*', default=(), metavar='RECIPE',
+                     help='zero or more RECIPE(s) to update')
+    sub.set_defaults(func=parse_update)
+
+    sub = subs.add_parser('list',
+                          description='List currently installed recipe(s).')
+    sub.add_argument('--short', default=False, action='store_true',
+                     help='terse output format')
+    sub.set_defaults(func=parse_list)
+
+    sub = subs.add_parser('available',
+                          description='List recipes available to install.')
+    sub.add_argument('--short', default=False, action='store_true',
+                     help='terse output format')
+    sub.set_defaults(func=parse_available)
+
+    sub = subs.add_parser('display',
+                          description='Information about selected RECIPE(s).')
+    sub.add_argument('recipes', nargs='+', metavar='RECIPE',
+                     help='display information for one or more RECIPE(s)')
+    sub.set_defaults(func=parse_display)
+
+    desc = """Search for WORD(s) in the recipe database.
+    The matches for each WORD will be ORed together.
+
+    Default options:
+    - Substring match
+    - Case insensitive
+    - Matches against recipe name or description
+    """
+    sub = subs.add_parser('search', description=desc,
+                          formatter_class=RawDescriptionHelp)
+    sub.add_argument('words', nargs='+', metavar='WORD',
+                     help='search names & descriptions for WORD')
+    sub.add_argument('--case', default=False, action='store_true',
+                     help='enable case sensitivity, default off')
+    sub.add_argument('--names', default=False, action='store_true',
+                     help='only search against recipe name,'
+                     ' default name and description')
+    sub.set_defaults(func=parse_search)
+
+    sub = subs.add_parser('relink',
+                          description='Relink all installed RECIPE(s).'
+                          '\nAlternatively, relink specified RECIPE(s).',
+                          formatter_class=RawDescriptionHelp)
+    sub.add_argument('recipes', nargs='*', metavar='RECIPE',
+                     help='the RECIPE(s) to manage')
+    sub.set_defaults(func=parse_relink)
+
+    sub = subs.add_parser('create-conf',
+                          description='(Over)write the selected pakit config.')
+    sub.set_defaults(func=parse_create_conf)
 
     return parser
 
@@ -275,107 +321,76 @@ def order_tasks(recipe_names, task_class):
     return [task_class(recipe_name) for recipe_name in topological_sort(graph)]
 
 
-def parse_tasks_display(args):
-    """
-    Parse args for DisplayTasks.
-    """
-    if args.display:
-        return [DisplayTask(prog) for prog in args.display]
-    else:
-        return []
-
-
-def parse_tasks_install(args):
+def parse_install(args):
     """
     Parse args for InstallTask(s).
     """
-    if args.install:
-        return order_tasks(args.install, InstallTask)
-    else:
-        return []
+    return order_tasks(args.recipes, InstallTask)
 
 
-def parse_tasks_list_available(args):
-    """
-    Parse args for  ListAvailable task.
-    """
-    if args.available or args.available_short:
-        return [ListAvailable(args.available_short)]
-    else:
-        return []
-
-
-def parse_tasks_list_installed(args):
-    """
-    Parse args for ListInstalled task.
-    """
-    if args.list or args.list_short:
-        return [ListInstalled(args.list_short)]
-    else:
-        return []
-
-
-def parse_tasks_relink(args):
-    """
-    Parse args for RelinkRecipes task.
-    """
-    if args.relink:
-        return [RelinkRecipes()]
-    else:
-        return []
-
-
-def parse_tasks_remove(args):
+def parse_remove(args):
     """
     Parse args for RemoveTask(s).
     """
-    if args.remove:
-        return [RemoveTask(recipe) for recipe in args.remove]
-    else:
-        return []
+    return [RemoveTask(recipe) for recipe in args.recipes]
 
 
-def parse_tasks_search(args):
-    """
-    Parse args for DisplayTask(s).
-    """
-    if args.search:
-        recipe_names = pakit.recipe.RDB.names(desc=True)
-        return [SearchTask(recipe_names, args.search)]
-    else:
-        return []
-
-
-def parse_tasks_update(args):
+def parse_update(args):
     """
     Parse args for UpdateTask(s).
     """
-    if args.update:
-        recipes_to_update = [recipe for recipe, _ in pakit.conf.IDB]
-        return order_tasks(recipes_to_update, UpdateTask)
+    tasks = None
+    if len(args.recipes) == 0:
+        to_update = [recipe for recipe, _ in pakit.conf.IDB]
+        tasks = order_tasks(to_update, UpdateTask)
     else:
-        return []
+        raise NotImplementedError
 
-
-def parse_tasks(args):
-    """
-    Parse the program arguments into a list of Tasks to execute
-
-    Args:
-        args: An argparse object to map onto tasks.
-
-    Returns:
-        A list of Tasks.
-    """
-    tasks = []
-
-    cur_module = sys.modules[__name__]
-    parsers = [getattr(cur_module, fname) for fname in dir(cur_module)
-               if fname.find('parse_tasks_') == 0]
-    for parser in parsers:
-        tasks.extend(parser(args))
-
+    if len(tasks) == 0:
+        PLOG('Nothing to update.')
     return tasks
+
+
+def parse_display(args):
+    """
+    Parse args for DisplayTasks.
+    """
+    return [DisplayTask(prog) for prog in args.recipes]
+
+
+def parse_available(args):
+    """
+    Parse args for ListAvailable task.
+    """
+    return [ListAvailable(args.short)]
+
+
+def parse_list(args):
+    """
+    Parse args for ListInstalled task.
+    """
+    return [ListInstalled(args.short)]
+
+
+def parse_relink(_):
+    """
+    Parse args for RelinkRecipes task.
+    """
+    return [RelinkRecipes()]
+
+
+def parse_search(args):
+    """
+    Parse args for DisplayTask(s).
+    """
+    return [SearchTask(args)]
+
+
+def parse_create_conf(args):
+    """
+    Parse args for creating config.
+    """
+    return [CreateConfig(args.conf)]
 
 
 def search_for_config(default_config=None):
@@ -416,31 +431,6 @@ def search_for_config(default_config=None):
     return default_config
 
 
-def write_config(config_file):
-    """
-    Writes the DEFAULT config to the config file.
-    Overwrites the file if present.
-
-    Raises:
-        PakitError: File exists and is a directory.
-        PakitError: File could not be written to.
-    """
-    config = Config(config_file)
-    try:
-        os.remove(config.filename)
-    except OSError:
-        if os.path.isdir(config.filename):
-            raise PakitError('Config path is a directory.')
-    try:
-        config.reset()
-        config.write()
-        print('pakit: Wrote default config to: ' + config.filename)
-    except (IOError, OSError):
-        raise PakitError('Failed to write to ' + config.filename)
-    finally:
-        sys.exit(0)
-
-
 def main(argv=None):
     """
     The main entry point for this program.
@@ -457,23 +447,17 @@ def main(argv=None):
         parser.print_usage()
         sys.exit(1)
 
-    args = parser.parse_args(argv[1:])
-    if not args.conf:
-        args.conf = search_for_config(os.path.expanduser('~/.pakit.yml'))
-    if args.create_conf:
-        write_config(args.conf)
-
-    global_init(args.conf)
-    logging.debug('CLI: %s', args)
-
     try:
-        tasks = parse_tasks(args)
-        for task in tasks:
+        args = parser.parse_args(argv[1:])
+        if not args.conf:
+            args.conf = search_for_config(os.path.expanduser('~/.pakit.yml'))
+
+        global_init(args.conf)
+        logging.debug('CLI: %s', args)
+
+        for task in args.func(args):
             PLOG('Running: %s', str(task))
             task.run()
-
-        if len(tasks) == 0 and args.update:
-            PLOG('Nothing to update.')
 
     except PakitDBError as exc:
         PLOG(str(exc))

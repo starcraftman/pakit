@@ -15,7 +15,8 @@ import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.shell import (
-    Command, walk_and_link, walk_and_unlink, walk_and_unlink_all
+    Command, walk_and_link, walk_and_unlink, walk_and_unlink_all,
+    write_config
 )
 
 PREFIX = '\n  '
@@ -336,6 +337,23 @@ class ListAvailable(Task):
         return msg
 
 
+class CreateConfig(Task):
+    """
+    Task to write the config file.
+    """
+    def __init__(self, filename):
+        super(CreateConfig, self).__init__()
+        self.filename = filename
+
+    def run(self):
+        """
+        Execute a set of operations to perform the Task.
+        """
+        write_config(self.filename)
+        print('Wrote default config to', self.filename)
+
+
+# TODO: To be used or not?
 def subseq_match(word, sequence):
     """
     Subsequence matcher, not case senstive.
@@ -356,42 +374,77 @@ def subseq_match(word, sequence):
     return False
 
 
-def substring_match(word, sequence):
+def create_substring_matcher(case=False, names_only=False):
     """
-    Substring matcher, not case senstive.
+    Use lexical scoping to modify the matcher.
 
     Args:
-        word: The phrase under investigation.
-        sequence: The substring to look for.
+        case: Toggles case sensitivity, default off.
+        names_only: Only match against names, default names & description.
 
     Returns:
-        True iff the substring was present in the word.
+        Matcher object.
     """
-    return word.lower().find(sequence.lower()) != -1
+    def substring_match(recipe, word):
+        """
+        A substring matcher with minor options.
+
+        Args:
+            recipe: A recipe from the recipe database.
+            word: What we are looking for in the line.
+
+        Returns:
+            True iff the substring was present in the part of the recipe
+            matched against.
+        """
+        if names_only:
+            line = recipe.name
+        else:
+            line = str(recipe)
+
+        if not case:
+            word = word.lower()
+            line = line.lower()
+
+        return line.find(word) != -1
+
+    return substring_match
 
 
 class SearchTask(Task):
     """
     Search the RecipeDB for matching recipes.
     """
-    def __init__(self, words, queries):
+    def __init__(self, args):
         super(SearchTask, self).__init__()
-        self.queries = queries
-        self.words = words
+        self.matcher = create_substring_matcher(args.case, args.names)
+        self.words = args.words
+
+    def matching_recipes(self):
+        """
+        Returns:
+            A list of recipes that matched the query words with the
+            given matcher.
+        """
+        matched = []
+
+        for _, recipe in pakit.recipe.RDB:
+            for word in self.words:
+                if self.matcher(recipe, word):
+                    matched.append(str(recipe))
+                    break
+
+        return matched
 
     def run(self):
         """
         Execute a set of operations to perform the Task.
         """
-        matched = []
-        for query in self.queries:
-            match_query = [word for word in self.words
-                           if substring_match(word, query)]
-            matched.extend(match_query)
-        matched = ['Program      Description'] + sorted(list(set(matched)))
+        matched = ['Program      Description']
+        matched += sorted(self.matching_recipes())
 
         msg = 'Your Search For:'
-        msg += PREFIX + PREFIX.join(["'{0}'".format(q) for q in self.queries])
+        msg += PREFIX + PREFIX.join(["'" + word + "'" for word in self.words])
         msg += '\nMatched These Recipes:'
         msg += PREFIX + PREFIX.join(matched)
         print(msg)

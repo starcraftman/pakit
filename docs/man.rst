@@ -21,46 +21,47 @@ Synopsis
 --------
 **pakit** [options] [RECIPE...]
 
+
+Subcommands
+-----------
+See each subcommands `--help` for additional information.
+
+create-conf CONF
+  Create the default configuration at CONF.
+  If not specified, use default at: ~/.pakit/pakit.yml
+
+install RECIPE [RECIPE...]
+  Install selected recipes.
+
+remove RECIPE [RECIPE...]
+  Remove selected recipes.
+
+update
+  Update all recipes. If args, update only selected recipes.
+
+display RECIPE [RECIPE...]
+  Show information about selected recipes.
+
+list
+  List all installed recipes.
+
+available
+  List all recipes that can be installed.
+
+relink
+  Relink all or selected recipes.
+
+search WORD [WORD...]
+  Search against recipes for WORDS specified.
+  WORD is delimited by space.
+
 Options
 -------
--a, --available
-    List available recipes
-
---available-short
-    List available recipes, output is very terse
-
 -c,  --conf CONF
     Use CONF file instead of default ($HOME/.pakit.yml)
 
---create-conf
-    Write the default configuration to CONF
-
--d, --display RECIPE [RECIPE...]
-    Show detailed information on RECIPE(s)
-
 -h, --help
     Show a short help message
-
--i, --install RECIPE [RECIPE...]
-    Installs the RECIPE(s) to the system
-
--k, --search WORD [WORD...]
-    Search names & descriptions for WORD(s)
-
--l, --list
-    List installed recipes
-
---list-short
-    List installed recipes, output is very terse
-
---relink
-    Relink installed recipes
-
--r, --remove RECIPE [RECIPE...]
-    Removes the RECIPE(s) on the system
-
--u, --update
-    Updates all recipes on the system
 
 -v, --version
     Show the program version number

@@ -43,9 +43,9 @@ By executing the following commands you can see it in action, pay attention to t
 
 .. code-block:: bash
 
-  pakit --display example
-  pakit --install example
-  pakit --remove example exampledep
+  pakit display example
+  pakit install example
+  pakit remove example exampledep
 
 My annotations will begin with "#" signs like inline python comments.
 I will also use method docstrings to explain details.
@@ -78,7 +78,7 @@ I will also use method docstrings to explain details.
 
       Have breaks in text.
       It will be presented as 'More Information' when displaying a Recipe.
-      For instance `pakit --display example`.
+      For instance `pakit display example`.
       """
       def __init__(self):
           super(Example, self).__init__()
