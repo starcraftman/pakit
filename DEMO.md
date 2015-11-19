@@ -127,9 +127,9 @@ pakit search vim
 
 Removing all files pakit made is simple.
 
-1. Uninstall pakit, depends on install method
-  - **git**: delete the `pakit` folder
-  - **pip**: `sudo -H pip uninstall`
+1. Uninstall pakit, depends on how you installed it
+  - **git**: `rm -rf pakit`
+  - **pip**: `sudo -H pip uninstall pakit`
 1. `rm -rf /tmp/pakit ~/.pakit ~/.pakit.yml`
 
 ## More Information

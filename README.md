@@ -63,7 +63,7 @@ To use pakit, I suggest you have...
 
 For Ubuntu install these packages:
 ```bash
-sudo apt-get install build-essential automake autoreconf python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
+sudo apt-get install build-essential automake autoconf python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
 ```
 
 ### Github
@@ -73,8 +73,7 @@ Fetch the latest from the source. Works unless the build badge says failing.
 ```bash
 git clone https://github.com/starcraftman/pakit.git
 export PATH=$(pwd)/pakit/bin:$PATH
-sudo -H pip install argparse PyYAML
-python pakit/setup.py release
+python pakit/setup.py deps release
 ```
 
 ### pip

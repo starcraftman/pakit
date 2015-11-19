@@ -1,9 +1,8 @@
-""" pakit: A build tool """
+"""
+The setup file for packaging pakit
+"""
 from __future__ import absolute_import, print_function
 
-# Always prefer setuptools over distutils
-from setuptools import setup, find_packages, Command
-from setuptools.command.test import test as TestCommand
 import fnmatch
 import glob
 import os
@@ -11,22 +10,35 @@ import shlex
 import shutil
 import subprocess
 import sys
-try:
-    import pakit
-except ImportError:
-    print('setup.py imports pakit for information, please install pyyaml.')
-    print('Execute:')
-    print('    sudo -H pip install argparse pyyaml')
-    sys.exit(1)
+from setuptools import setup, find_packages, Command
+from setuptools.command.test import test as TestCommand
+
+ROOT = os.path.abspath(os.path.dirname(__file__))
+if os.path.dirname(__file__) == '':
+    ROOT = os.getcwd()
+
+
+def get_version():
+    """
+    Read version from source code.
+    """
+    v_line = None
+    with open(os.path.join(ROOT, 'pakit', '__init__.py')) as fin:
+        for line in fin:
+            if line.find('__version__') == 0:
+                v_line = line
+                break
+
+    return v_line.split()[2].replace("'", '', 2)
 
 
 def get_short_desc():
     """
     Fetch one line description from pakit's code.
     """
-    line = pakit.__doc__.split('\n')[1]
-    desc = line.split(':')[1]
-    return desc.strip()
+    with open(os.path.join(ROOT, 'pakit', '__init__.py')) as fin:
+        d_line = fin.readlines()[1]
+    return d_line.split(':')[1].strip()
 
 
 def get_long_desc():
@@ -98,18 +110,16 @@ class ReleaseCommand(Command):
         pass
 
     def run(self):
-        if os.path.dirname(__file__) == '':
-            setup_dir = os.getcwd()
-        else:
-            setup_dir = os.path.abspath(os.path.dirname(__file__))
-        target = os.path.join('pakit', 'extra')
-
         old_cwd = os.getcwd()
-        os.chdir(os.path.join(setup_dir, 'docs'))
-        subprocess.call(shlex.split('make man'))
+        os.chdir(os.path.join(ROOT, 'docs'))
+        try:
+            subprocess.check_call(shlex.split('make man'))
+        except OSError:
+            print('Please install GNU Make.')
+            sys.exit(1)
 
-        os.chdir(setup_dir)
-        self.copy_files(target)
+        os.chdir(ROOT)
+        self.copy_files_to(os.path.join('pakit', 'extra'))
 
         cmds = [
             'python setup.py sdist --formats=gztar,zip',
@@ -120,7 +130,7 @@ class ReleaseCommand(Command):
 
         os.chdir(old_cwd)
 
-    def copy_files(self, target):
+    def copy_files_to(self, target):
         """
         Copy some files into the package for distribution.
         """
@@ -155,7 +165,8 @@ class InstallDeps(Command):
 
     def run(self):
         print('Installing runtime & testing dependencies')
-        cmd = 'sudo pip install ' + ' '.join(RUN_DEPS + TEST_DEPS)
+        cmd = 'sudo -H pip install ' + ' '.join(RUN_DEPS + TEST_DEPS)
+        print('Will execute: ' + cmd)
         subprocess.call(shlex.split(cmd))
 
 
@@ -173,17 +184,22 @@ class PyTest(TestCommand):
         pass
 
     def run_tests(self):
-        import pytest
-        sys.exit(pytest.main(self.test_args))
+        try:
+            import pytest
+            sys.exit(pytest.main(self.test_args))
+        except ImportError:
+            print('Missing dependencies. Execute:')
+            print('  python setup.py deps')
+            sys.exit(1)
 
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
-RUN_DEPS = ['argparse', 'PyYAML']
-TEST_DEPS = ['coverage', 'flake8', 'mock', 'pytest', 'tox']
+RUN_DEPS = ['argparse', 'pyyaml']
+TEST_DEPS = ['coverage', 'flake8', 'mock', 'pytest', 'sphinx', 'tox']
 setup(
     name='pakit',
-    version=pakit.__version__,
+    version=get_version(),
     description=get_short_desc(),
     long_description=get_long_desc(),
     url='https://github.com/starcraftman/pakit',
@@ -237,7 +253,7 @@ setup(
     # # for example:
     # # $ pip install -e .[dev,test]
     extras_require={
-        'dev': TEST_DEPS + ['Sphinx'],
+        'dev': ['pyandoc'],
         'test': TEST_DEPS,
     },
 

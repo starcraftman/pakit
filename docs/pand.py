@@ -6,14 +6,20 @@ Depends on pandoc program and pyandoc python library.
 from __future__ import absolute_import, print_function
 
 import os
+import subprocess
 import sys
+try:
+    with open(os.devnull, 'w') as dnull:
+        subprocess.check_call('pandoc -v'.split(), stdout=dnull, stderr=dnull)
+except subprocess.CalledProcessError:
+    print('Please run:')
+    print('sudo apt-get install pandoc')
+    sys.exit(1)
 try:
     import pandoc
 except ImportError:
     print('Please run:')
     print('sudo -H pip install pyandoc')
-    print('sudo apt-get install pandoc')
-    print('Generating small README.rst instead.')
     sys.exit(1)
 
 
