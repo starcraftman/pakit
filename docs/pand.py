@@ -11,14 +11,14 @@ import sys
 try:
     with open(os.devnull, 'w') as dnull:
         subprocess.check_call('pandoc -v'.split(), stdout=dnull, stderr=dnull)
-except subprocess.CalledProcessError:
-    print('Please run:')
+except OSError:
+    print('Missing pandoc command. Please run:')
     print('sudo apt-get install pandoc')
     sys.exit(1)
 try:
     import pandoc
 except ImportError:
-    print('Please run:')
+    print('Missing pyandoc library. Please run:')
     print('sudo -H pip install pyandoc')
     sys.exit(1)
 
