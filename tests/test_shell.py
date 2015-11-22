@@ -6,7 +6,6 @@ from __future__ import absolute_import, print_function
 import mock
 import os
 import pytest
-import shutil
 
 from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
@@ -15,10 +14,64 @@ from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
-    write_config
+    write_config, link_man_pages, unlink_man_pages, user_input
 )
 import pakit.shell
 import tests.common as tc
+
+
+def test_user_input(mock_input):
+    mock_input.side_effect = 'b'
+    assert user_input('Hello') == 'b'
+
+
+def test_link_man_pages():
+    try:
+        link_dir = os.path.join(tc.STAGING, 'links')
+        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'pakit', 'extra')
+        fake_man = os.path.join(src, 'test_man.1')
+
+        try:
+            os.makedirs(os.path.dirname(fake_man))
+        except OSError:
+            pass
+        with open(fake_man, 'w') as fout:
+            fout.write('hello')
+
+        link_man_pages(link_dir)
+        assert os.path.islink(os.path.join(link_dir, 'share', 'man', 'man1',
+                                           os.path.basename(fake_man)))
+    finally:
+        tc.delete_it(fake_man)
+        tc.delete_it(link_dir)
+
+
+def test_unlink_man_pages():
+    try:
+        link_dir = os.path.join(tc.STAGING, 'links')
+        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           'pakit', 'extra')
+        fake_man = os.path.join(src, 'test_man.1')
+
+        try:
+            os.makedirs(os.path.dirname(fake_man))
+        except OSError:
+            pass
+        with open(fake_man, 'w') as fout:
+            fout.write('hello')
+
+        link_man_pages(link_dir)
+        unlink_man_pages(link_dir)
+
+        expected_man = os.path.join(link_dir, 'share', 'man', 'man1',
+                                    os.path.basename(fake_man))
+        assert not os.path.exists(expected_man)
+        assert not os.path.exists(os.path.dirname(expected_man))
+        assert os.path.isdir(link_dir)
+    finally:
+        tc.delete_it(fake_man)
+        tc.delete_it(link_dir)
 
 
 def test_find_arc_name():
@@ -550,7 +603,7 @@ class TestCommand(object):
             assert cmd.rcode == 0
             assert cmd.output() == ['hello']
         finally:
-            shutil.rmtree('dummy')
+            tc.delete_it('dummy')
 
     def test_output(self):
         cmd = Command('echo "Hello py.test"')

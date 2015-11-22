@@ -7,7 +7,6 @@ from __future__ import absolute_import, print_function
 
 import argparse
 from argparse import RawDescriptionHelpFormatter as RawDescriptionHelp
-import glob
 import logging
 import logging.handlers
 import os
@@ -16,13 +15,14 @@ import traceback
 
 import pakit.conf
 import pakit.recipe
+import pakit.shell
 from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
 from pakit.graph import DiGraph, topological_sort
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
-    DisplayTask, RelinkRecipes, SearchTask, CreateConfig
+    DisplayTask, RelinkRecipes, SearchTask, CreateConfig, PurgeTask
 )
 
 
@@ -114,8 +114,7 @@ def create_args_parser():
     Default options:
     - Substring match
     - Case insensitive
-    - Matches against recipe name or description
-    """
+    - Matches against recipe name or description"""
     sub = subs.add_parser('search', description=desc,
                           formatter_class=RawDescriptionHelp)
     sub.add_argument('words', nargs='+', metavar='WORD',
@@ -138,6 +137,17 @@ def create_args_parser():
     sub = subs.add_parser('create-conf',
                           description='(Over)write the selected pakit config.')
     sub.set_defaults(func=parse_create_conf)
+
+    desc = """Remove most traces of pakit. No undo!
+
+    Will delete ...
+    - all links from the link directory to pakit's programs.
+    - all programs pakit built, including the source trees.
+    - all downloaded recipes.
+    - all logs and configs EXCEPT the pakit.yml file."""
+    sub = subs.add_parser('purge', description=desc,
+                          formatter_class=RawDescriptionHelp)
+    sub.set_defaults(func=parse_purge)
 
     return parser
 
@@ -197,31 +207,10 @@ def global_init(config_file):
         recipe_db.index(path)
     pakit.recipe.RDB = recipe_db
 
-    link_man_pages(config.path_to('link'))
+    pakit.shell.link_man_pages(config.path_to('link'))
     environment_check(config)
 
     return config
-
-
-def link_man_pages(link_dir):
-    """
-    Silently links project man pages into link dir.
-    """
-    src = os.path.join(os.path.dirname(__file__), 'extra')
-    dst = os.path.join(link_dir, 'share', 'man', 'man1')
-    try:
-        os.makedirs(dst)
-    except OSError:
-        pass
-
-    man_pages = [os.path.basename(fname) for fname in
-                 glob.glob(os.path.join(src, '*.1'))]
-    for page in man_pages:
-        try:
-            s_man, d_man = os.path.join(src, page), os.path.join(dst, page)
-            os.symlink(s_man, d_man)
-        except OSError:  # pragma: no cover
-            pass
 
 
 def log_init(config):
@@ -388,9 +377,16 @@ def parse_search(args):
 
 def parse_create_conf(args):
     """
-    Parse args for creating config.
+    Parse args for CreateConfig
     """
     return [CreateConfig(args.conf)]
+
+
+def parse_purge(_):
+    """
+    Parse args for PurgeTask
+    """
+    return [PurgeTask()]
 
 
 def search_for_config(default_config=None):

@@ -7,7 +7,6 @@ import logging
 import mock
 import os
 import pytest
-import shutil
 
 import pakit.conf
 import pakit.main
@@ -17,7 +16,7 @@ from pakit.task import (
     subseq_match, create_substring_matcher, Task, RecipeTask,
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes,
-    CreateConfig
+    CreateConfig, PurgeTask
 )
 import tests.common as tc
 
@@ -255,11 +254,41 @@ class TestTaskRelink(TestTaskBase):
     def test_relink(self):
         recipe = self.recipe
         InstallTask(recipe).run()
-        shutil.rmtree(recipe.link_dir)
+        tc.delete_it(recipe.link_dir)
         assert not os.path.exists(recipe.link_dir)
         RelinkRecipes().run()
         assert sorted(os.listdir(recipe.link_dir)) == ['bin', 'share']
         assert os.path.islink(os.path.join(recipe.link_dir, 'bin', 'ag'))
+
+
+class TestTaskPurge(TestTaskBase):
+    def test_purge_abort(self, mock_input):
+        mock_input.side_effect = 'n'
+        PurgeTask().run()
+
+    @mock.patch('pakit.task.os.remove')
+    @mock.patch('pakit.task.shutil.rmtree')
+    def test_purge_confirm(self, mock_rmtree, mock_remove, mock_input):
+        config = pakit.conf.CONFIG
+        mock_input.side_effect = 'y'
+        PurgeTask().run()
+
+        root = config.path_to('recipes')
+        mock_rmtree.assert_any_call(config.path_to('prefix'))
+        mock_rmtree.assert_any_call(config.path_to('source'))
+        mock_rmtree.assert_any_call(os.path.join(root, 'base_recipes'))
+        mock_rmtree.assert_any_call(os.path.join(root, 'test_recipes'))
+
+        mock_remove.assert_any_call(config.get('pakit.log.file'))
+        mock_remove.assert_any_call(os.path.join(root, 'uris.yml'))
+
+    @mock.patch('pakit.task.USER')
+    @mock.patch('pakit.task.shutil.rmtree')
+    def test_purge_oserror(self, mock_rmtree, mock_user, mock_input):
+        mock_input.side_effect = 'y'
+        mock_rmtree.side_effect = OSError
+        PurgeTask().run()
+        assert mock_user.info.called
 
 
 class TestTaskCreateConfig(object):

@@ -12,38 +12,15 @@ import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitError
 from pakit.main import (
-    create_args_parser, environment_check, main, link_man_pages,
+    create_args_parser, environment_check, main,
     search_for_config, order_tasks
 )
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes,
-    CreateConfig
+    CreateConfig, PurgeTask
 )
 import tests.common as tc
-
-
-def test_link_man_pages():
-    try:
-        link_dir = os.path.join(tc.STAGING, 'links')
-        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                           'pakit', 'extra')
-        fake_man = os.path.join(src, 'test_man.1')
-
-        try:
-            os.makedirs(os.path.dirname(fake_man))
-        except OSError:
-            pass
-        with open(fake_man, 'w') as fout:
-            fout.write('hello')
-
-        link_man_pages(link_dir)
-        expected_man = os.path.join(link_dir, 'share', 'man', 'man1',
-                                    os.path.basename(fake_man))
-        assert os.path.islink(expected_man)
-    finally:
-        tc.delete_it(fake_man)
-        tc.delete_it(link_dir)
 
 
 @mock.patch('pakit.main.PLOG')
@@ -119,62 +96,6 @@ class TestSearchConfig(object):
         tc.delete_it(self.home_conf)
         tc.delete_it(self.home_pakit_conf)
         assert search_for_config(1) == 1
-
-
-# class TestArgs(object):
-    # def setup(self):
-        # self.parser = create_args_parser()
-
-    # def test_no_args(self):
-        # args = self.parser.parse_args([])
-        # print(str(args))
-        # assert args.install is None
-        # assert args.remove is None
-        # assert args.update is False
-        # assert args.list is False
-        # assert args.available is False
-        # assert args.display is None
-        # assert args.search is None
-
-    # def test_args_install(self):
-        # args = self.parser.parse_args('install ag tmux'.split())
-        # assert args.recipes == ['ag', 'tmux']
-
-    # def test_args_remove(self):
-        # args = self.parser.parse_args('remove ag'.split())
-        # assert args.remove == ['ag']
-
-    # def test_args_update(self):
-        # args = self.parser.parse_args('update'.split())
-        # assert args.update
-
-    # def test_args_list(self):
-        # args = self.parser.parse_args('list'.split())
-        # assert args.list
-
-    # def test_args_list_short(self):
-        # args = self.parser.parse_args('list --short'.split())
-        # assert args.list_short
-
-    # def test_args_available(self):
-        # args = self.parser.parse_args('available'.split())
-        # assert args.available
-
-    # def test_args_available_short(self):
-        # args = self.parser.parse_args('available --short'.split())
-        # assert args.available_short
-
-    # def test_args_display(self):
-        # args = self.parser.parse_args('display ag vim'.split())
-        # assert args.display == ['ag', 'vim']
-
-    # def test_args_relink(self):
-        # args = self.parser.parse_args('relink'.split())
-        # assert args.relink
-
-    # def test_args_search(self):
-        # args = self.parser.parse_args('search ag vim'.split())
-        # assert args.search == ['ag', 'vim']
 
 
 class TestOrderTasks(object):
@@ -266,6 +187,11 @@ class TestParseTasks(object):
         args = self.parser.parse_args('create-conf'.split())
         tasks = args.func(args)
         assert isinstance(tasks[0], CreateConfig)
+
+    def test_parse_purge(self):
+        args = self.parser.parse_args('purge'.split())
+        tasks = args.func(args)
+        assert isinstance(tasks[0], PurgeTask)
 
 
 class TestMain(object):

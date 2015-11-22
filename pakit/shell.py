@@ -1,4 +1,4 @@
-# pylint: disable=C0302
+# pylint: disable=too-many-lines
 """
 All code related to running system commands.
 
@@ -28,10 +28,12 @@ import time
 
 import hashlib
 import tarfile
+# pylint: disable=import-error
 try:
     import urllib2 as ulib
 except ImportError:
-    import urllib.request as ulib  # pylint: disable=E0611,F0401
+    import urllib.request as ulib  # pylint: disable=no-name-in-module
+# pylint: enable=import-error
 import zipfile
 
 import pakit.conf
@@ -48,6 +50,22 @@ def cmd_cleanup():
     Cleans up any command stdout files left over,
     """
     shutil.rmtree(TMP_DIR)
+
+
+def user_input(msg):
+    """
+    Get user input, works on python 2 and 3.
+
+    Args:
+        msg: The message to print to user.
+
+    Returns:
+        Whatever the user typed.
+    """
+    if sys.version_info < (3, 0):
+        return raw_input(msg)
+    else:
+        return input(msg)  # pylint: disable=bad-builtin
 
 
 def wrap_extract(extract_func):
@@ -404,6 +422,49 @@ def unlink_all_files(_, dst, filenames):
         os.rmdir(dst)
     except OSError:
         pass  # Folder probably had files left.
+
+
+def link_man_pages(link_dir):
+    """
+    Silently links project man pages into link dir.
+    """
+    src = os.path.join(os.path.dirname(__file__), 'extra')
+    dst = os.path.join(link_dir, 'share', 'man', 'man1')
+    try:
+        os.makedirs(dst)
+    except OSError:
+        pass
+
+    for page in glob.glob(os.path.join(src, '*.1')):
+        try:
+            os.symlink(page, page.replace(src, dst))
+        except OSError:  # pragma: no cover
+            pass
+
+
+def unlink_man_pages(link_dir):
+    """
+    Unlink all man pages from the link directory.
+    """
+    src = os.path.join(os.path.dirname(__file__), 'extra')
+    dst = os.path.join(link_dir, 'share', 'man', 'man1')
+
+    for page in glob.glob(os.path.join(src, '*.1')):
+        try:
+            os.remove(page.replace(src, dst))
+        except OSError:  # pragma: no cover
+            pass
+
+    for paths in os.walk(link_dir, topdown=False):
+        try:
+            os.rmdir(paths[0])
+        except OSError:  # pragma: no cover
+            pass
+
+    try:
+        os.makedirs(link_dir)
+    except OSError:  # pragma: no cover
+        pass
 
 
 def vcs_factory(uri, **kwargs):

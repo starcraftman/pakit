@@ -574,9 +574,8 @@ class RecipeManager(object):
             repo.target = self.uri_db[uri]['path']
 
             if uri in need_updates or db_kwargs != kwargs:
-                PLOG('Updating remote with URI %s.', uri)
+                PLOG('Updating recipes from: %s.', uri)
                 with repo:
-                    PLOG('Remote with uri %s, now up to date.', uri)
                     self.uri_db.update_time(uri)
                     self.uri_db[uri]['kwargs'] = kwargs
 
@@ -610,14 +609,12 @@ class RecipeManager(object):
 
             if repo:
                 repo.target = path
-                PLOG('New recipe remote: %s\n'
-                     'Please wait while it downloads.', uri)
+                PLOG('Downloading new recipes: %s', uri)
                 with repo:
-                    PLOG('Recipes from %s now available at %s.', uri,
-                         repo.target)
+                    pass
             else:
+                PLOG('Indexing local recipes from: %s', path)
                 try:
-                    PLOG('Local recipes sourced from %s', path)
                     os.makedirs(path)
                 except OSError:
                     pass

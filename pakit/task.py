@@ -8,7 +8,9 @@ in the order they are taken from the command line.
 from __future__ import absolute_import, print_function
 from abc import ABCMeta, abstractmethod
 
+import glob
 import logging
+import os
 import shutil
 
 import pakit.conf
@@ -16,7 +18,7 @@ import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.shell import (
     Command, walk_and_link, walk_and_unlink, walk_and_unlink_all,
-    write_config
+    write_config, unlink_man_pages, user_input
 )
 
 PREFIX = '\n  '
@@ -154,7 +156,7 @@ class InstallTask(RecipeTask):
                 self.recipe.verify()
 
                 pakit.conf.IDB.add(self.recipe)
-        except Exception as exc:  # pylint: disable=W0703
+        except Exception as exc:  # pylint: disable=broad-except
             self.rollback(exc)
             raise
 
@@ -229,7 +231,7 @@ class UpdateTask(RecipeTask):
             InstallTask(self.recipe).run()
             USER.info('%s: Deleting Old Install', self.recipe.name)
             Command('rm -rf ' + self.back_dir).wait()
-        except Exception as exc:  # pylint: disable=W0703
+        except Exception as exc:  # pylint: disable=broad-except
             logging.error(exc)
             self.restore_old_install()
 
@@ -351,6 +353,53 @@ class CreateConfig(Task):
         """
         write_config(self.filename)
         print('Wrote default config to', self.filename)
+
+
+class PurgeTask(Task):
+    """
+    Remove all traces of pakit from system, leaving only the config file.
+    """
+    def __init__(self):
+        super(PurgeTask, self).__init__()
+
+    def run(self):
+        """
+        Execute a set of operations to perform the Task.
+        """
+        msg = """Remove most traces of pakit. You are warned!
+
+        Will delete ...
+        - all links from the link directory to pakit's programs.
+        - all programs pakit built, including the source trees.
+        - all downloaded recipes.
+        - all logs and configs EXCEPT the pakit.yml file.
+        OK? y/n  """
+        if user_input(msg).strip().lower()[0] != 'y':
+            USER.info('Aborted.')
+            return
+
+        USER.info('Removing all links made by pakit.')
+        config = pakit.conf.CONFIG
+        unlink_man_pages(config.path_to('link'))
+        walk_and_unlink_all(config.path_to('link'), config.path_to('prefix'))
+
+        uris_file = os.path.join(config.path_to('recipes'), 'uris.yml')
+        ruri_db = pakit.conf.RecipeURIDB(uris_file)
+        to_remove = [config.path_to('prefix'),
+                     config.path_to('source'),
+                     uris_file]
+        to_remove += [entry['path'] for _, entry in ruri_db if entry['is_vcs']]
+        to_remove += glob.glob(config.get('pakit.log.file') + '*')
+
+        for path in to_remove:
+            try:
+                USER.info('Deleting: %s', path)
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except OSError:
+                logging.error('Could not delete path: %s', path)
 
 
 # TODO: To be used or not?

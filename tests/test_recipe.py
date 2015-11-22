@@ -7,7 +7,6 @@ import copy
 import mock
 import os
 import pytest
-import shutil
 import sys
 
 import pakit.recipe
@@ -175,7 +174,7 @@ class TestRecipe(object):
             assert cmd.output() == [test_dir]
         finally:
             try:
-                shutil.rmtree(test_dir)
+                tc.delete_it(test_dir)
             except OSError:
                 pass
 
