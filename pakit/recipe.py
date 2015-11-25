@@ -451,6 +451,8 @@ class RecipeDB(object):
             new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
             if '__init__' in new_recs:
                 new_recs.remove('__init__')
+            if 'setup' in new_recs:
+                new_recs.remove('setup')
 
             mod = os.path.basename(path)
             for cls in new_recs:
