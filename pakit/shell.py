@@ -428,7 +428,7 @@ def link_man_pages(link_dir):
     """
     Silently links project man pages into link dir.
     """
-    src = os.path.join(os.path.dirname(__file__), 'extra')
+    src = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extra')
     dst = os.path.join(link_dir, 'share', 'man', 'man1')
     try:
         os.makedirs(dst)
