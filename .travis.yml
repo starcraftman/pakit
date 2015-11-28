@@ -1,10 +1,5 @@
 language: python
-python:
-  - 2.7
-  - 3.2
-  - 3.3
-  - 3.4
-  - 3.5
+sudo: false
 cache:
   directories:
     - $DEPS
@@ -12,18 +7,7 @@ env:
   global:
     - DEPS=$HOME/deps
     - PATH=$DEPS/bin:$PATH
-  matrix:
-    # 'coverage' runs the regular test suite & reports to coveralls
-    - TOXENV=coverage
-    - TOXENV=flake8
-    - TOXENV=pylint
-    - TOXENV=pytest
 matrix:
-  exclude:
-    - env: TOXENV=coverage
-    - env: TOXENV=flake8
-    - env: TOXENV=pylint
-    - env: TOXENV=pytest
   include:
     - python: 2.7
       env: TOXENV=flake8
