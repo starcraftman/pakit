@@ -336,8 +336,9 @@ def parse_update(args):
         to_update = [recipe for recipe in args.recipes
                      if recipe in pakit.conf.IDB]
         not_installed = set(args.recipes).difference(to_update)
-        msg = '\n' + '\n'.join(['  - ' + rec for rec in not_installed])
-        print('Recipe(s) not installed:' + msg)
+        if len(not_installed):
+            msg = '\n' + '\n'.join(['  - ' + rec for rec in not_installed])
+            print('Recipe(s) not installed:' + msg)
         tasks = order_tasks(to_update, UpdateTask)
 
     if len(tasks) == 0:

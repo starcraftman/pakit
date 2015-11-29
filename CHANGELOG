@@ -1,3 +1,14 @@
+0.2.5
+  - Update now takes args, helpful when you don't want to update all recipes.
+  - Add purge command, removes all files except the loaded config.
+  - Change CLI to subcommands.
+  - Improved search with subcommand flags.
+  - Convert README.md to rst for pypi release, uses pandoc.
+  - Separate recipes from pakit.
+  - Downloaded on first run, stored by default put in ~/.pakit/
+  - Recipes can be fetched from any supported vcs or just locally in a folder.
+  - Bug Fix: Relink no longer deletes link directory.
+
 0.2.4
   - Improve tests with session fixtures and better isolation.
   - Add recipes for GNU Tar, GNU gettext & xz utils.

@@ -31,4 +31,4 @@ from pakit.shell import Archive, Dummy, Git, Hg
 
 __all__ = ['Archive', 'Dummy', 'Git', 'Hg', 'Recipe']
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
