@@ -144,6 +144,20 @@ class TestParseTasks(object):
 
         pakit.conf.IDB._conf = {}
 
+    def test_parse_update_args(self, mock_print):
+        """
+        Not ideal, but mucking around internally saves hassle.
+        """
+        recipe_name = 'ag'
+        pakit.conf.IDB.conf = {recipe_name: None}
+
+        args = self.parser.parse_args('update ag ack'.split())
+        tasks = args.func(args)
+        assert UpdateTask('ag') in tasks
+        mock_print.assert_called_with('Recipe(s) not installed:' + '\n  - ack')
+
+        pakit.conf.IDB._conf = {}
+
     def test_parse_list(self):
         args = self.parser.parse_args('list'.split())
         tasks = args.func(args)

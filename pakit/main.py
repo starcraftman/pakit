@@ -333,7 +333,12 @@ def parse_update(args):
         to_update = [recipe for recipe, _ in pakit.conf.IDB]
         tasks = order_tasks(to_update, UpdateTask)
     else:
-        raise NotImplementedError
+        to_update = [recipe for recipe in args.recipes
+                     if recipe in pakit.conf.IDB]
+        not_installed = set(args.recipes).difference(to_update)
+        msg = '\n' + '\n'.join(['  - ' + rec for rec in not_installed])
+        print('Recipe(s) not installed:' + msg)
+        tasks = order_tasks(to_update, UpdateTask)
 
     if len(tasks) == 0:
         PLOG('Nothing to update.')
