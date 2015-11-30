@@ -215,13 +215,13 @@ class Recipe(object):
         if self.more_info:
             fmt += ['More Information:']
             fmt += [tab + line for line in self.more_info]
-        fmt = '\n  '.join(fmt)
-        info = fmt.format(name=self.name,
-                          desc=self.description,
-                          home=self.homepage,
-                          reqs=','.join(getattr(self, 'requires', [''])),
-                          cur_repo=self.repo_name,
-                          tab=tab)
+        str_fmt = '\n  '.join(fmt)
+        info = str_fmt.format(name=self.name,
+                              desc=self.description,
+                              home=self.homepage,
+                              reqs=','.join(getattr(self, 'requires', [''])),
+                              cur_repo=self.repo_name,
+                              tab=tab)
         return info.rstrip('\n')
 
     def set_config(self, config):

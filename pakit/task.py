@@ -1,3 +1,4 @@
+# pylint: disable=not-an-iterable
 """
 The Tasks that pakit can perform for the user.
 
