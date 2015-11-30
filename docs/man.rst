@@ -36,7 +36,7 @@ install RECIPE [RECIPE...]
 remove RECIPE [RECIPE...]
   Remove selected recipes.
 
-update
+update [RECIPE RECIPE...]
   Update all recipes. If args, update only selected recipes.
 
 display RECIPE [RECIPE...]
@@ -50,6 +50,9 @@ available
 
 relink
   Relink all or selected recipes.
+
+purge
+  Remove most traces of pakit. No undo!
 
 search WORD [WORD...]
   Search against recipes for WORDS specified.
