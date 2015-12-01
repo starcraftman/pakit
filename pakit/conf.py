@@ -14,6 +14,10 @@ import logging
 import os
 import time
 import yaml
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 CONFIG = None
 IDB = None
@@ -85,7 +89,7 @@ class YamlMixin(object):
         """
         try:
             with open(self.filename) as fin:
-                conf = yaml.load(fin)
+                conf = yaml.load(fin, Loader=Loader)
 
             pretty_js = json.dumps(conf, sort_keys=True, indent=2)
             msg = 'Config File: {fname}\nContents:\n{jso}'.format(
@@ -103,7 +107,7 @@ class YamlMixin(object):
             obj: An arbitrarily filled python dictionary.
         """
         with open(self.filename, 'w') as fout:
-            yaml.dump(obj, fout, default_flow_style=False)
+            yaml.dump(obj, fout, Dumper=Dumper, default_flow_style=False)
             logging.info('Config written to: %s', self.filename)
 
 
