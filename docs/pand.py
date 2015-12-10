@@ -54,7 +54,7 @@ def fix_image(readme):
         lines = fin.readlines()
 
     with open(readme.replace('.rst', '.md'), 'r') as fin:
-        html = fin.readlines()[0:4]
+        html = fin.readlines()[0:2]
     html[0] = html[0].replace('#', ' ')
 
     lines = ['.. raw: html\n', '\n'] + html + lines
