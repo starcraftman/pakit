@@ -46,5 +46,31 @@ def convert_readme(root):
         fout.write(pdoc.rst)
 
 
+def fix_image(readme):
+    """
+    Fix the embedded HTML wordmark.
+    """
+    with open(readme, 'r') as fin:
+        lines = fin.readlines()
+
+    with open(readme.replace('.rst', '.md'), 'r') as fin:
+        html = fin.readlines()[0:4]
+    html[0] = html[0].replace('#', ' ')
+
+    lines = ['.. raw: html\n', '\n'] + html + lines
+
+    with open(readme, 'w') as fout:
+        fout.writelines(lines)
+
+
+def main():
+    """
+    Main function.
+    """
+    root = find_root()
+    convert_readme(root)
+    readme = os.path.join(root, 'README.rst')
+    fix_image(readme)
+
 if __name__ == "__main__":
-    convert_readme(find_root())
+    main()

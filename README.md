@@ -1,4 +1,6 @@
-# <a href="https://github.com/pakit"><img alt="Pakit" src="http://pakit.github.io/images/pakit-logo.png" width="16%" /></a>
+# <a href="https://github.com/pakit">
+  <img alt="Pakit" src="http://pakit.github.io/images/pakit-logo.png" width="16%" />
+  </a>
 
 [![Travis][TravisShield]][TravisDash]
 [![Coveralls][CoverallsShield]][CoverallsDash]
