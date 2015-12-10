@@ -1,4 +1,4 @@
-# Pakit
+# <img alt="Pakit" src="http://pakit.github.io/images/pakit-logo.png" width="16%" />
 
 [![Travis](https://travis-ci.org/starcraftman/pakit.svg?branch=master)](https://travis-ci.org/starcraftman/pakit)
 [![Coveralls](https://coveralls.io/repos/starcraftman/pakit/badge.svg?branch=master&service=github)](https://coveralls.io/github/starcraftman/pakit?branch=master)
@@ -42,9 +42,9 @@ Try the [demo](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo) y
 
 To use pakit:
 
-1. Ensure you have a **build environment** for compiling the programs.
-1. Fetch pakit via **pip** or **github**.
-1. Modify your **$PATH**.
+1. Ensure you have a [build enviornment](https://github.com/starcraftman/pakit#build-environment)  for compiling the programs.
+1. Fetch pakit via [pip](https://github.com/starcraftman/pakit#pip) or [github](https://github.com/starcraftman/pakit#github).
+1. Modify your [$PATH](https://github.com/starcraftman/pakit#path).
 
 ### Build Environment
 
@@ -58,12 +58,11 @@ To use pakit, I suggest you have...
 
 - c++ build environment
 - git
-- mercurial
 - anything a recipe depends on that pakit can't build
 
 For Ubuntu install these packages:
 ```bash
-sudo apt-get install build-essential automake autoconf python-pip git mercurial liblzma-dev libevent-dev ncurses-dev
+sudo apt-get install build-essential automake autoconf python-pip git liblzma-dev libevent-dev ncurses-dev
 ```
 
 ### Github
@@ -112,7 +111,7 @@ From inside the pakit source folder:
 
 ## Contributors
 
-- Jeremy Pallats/starcraft.man (that is me)
+- @starcraftman/Jeremy Pallats
 
 ## Overview
 
