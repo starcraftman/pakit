@@ -1,14 +1,14 @@
-# <img alt="Pakit" src="http://pakit.github.io/images/pakit-logo.png" width="16%" />
+# <a href="https://github.com/pakit"><img alt="Pakit" src="http://pakit.github.io/images/pakit-logo.png" width="16%" /></a>
 
-[![Travis](https://travis-ci.org/starcraftman/pakit.svg?branch=master)](https://travis-ci.org/starcraftman/pakit)
-[![Coveralls](https://coveralls.io/repos/starcraftman/pakit/badge.svg?branch=master&service=github)](https://coveralls.io/github/starcraftman/pakit?branch=master)
-[![Stories in Ready](https://badge.waffle.io/starcraftman/pakit.svg?label=ready&title=Ready)](http://waffle.io/starcraftman/pakit)
-[![Join the chat at https://gitter.im/starcraftman/pakit](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcraftman/pakit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Travis][TravisShield]][TravisDash]
+[![Coveralls][CoverallsShield]][CoverallsDash]
+[![Stories in Ready][WaffleShield]][WaffleDash]
+[![Join Gitter Chat][GitterShield]][GitterRoom]
 
-[![Python](https://img.shields.io/pypi/pyversions/pakit.svg)](https://pypi.python.org/pypi/pakit)
-[![License](https://img.shields.io/pypi/l/Django.svg)](https://pypi.python.org/pypi/pakit)
-[![Version](https://img.shields.io/pypi/v/pakit.svg)](https://pypi.python.org/pypi/pakit)
-[![Status](https://img.shields.io/pypi/status/pakit.svg)](https://pypi.python.org/pypi/pakit)
+[![Supported Python][PyPythons]][PyPi]
+[![License][PyLicense]][PyPi]
+[![Version][PyVersion]][PyPi]
+[![Status][PyStatus]][PyPi]
 
 [Fork Me On Github](https://github.com/starcraftman/pakit)
 
@@ -20,7 +20,7 @@ Pakit provides:
 
 1. A package manager interface to install, remove & update programs.
 1. A simple Recipe specification to build programs from source code.
-1. Premade and tested [recipes](https://github.com/pakit/base_recipes) maintained by pakit.
+1. Premade and tested [recipes][PakitRecipes] maintained by pakit.
 
 When you install a program Pakit will...
 
@@ -28,23 +28,23 @@ When you install a program Pakit will...
 1. install the program into a silo under `pakit.paths.prefix`.
 1. link the silo to the `pakit.paths.link` directory.
 
-Want a longer explanation? See the [Overview](https://github.com/starcraftman/pakit#overview) section.
+Want a longer explanation? See the [Overview][#overview] section.
 
 ## Demo
 
 The following demonstration covers most of the basic functions.
 
-[![Pakit Demo](https://github.com/pakit/demo/raw/master/demo.gif)](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo)
+[![Short Demo][DemoGif]][DemoText]
 
-Try the [demo](https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo) yourself after installing pakit.
+Try the [demo][DemoText] yourself after installing pakit.
 
 ## Install Pakit
 
 To use pakit:
 
-1. Ensure you have a [build enviornment](https://github.com/starcraftman/pakit#build-environment)  for compiling the programs.
-1. Fetch pakit via [pip](https://github.com/starcraftman/pakit#pip) or [github](https://github.com/starcraftman/pakit#github).
-1. Modify your [$PATH](https://github.com/starcraftman/pakit#path).
+1. Ensure you have a [build enviornment][#build-env]  for compiling the programs.
+1. Fetch pakit via [pip][#pip] or [github][#github].
+1. Modify your [$PATH][#path].
 
 ### Build Environment
 
@@ -106,7 +106,7 @@ From inside the pakit source folder:
 - Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
 - Install all development packages: `python setup.py deps`
 - Run the test suite: `tox`
-- See [Waffle](http://waffle.io/starcraftman/pakit) for things I'm working on.
+- See [Waffle][WaffleDash] for things I'm working on.
 - Read `DESIGN.md` for details on design. A bit out of date.
 
 ## Contributors
@@ -133,50 +133,35 @@ Expected Feature Overview:
 - Should work on any POSIX system, emphasis on Linux.
 - Simple recipe specification.
 - Configuration via a single YAML file.
-- Available via [pip](https://pypi.python.org/pypi/pakit).
+- Available via [pip][PyPi].
 - Traceability via logs for every command.
 - Premade & tested recipes available for use.
 
-See [DESIGN.md](https://github.com/starcraftman/pakit/blob/master/DESIGN.md) for more details.
+See the [design file][DESIGN.md] for more details.
 
-## Roadmap
-For accurate plan, see waffle.io link above.
-Just a rough guess of what I should be implementing when.
+<!-- Links -->
+[TravisShield]: https://travis-ci.org/starcraftman/pakit.svg?branch=master
+[TravisDash]: https://travis-ci.org/starcraftman/pakit
+[CoverallsShield]: https://coveralls.io/repos/starcraftman/pakit/badge.svg?branch=master&service=github
+[CoverallsDash]: https://coveralls.io/github/starcraftman/pakit
+[WaffleShield]: https://badge.waffle.io/starcraftman/pakit.svg?label=ready&title=Ready
+[WaffleDash]: http://waffle.io/starcraftman/pakit
+[GitterShield]: https://badges.gitter.im/Join%20Chat.svg
+[GitterRoom]: https://gitter.im/starcraftman/pakit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
-### 0.1
-- [x] Implement basic tasks to install & remove 'ag' program.
-- [x] Support Git & Hg repositories.
-- [x] Simple config from `.pakit.yml`.
-- [x] Upgrade logic.
-- [x] User defined recipe locations via config.
-- [x] Pick a license.
-- [x] Pip/Wheel upload.
+[PyPythons]: https://img.shields.io/pypi/pyversions/pakit.svg
+[PyLicense]: https://img.shields.io/pypi/l/pakit.svg
+[PyVersion]: https://img.shields.io/pypi/v/pakit.svg
+[PyStatus]: https://img.shields.io/pypi/status/pakit.svg
 
-### 0.2
-- [x] Add archive support, supports download, hashing & extracting.
-  - [x] Tar (tarfile)
-  - [x] Zip (zipfile)
-  - [x] tar.xz (xz command)
-  - [x] Rar (rar command)
-  - [x] 7z (7z command)
-- [x] Add list & searching support.
-- [x] Python 3 support
-- [x] Better error handling, rollback
-- [x] Improve Command, timeout & input file
-- [x] Investigate alternatives/improvements to RecipeDB
+[DemoGif]: https://github.com/pakit/demo/raw/master/demo.gif
+[DemoText]: https://github.com/starcraftman/pakit/blob/master/DEMO.md#demo
+[PakitRecipes]: https://github.com/pakit/base_recipes
+[PyPi]: https://pypi.python.org/pypi/pakit
+[DESIGN.md]: https://github.com/starcraftman/pakit/blob/master/DESIGN.md
 
-### 0.3
-- [ ] Make a website and promote. Maybe use github pages.
-- [x] Dependency logic between recipes tasks.
-  - [x] Research best approach & do small design.
-  - [x] Create Digraph Structure (likely required).
-  - [x] Create Recipe specification & implement.
-- [ ] Handle missing commands inside recipes. For example, recipe needs git but git unavailable.
-- [x] Separate recipes from pakit core.
-- [ ] Move to pakit/pakit. [pakit](https://github.com/pakit)
-
-### 0.4
-- [ ] Parallelism, envisioned as some task based dependency.
-
-### Beyond
-- [ ] Create tool to convert homebrew ruby formula. Maybe?
+[#overview]: https://github.com/starcraftman/pakit#overview
+[#build-env]: https://github.com/starcraftman/pakit#build-environment
+[#pip]: https://github.com/starcraftman/pakit#pip
+[#github]: https://github.com/starcraftman/pakit#github
+[#path]: https://github.com/starcraftman/pakit#path
