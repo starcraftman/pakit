@@ -2,16 +2,15 @@
 Test pakit.task
 """
 from __future__ import absolute_import, print_function
-
 import logging
-import mock
 import os
+import mock
 import pytest
 
 import pakit.conf
+from pakit.exc import PakitCmdError, PakitLinkError
 import pakit.main
 import pakit.recipe
-from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.task import (
     subseq_match, create_substring_matcher, Task, RecipeTask,
     InstallTask, RemoveTask, UpdateTask, DisplayTask,

@@ -4,7 +4,6 @@ The main entry point for pakit.
 Acts as an intermediary between program arguments and pakit Tasks.
 """
 from __future__ import absolute_import, print_function
-
 import argparse
 from argparse import RawDescriptionHelpFormatter as RawDescriptionHelp
 import logging

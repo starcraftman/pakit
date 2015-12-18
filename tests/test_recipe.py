@@ -2,15 +2,14 @@
 Test pakit.recipe
 """
 from __future__ import absolute_import, print_function
-
+import os
+import sys
 import copy
 import mock
-import os
 import pytest
-import sys
 
-import pakit.recipe
 from pakit.exc import PakitError
+import pakit.recipe
 from pakit.recipe import (
     Recipe, RecipeDB, RecipeDecorator, RecipeManager, check_package
 )

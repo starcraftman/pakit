@@ -2,15 +2,14 @@
 Test pakit.conf
 """
 from __future__ import absolute_import, print_function
-
-import mock
 import os
-import pytest
 import subprocess as sub
+import mock
+import pytest
 
 import pakit.conf
-import pakit.recipe
 from pakit.conf import Config, InstallDB, YamlMixin, RecipeURIDB
+import pakit.recipe
 import tests.common as tc
 
 

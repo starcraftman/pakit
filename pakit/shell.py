@@ -9,7 +9,6 @@ Hg: Used to fetch a mercurial repository.
 """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod, abstractproperty
-
 import atexit
 import functools
 import glob

@@ -2,19 +2,18 @@
 Test pakit.main
 """
 from __future__ import absolute_import
-
-import mock
 import os
-import pytest
 import shutil
+import mock
+import pytest
 
 import pakit.conf
-import pakit.recipe
 from pakit.exc import PakitError
 from pakit.main import (
     create_args_parser, environment_check, main,
     search_for_config, order_tasks
 )
+import pakit.recipe
 from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes,

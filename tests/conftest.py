@@ -2,10 +2,10 @@
 Used for pytest plugins & session scoped fixtures.
 """
 from __future__ import absolute_import
-
+import sys
 import mock
 import pytest
-import sys
+
 import tests.common as tc
 
 

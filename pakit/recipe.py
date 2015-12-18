@@ -8,7 +8,6 @@ RecipeManager: Retrieves and manages remote recipe sources.
 """
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-
 import copy
 import functools
 import glob

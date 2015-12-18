@@ -2,21 +2,20 @@
 Test pakit.shell
 """
 from __future__ import absolute_import, print_function
-
-import mock
 import os
+import mock
 import pytest
 
 from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
+import pakit.shell
 from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input
 )
-import pakit.shell
 import tests.common as tc
 
 

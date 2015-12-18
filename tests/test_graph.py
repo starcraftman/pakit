@@ -2,9 +2,9 @@
 Test pakit.graph
 """
 from __future__ import absolute_import, print_function
+import string
 
 from pakit.graph import DiGraph, topological_sort
-import string
 
 
 class TestDiGraph(object):

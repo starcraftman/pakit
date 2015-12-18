@@ -8,7 +8,6 @@ in the order they are taken from the command line.
 """
 from __future__ import absolute_import, print_function
 from abc import ABCMeta, abstractmethod
-
 import glob
 import logging
 import os

@@ -6,14 +6,13 @@ pytest documentation: http://pytest.org/latest/contents.html
 See STAGING_REPO for test bed details.
 """
 from __future__ import absolute_import, print_function
-
 import os
 import shlex
 import shutil
 import subprocess
 
-from pakit.main import global_init, search_for_config
 import pakit.conf
+from pakit.main import global_init, search_for_config
 import pakit.recipe
 
 CONF = None

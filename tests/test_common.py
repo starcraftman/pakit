@@ -2,9 +2,8 @@
 Test tests.common
 """
 from __future__ import absolute_import, print_function
-
-import mock
 import os
+import mock
 
 import tests.common as tc
 
