@@ -29,7 +29,7 @@ def find_root():
     """
     root = os.getcwd()
     while not os.path.exists(os.path.join(root, 'README.md')):
-        root = os.path.basename(root)
+        root = os.path.dirname(root)
 
     return root
 
