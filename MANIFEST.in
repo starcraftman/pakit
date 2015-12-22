@@ -2,5 +2,4 @@ include CHANGELOG
 include DESIGN.md
 include LICENSE
 include README.md
-include share/man/man1/pakit.1
 include completion/*

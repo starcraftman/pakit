@@ -11,7 +11,6 @@ import shutil
 import subprocess
 import sys
 from setuptools import setup, find_packages, Command
-from setuptools.command.test import test as TestCommand
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 if os.path.dirname(__file__) == '':
@@ -48,7 +47,8 @@ def get_long_desc():
     """
     rst_file = os.path.join(os.getcwd(), 'README.rst')
     try:
-        subprocess.check_call(['python', './docs/pand.py'])
+        subprocess.check_call(['python',
+                               os.path.join(ROOT, 'docs', 'pand.py')])
         with open(rst_file) as fin:
             lines = fin.readlines()
         return '\n' + ''.join(lines)
@@ -165,32 +165,9 @@ class InstallDeps(Command):
 
     def run(self):
         print('Installing runtime & testing dependencies')
-        cmd = 'sudo -H pip install ' + ' '.join(RUN_DEPS + TEST_DEPS)
+        cmd = 'pip install ' + ' '.join(RUN_DEPS + TEST_DEPS)
         print('Will execute: ' + cmd)
         subprocess.call(shlex.split(cmd))
-
-
-class PyTest(TestCommand):
-    """
-    Testing is done with py.test
-    """
-    user_options = []
-
-    def initialize_options(self):
-        self.test_suite = True
-        self.test_args = []
-
-    def finalize_options(self):
-        pass
-
-    def run_tests(self):
-        try:
-            import pytest
-            sys.exit(pytest.main(self.test_args))
-        except ImportError:
-            print('Missing dependencies. Execute:')
-            print('  python setup.py deps')
-            sys.exit(1)
 
 
 MY_NAME = 'Jeremy Pallats / starcraft.man'
@@ -286,6 +263,5 @@ setup(
         'clean': CleanCommand,
         'deps': InstallDeps,
         'release': ReleaseCommand,
-        'test': PyTest,
     }
 )

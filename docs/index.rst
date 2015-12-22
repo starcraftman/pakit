@@ -7,6 +7,7 @@
    :maxdepth: 2
 
    man
+   pakit_recipes
 
 Indices and Tables
 ==================

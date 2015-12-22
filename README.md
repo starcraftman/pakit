@@ -38,6 +38,17 @@ The following demonstration covers most of the basic functions.
 
 Try the [demo][DemoText] yourself after installing pakit.
 
+### Quick Setup For Demo
+
+A `Vagrantfile` is in the root of the project. To quickly try demo:
+
+```sh
+vagrant up
+vagrant ssh
+```
+
+When done, simply `vagrant destroy -f`.
+
 ## Install Pakit
 
 To use pakit:

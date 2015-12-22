@@ -1,6 +1,5 @@
 [run]
 branch = True
-source = pakit
 
 [report]
 exclude_lines =
