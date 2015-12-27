@@ -40,14 +40,20 @@ Try the [demo][DemoText] yourself after installing pakit.
 
 ### Quick Setup For Demo
 
-A `Vagrantfile` is in the root of the project. To quickly try demo:
+A `Vagrantfile` is in the root of the project. Read it for details.
+To quickly try demo:
 
 ```sh
+vagrant box add boxcutter/ubuntu1510
 vagrant up
 vagrant ssh
 ```
 
-When done, simply `vagrant destroy -f`.
+When done, you can remove all traces with:
+```sh
+vagrant destroy -f
+vagrant box remove boxcutter/ubuntu1510 --all
+```
 
 ## Install Pakit
 

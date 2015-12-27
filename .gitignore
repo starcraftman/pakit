@@ -3,6 +3,8 @@ pakit/extra
 
 # For testing
 venv
+.bundle
+.vagrant
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
