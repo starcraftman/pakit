@@ -18,7 +18,7 @@ EOF
 $user = <<EOF
 # Purely optional & slow, sets up a dev environment
 if [ ! -e ~/.my_scripts ]; then
-    git clone https://github.com/starcraftman/.my_scripts/ ~/.my_scripts
+    git clone --depth 1 https://github.com/starcraftman/.my_scripts/ ~/.my_scripts
     rm ~/.bashrc
     python .my_scripts/SysInstall.py home_save home
     sed --in-place -e "s/Plug 'Valloric.*//" ~/.vimrc
@@ -31,9 +31,10 @@ fi
 # Setup pakit
 rm  ~/pakit
 ln -s /vagrant ~/pakit
-if [ ! -e ~/.lbashrc ]; then
+if  ! grep 'pakit/bin'  ~/.lbashrc; then
     echo 'Adding pakit to local bashrc.'
-    echo 'export PATH=$HOME/pakit/bin:$PATH' > ~/.lbashrc
+    echo 'export PATH=$HOME/pakit/bin:$PATH' >> ~/.lbashrc
+    echo 'export PYTHONPATH=$HOME/pakit:$PYTHONPATH' >> ~/.lbashrc
 fi
 source ~/.lbashrc
 pip install argparse pyyaml coverage flake8 mock pytest tox
