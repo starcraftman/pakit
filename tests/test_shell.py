@@ -20,8 +20,8 @@ import tests.common as tc
 
 
 def test_user_input(mock_input):
-    mock_input.side_effect = 'b'
-    assert user_input('Hello') == 'b'
+    mock_input.return_value = 'Bye'
+    assert user_input('Hello') == 'Bye'
 
 
 def test_link_man_pages():
