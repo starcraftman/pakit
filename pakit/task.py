@@ -402,27 +402,6 @@ class PurgeTask(Task):
                 logging.error('Could not delete path: %s', path)
 
 
-# TODO: To be used or not?
-def subseq_match(word, sequence):
-    """
-    Subsequence matcher, not case senstive.
-
-    Args:
-        word: The phrase under investigation.
-        sequence: The sequence of ordered letters to look for.
-
-    Returns:
-        True iff the subsequence was present in the word.
-    """
-    seq = list(sequence.lower())
-    for char in word.lower():
-        if char == seq[0]:
-            seq.remove(seq[0])
-        if len(seq) == 0:
-            return True
-    return False
-
-
 def create_substring_matcher(case=False, names_only=False):
     """
     Use lexical scoping to modify the matcher.

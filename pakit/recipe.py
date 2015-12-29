@@ -3,14 +3,14 @@ The Recipe class and RecipeDB are found here.
 
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
-RecipeDecorator: Provides some functionality by wrapping Recipes at runtime.
 RecipeManager: Retrieves and manages remote recipe sources.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from abc import ABCMeta, abstractmethod
 import copy
 import functools
 import glob
+import inspect
 import logging
 import os
 import shutil
@@ -50,112 +50,109 @@ def check_package(path):
                        'as a python module')
 
 
-class RecipeDecorator(object):
+class DecChangeDir(object):  # pylint: disable=too-few-public-methods
     """
-    Decorate a method and allow optional pre and post functions to
-    modify it.
-
-    To be clear, if this decorator is applied to Worker.run,
-    the 'pre_func' would be 'Worker.pre_run' and the 'post_func'
-    would be 'Worker.post_run'..
+    Change the directory to a new one before executing the decorated
+    method. Regardless of function outcome, return to old CWD.
 
     Before calling the wrapped function guarantee...
-        1) tempdir created if use_tempd set.
+        1) tempdir created if requested.
         2) working directory is changed to new_cwd.
-        3) pre_func is executed.
 
     After calling the wrapped function guarantee...
-        1) post_func is executed.
-        2) working directory is restored to old_cwd.
-        3) If tempdir created, remove everything under it.
-
-    Attributes:
-        instance: The instance of class of the method being wrapped.
-        func: The method being wrapped.
-        pre_func: A pre execution function. Accepts a single argument,
-            the instance of the class in question.
-        post_func: A post execution function. Accepts a single argument,
-            the instance of the class in question.
-        new_cwd: A directory to os.chdir to. Must exist AFTER *pre_func*.
-        old_cwd: Whatever working directory we were at post *pre_func*.
-        use_tempd: If True, make new tempdir and set to new_cwd.
+        1) working directory is restored to old_cwd.
+        2) If tempdir created, remove everything under it.
     """
-    # TODO: Two decorators here, 1) changes dir, 2) looks for pre/post
-    # should probably separate them
-    def __init__(self, new_cwd=os.getcwd(), use_tempd=False):
-        self.func = None
-        self.pre_func = None
-        self.post_func = None
+    def __init__(self, new_cwd=None, use_tempd=False, attr=None):
+        """
+        Args:
+            attr: Read the value of this attribute to get new_cwd.
+            new_cwd: Change directory to this path.
+            use_tempd: Create a temporary directory and cd into it.
+        """
+        self.attr = attr
         self.new_cwd = new_cwd
         self.old_cwd = None
         self.use_tempd = use_tempd
 
     def __call__(self, func):
         """
-        Like a normal decorator, take a function as argument.
+        The decorator itself.
 
         Args:
-            func: The class method to wrap.
+            func: The target to wrap.
         """
         @functools.wraps(func)
-        def decorated(*args, **kwargs):
+        def wrapper(*args, **kwargs):
             """
             The inner part of the decorator.
             """
-            self.inspect_instance(args[0], func)
-            if self.use_tempd:
-                self.make_tempd()
+            if self.attr:
+                self.new_cwd = getattr(args[0], self.attr, self.new_cwd)
 
             with self:
-                PLOG("Executing '%s()'", self.func.__name__)
-                self.func(*args, **kwargs)
+                func(*args, **kwargs)
 
-        return decorated
+        return wrapper
 
     def __enter__(self):
         """
-        Change into the new_cwd. By default, stay in current directory.
-        Executes the pre function if defined on the wrapped instance.
+        Modify the CWD as requested.
         """
         self.old_cwd = os.getcwd()
+        if self.use_tempd:
+            self.new_cwd = tempfile.mkdtemp(prefix='pakit_tmp_')
         os.chdir(self.new_cwd)
-        if self.pre_func:
-            PLOG("Executing '%s()' before '%s()'", self.pre_func.__name__,
-                 self.func.__name__)
-            self.pre_func()
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         """
-        Executes the post function if defined on the wrapped instance.
-        Then changes into the old_cwd folder.
+        Undo the change to CWD.
         """
-        if self.post_func:
-            PLOG("Executing '%s()' after '%s()'", self.post_func.__name__,
-                 self.func.__name__)
-            self.post_func()
         os.chdir(self.old_cwd)
         if self.use_tempd:
             shutil.rmtree(self.new_cwd)
 
-    def inspect_instance(self, instance, func):
+
+class DecPrePost(object):  # pylint: disable=too-few-public-methods
+    """
+    Decorate a method and allow optional pre and post functions to
+    execute.
+
+    To be clear, if this decorator is applied to Worker.run,
+    the 'pre_func' would be 'Worker.pre_run' and the 'post_func'
+    would be 'Worker.post_run'..
+
+    The post_func called only if no exception raised in func.
+    """
+    def __call__(self, func):
         """
-        Inspect the provided isntance and set required attributes
-        in the decorator.
+        The decorator itself.
 
         Args:
-            instance: The instance of the wrapped class method.
-            func: The class method this decorator is wrapping up.
+            func: The target to wrap.
         """
-        self.func = func
-        self.pre_func = getattr(instance, 'pre_' + func.__name__, None)
-        self.post_func = getattr(instance, 'post_' + func.__name__, None)
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            """
+            The inner part of the decorator.
+            """
+            pre_func = getattr(args[0], 'pre_' + func.__name__, None)
+            post_func = getattr(args[0], 'post_' + func.__name__, None)
 
-    def make_tempd(self):
-        """
-        Simple wrapper around tempfile's methods.
-        """
-        self.new_cwd = tempfile.mkdtemp(prefix='pakit_verify_')
-        logging.debug('Created tempdir: %s', self.new_cwd)
+            if pre_func:
+                PLOG("Executing '%s()' before '%s()'", pre_func.__name__,
+                     func.__name__)
+                pre_func()
+
+            PLOG("Executing '%s()'", func.__name__)
+            func(*args, **kwargs)
+
+            if post_func:
+                PLOG("Executing '%s()' after '%s()'", post_func.__name__,
+                     func.__name__)
+                post_func()
+
+        return wrapper
 
 
 class Recipe(object):
@@ -441,13 +438,12 @@ class RecipeDB(object):
         Args:
             path: The folder containing recipes to index.
         """
-        # TODO: Iterate all classes in file, only index subclassing Recipe
         try:
             check_package(path)
             sys.path.insert(0, os.path.dirname(path))
 
-            new_recs = glob.glob(os.path.join(path, '*.py'))
-            new_recs = [os.path.basename(fname)[0:-3] for fname in new_recs]
+            new_recs = [inspect.getmodulename(fname) for fname
+                        in glob.glob(os.path.join(path, '*.py'))]
             if '__init__' in new_recs:
                 new_recs.remove('__init__')
             if 'setup' in new_recs:
@@ -485,7 +481,8 @@ class RecipeDB(object):
 
         Args:
             mod_name: The module name, should be importable via PYTHONPATH.
-            cls_name: The class name in the module.
+            cls_name: The name of the submodule.
+                    Submodule should contain subclass of pakit.recipe.Recipe.
 
         Returns:
             The instantiated recipe.
@@ -494,13 +491,13 @@ class RecipeDB(object):
             AttributeError: The module did not have the required class.
             ImportError: If the module could not be imported.
         """
-        mod = __import__('{mod}.{cls}'.format(mod=mod_name, cls=cls_name))
-        mod = getattr(mod, cls_name)
-        cls = getattr(mod, cls_name.capitalize())
-        source_dir = os.path.join(self.config.path_to('source'),
-                                  cls_name)
-        cls.build = RecipeDecorator(source_dir)(cls.build)
-        cls.verify = RecipeDecorator(use_tempd=True)(cls.verify)
+        mod = getattr(__import__(mod_name + '.' + cls_name), cls_name)
+        for member in inspect.getmembers(mod, inspect.isclass):
+            if member[0] != 'Recipe' and issubclass(member[1], Recipe):
+                cls = member[1]
+                break
+        cls.build = DecChangeDir(attr='source_dir')(DecPrePost()(cls.build))
+        cls.verify = DecChangeDir(use_tempd=True)(DecPrePost()(cls.verify))
         obj = cls()
         obj.set_config(self.config)
         return obj

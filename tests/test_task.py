@@ -12,19 +12,12 @@ from pakit.exc import PakitCmdError, PakitLinkError
 import pakit.main
 import pakit.recipe
 from pakit.task import (
-    subseq_match, create_substring_matcher, Task, RecipeTask,
+    create_substring_matcher, Task, RecipeTask,
     InstallTask, RemoveTask, UpdateTask, DisplayTask,
     ListInstalled, ListAvailable, SearchTask, RelinkRecipes,
     CreateConfig, PurgeTask
 )
 import tests.common as tc
-
-
-def test_subseq_match():
-    haystack = 'Hello World!'
-    assert subseq_match(haystack, 'hwor')
-    assert subseq_match(haystack, 'HeWd')
-    assert not subseq_match(haystack, 'Good')
 
 
 class TestSubstring(object):
