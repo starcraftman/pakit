@@ -11,11 +11,13 @@ import copy
 import json
 import logging
 import os
+import tempfile
 import time
 import yaml
 
 CONFIG = None
 IDB = None
+TMP_DIR = tempfile.mkdtemp(prefix='pakit_cmd_stdout_')
 TEMPLATE = {
     'pakit': {
         'command': {

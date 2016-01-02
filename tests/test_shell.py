@@ -6,6 +6,7 @@ import os
 import mock
 import pytest
 
+import pakit.conf
 from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
@@ -103,7 +104,7 @@ def test_hash_archive_sha256():
 @mock.patch('pakit.shell.shutil')
 def test_cmd_cleanup(mock_shutil):
     cmd_cleanup()
-    mock_shutil.rmtree.assert_called_with(pakit.shell.TMP_DIR)
+    mock_shutil.rmtree.assert_called_with(pakit.conf.TMP_DIR)
 
 
 def test_common_suffix():

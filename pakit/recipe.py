@@ -1,11 +1,13 @@
 """
 The Recipe class and RecipeDB are found here.
 
+DecChangeDir: Deocrate a method, it executes in a different CWD.
+DecPrePost: Execute optional pre/post methods.
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
 RecipeManager: Retrieves and manages remote recipe sources.
 """
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 import copy
 import functools
@@ -16,6 +18,11 @@ import os
 import shutil
 import sys
 import tempfile
+
+try:
+    from importlib import reload as ireload
+except ImportError:
+    from imp import reload as ireload
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
@@ -491,11 +498,14 @@ class RecipeDB(object):
             AttributeError: The module did not have the required class.
             ImportError: If the module could not be imported.
         """
-        mod = getattr(__import__(mod_name + '.' + cls_name), cls_name)
+        # FIXME: Work around to prevent multiple decorations.
+        #        Recipes should be reloadable given current format.
+        mod = ireload(getattr(__import__(mod_name + '.' + cls_name), cls_name))
         for member in inspect.getmembers(mod, inspect.isclass):
             if member[0] != 'Recipe' and issubclass(member[1], Recipe):
                 cls = member[1]
                 break
+
         cls.build = DecChangeDir(attr='source_dir')(DecPrePost()(cls.build))
         cls.verify = DecChangeDir(use_tempd=True)(DecPrePost()(cls.verify))
         obj = cls()

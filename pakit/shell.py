@@ -20,7 +20,6 @@ import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 from tempfile import NamedTemporaryFile as TempFile
 import threading
 import time
@@ -40,15 +39,13 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 
-TMP_DIR = tempfile.mkdtemp(prefix='pakit_cmd_stdout_')
-
 
 @atexit.register
 def cmd_cleanup():
     """
     Cleans up any command stdout files left over,
     """
-    shutil.rmtree(TMP_DIR)
+    shutil.rmtree(pakit.conf.TMP_DIR)
 
 
 def user_input(msg):
@@ -80,7 +77,7 @@ def wrap_extract(extract_func):
         """
         Inner part of decorator.
         """
-        tmp_dir = os.path.join(TMP_DIR, os.path.basename(filename))
+        tmp_dir = os.path.join(pakit.conf.TMP_DIR, os.path.basename(filename))
         extract_func(filename, tmp_dir)
         extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
         shutil.move(extracted, target)
@@ -109,8 +106,8 @@ def extract_rar(filename, tmp_dir):
                 pass
 
     if not success:
-        raise PakitCmdError('Need `rar` or `unrar` command to extract: '
-                            + filename)
+        raise PakitCmdError('Need `rar` or `unrar` command to extract: ' +
+                            filename)
 
 
 def extract_tb2(filename, tmp_dir):
@@ -181,8 +178,8 @@ def extract_tar_xz(filename, tmp_dir):
         Command('xz --keep --decompress ' + filename).wait()
         Command('tar -C {0} -xf {1}'.format(tmp_dir, tar_file)).wait()
     except (OSError, PakitCmdError):
-        raise PakitCmdError('Need commands `xz` and `tar` to extract: '
-                            + filename)
+        raise PakitCmdError('Need commands `xz` and `tar` to extract: ' +
+                            filename)
     finally:
         try:
             os.remove(tar_file)
@@ -1184,7 +1181,8 @@ class Command(object):
 
         logging.debug('CMD START: %s', self)
         try:
-            self.stdout = TempFile(mode='wb', delete=False, dir=TMP_DIR,
+            self.stdout = TempFile(mode='wb', delete=False,
+                                   dir=pakit.conf.TMP_DIR,
                                    prefix='cmd', suffix='.log')
             self._proc = subprocess.Popen(
                 self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
@@ -1192,8 +1190,8 @@ class Command(object):
             )
         except OSError as exc:
             if cmd_dir and not os.path.exists(cmd_dir):
-                raise PakitCmdError('Command directory does not exist: '
-                                    + self._cmd_dir)
+                raise PakitCmdError('Command directory does not exist: ' +
+                                    self._cmd_dir)
             else:
                 raise PakitCmdError('General OSError:\n' + str(exc))
 

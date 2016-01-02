@@ -170,6 +170,59 @@ class InstallDeps(Command):
         subprocess.call(shlex.split(cmd))
 
 
+class UMLDocs(Command):
+    """
+    Generate UML class and module diagrams.
+    """
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def check_prereqs(self):
+        """
+        Checks required programs.
+        """
+        try:
+            with open(os.devnull, 'w') as dnull:
+                subprocess.check_call(shlex.split('pyreverse -h'),
+                                      stdout=dnull, stderr=dnull)
+        except OSError:
+            print('Missing pylint library (pyreverse). Please run:')
+            print('pip install pylint')
+            sys.exit(1)
+        try:
+            with open(os.devnull, 'w') as dnull:
+                subprocess.check_call(shlex.split('dot -V'),
+                                      stdout=dnull, stderr=dnull)
+        except OSError:
+            print('Missing graphviz library (dot). Please run:')
+            print('sudo apt-get install graphviz')
+            sys.exit(1)
+
+    def run(self):
+        self.check_prereqs()
+        old_cwd = os.getcwd()
+        os.chdir(ROOT)
+
+        cmds = [
+            'pyreverse pakit',
+            'dot -Tps classes_No_Name.dot -o class_diagram.ps',
+            'dot -Tps packages_No_Name.dot -o module_diagram.ps',
+        ]
+        for cmd in cmds:
+            subprocess.call(shlex.split(cmd))
+        for fname in glob.glob('*.dot'):
+            os.remove(fname)
+        print('Diagrams available in: ' + ROOT)
+        print('Use any postscript viewer to open them.')
+
+        os.chdir(old_cwd)
+
+
 MY_NAME = 'Jeremy Pallats / starcraft.man'
 MY_EMAIL = 'N/A'
 RUN_DEPS = ['argparse', 'pyyaml']
@@ -263,5 +316,6 @@ setup(
         'clean': CleanCommand,
         'deps': InstallDeps,
         'release': ReleaseCommand,
+        'uml': UMLDocs,
     }
 )

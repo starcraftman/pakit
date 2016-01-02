@@ -255,14 +255,14 @@ class TestTaskRelink(TestTaskBase):
 
 class TestTaskPurge(TestTaskBase):
     def test_purge_abort(self, mock_input):
-        mock_input.side_effect = 'n'
+        mock_input.return_value = 'n'
         PurgeTask().run()
 
     @mock.patch('pakit.task.os.remove')
     @mock.patch('pakit.task.shutil.rmtree')
     def test_purge_confirm(self, mock_rmtree, mock_remove, mock_input):
         config = pakit.conf.CONFIG
-        mock_input.side_effect = 'y'
+        mock_input.return_value = 'y'
         PurgeTask().run()
 
         root = config.path_to('recipes')
@@ -277,7 +277,7 @@ class TestTaskPurge(TestTaskBase):
     @mock.patch('pakit.task.USER')
     @mock.patch('pakit.task.shutil.rmtree')
     def test_purge_oserror(self, mock_rmtree, mock_user, mock_input):
-        mock_input.side_effect = 'y'
+        mock_input.return_value = 'y'
         mock_rmtree.side_effect = OSError
         PurgeTask().run()
         assert mock_user.info.called
