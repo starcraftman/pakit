@@ -121,6 +121,7 @@ From inside the pakit source folder:
 - Help: `pakit --help`
 - Consult man: `man pakit`
 - Read pydocs: `pydoc pakit` or `pydoc pakit.shell` and so on...
+- Simple UML Diagrams: `python setup.py uml`
 - Install all development packages: `python setup.py deps`
 - Run the test suite: `tox`
 - See [Waffle][WaffleDash] for things I'm working on.

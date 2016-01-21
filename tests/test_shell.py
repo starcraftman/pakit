@@ -12,7 +12,7 @@ from pakit.exc import (
 )
 import pakit.shell
 from pakit.shell import (
-    Archive, Dummy, Git, Hg, Command, find_arc_name, hash_archive,
+    Archive, Dummy, Git, Hg, Command, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input
@@ -74,22 +74,13 @@ def test_unlink_man_pages():
         tc.delete_it(link_dir)
 
 
-def test_find_arc_name():
-    assert find_arc_name(tc.TAR)[0] == 'tmux-2.0.tar.gz'
-
-
-def test_find_arc_name_fail():
-    with pytest.raises(PakitError):
-        find_arc_name('archive.not.an.arc')
-
-
 def test_get_extract_func():
-    assert get_extract_func('tar.gz') is extract_tar_gz
+    assert get_extract_func(tc.TAR_FILE) is extract_tar_gz
 
 
 def test_get_extract_func_not_found():
     with pytest.raises(PakitError):
-        get_extract_func('tar.gzzz')
+        get_extract_func(tc.TEST_CONFIG)
 
 
 def test_hash_archive_sha256():
@@ -251,7 +242,7 @@ class TestExtractFuncs(object):
         return os.path.join(self.arc_dir, 'example.' + ext)
 
     def __test_ext(self, ext):
-        extract = get_extract_func(ext)
+        extract = get_extract_func(self.arc_file(ext))
         extract(self.arc_file(ext), self.target)
         assert os.listdir(os.path.dirname(self.expect_file)) == ['example.txt']
 
@@ -348,6 +339,7 @@ class TestArchive(object):
     def setup(self):
         self.test_dir = os.path.join(tc.CONF.path_to('source'), 'tmux')
         self.archive = Archive(tc.TAR_FILE, target=self.test_dir,
+                               filename=os.path.basename(tc.TAR_FILE),
                                hash='795f4b4446b0ea968b9201c25e8c1ef8a6ade710'
                                'ebca4657dd879c35916ad362')
 

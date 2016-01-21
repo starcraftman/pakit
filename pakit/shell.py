@@ -39,6 +39,17 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 
+EXT_FUNCS = {
+    'application/x-7z-compressed': 'extract_7z',
+    'application/x-rar': 'extract_rar',
+    'application/gzip': 'extract_tar_gz',
+    'application/x-gzip': 'extract_tar_gz',
+    'application/x-bzip2': 'extract_tar_gz',
+    'application/x-tar': 'extract_tar_gz',
+    'application/x-xz': 'extract_tar_xz',
+    'application/zip': 'extract_zip',
+}
+
 
 @atexit.register
 def cmd_cleanup():
@@ -86,6 +97,22 @@ def wrap_extract(extract_func):
 
 
 @wrap_extract
+def extract_7z(filename, tmp_dir):
+    """
+    Extracts a 7z archive
+    """
+    try:
+        Command('7z x -o{tmp} {file}'.format(file=filename,
+                                             tmp=tmp_dir)).wait()
+    except (OSError, PakitCmdError):
+        raise PakitCmdError('Need `7z` to extract: ' + filename)
+    try:
+        os.rmdir(tmp_dir)
+    except OSError:
+        pass
+
+
+@wrap_extract
 def extract_rar(filename, tmp_dir):
     """
     Extracts a rar archive
@@ -108,48 +135,6 @@ def extract_rar(filename, tmp_dir):
     if not success:
         raise PakitCmdError('Need `rar` or `unrar` command to extract: ' +
                             filename)
-
-
-def extract_tb2(filename, tmp_dir):
-    """
-    Alias for tar.bz2
-    """
-    extract_tar_bz2(filename, tmp_dir)
-
-
-def extract_tbz(filename, tmp_dir):
-    """
-    Alias for tar.bz2
-    """
-    extract_tar_bz2(filename, tmp_dir)
-
-
-def extract_tbz2(filename, tmp_dir):
-    """
-    Alias for tar.bz2
-    """
-    extract_tar_bz2(filename, tmp_dir)
-
-
-def extract_tgz(filename, tmp_dir):
-    """
-    Alias for tar.gz
-    """
-    extract_tar_gz(filename, tmp_dir)
-
-
-def extract_txz(filename, tmp_dir):
-    """
-    Alias for tar.xz
-    """
-    extract_tar_xz(filename, tmp_dir)
-
-
-def extract_tar_bz2(filename, tmp_dir):
-    """
-    Extracts a tar.bz2 archive
-    """
-    extract_tar_gz(filename, tmp_dir)
 
 
 @wrap_extract
@@ -200,73 +185,27 @@ def extract_zip(filename, tmp_dir):
     zipf.extractall(tmp_dir)
 
 
-@wrap_extract
-def extract_7z(filename, tmp_dir):
+def get_extract_func(arc_path):
     """
-    Extracts a 7z archive
-    """
-    try:
-        Command('7z x -o{tmp} {file}'.format(file=filename,
-                                             tmp=tmp_dir)).wait()
-    except (OSError, PakitCmdError):
-        raise PakitCmdError('Need `7z` to extract: ' + filename)
-    try:
-        os.rmdir(tmp_dir)
-    except OSError:
-        pass
-
-
-def find_arc_name(uri):
-    """
-    Given a URI, extract the filename of the archive by locating the extension.
-
-    For examle, if uri = 'somesite.com/files/archive.tar.gz' this function
-    will return 'archive.tar.gz'. The extension of the archive must be in EXTS.
+    Check mimetype of archive to select extraction method.
 
     Args:
-        uri: A URI that stores the archive.
-
-    Returns:
-        A tuple of archive name & extension.
-    """
-    right = -1
-    ext = None
-    exts = [func.replace('extract_', '').replace('_', '.') for func
-            in dir(sys.modules[__name__]) if func.find('extract_') == 0]
-
-    for ext in exts:
-        ext = '.' + ext
-        right = uri.rfind(ext)
-        if right != -1:
-            right += len(ext)
-            left = uri.rfind('/', 0, right) + 1
-            break
-
-    if right == -1:
-        raise PakitError('Could not determine archive name.')
-
-    return (uri[left:right], ext[1:])
-
-
-def get_extract_func(ext):
-    """
-    Get the right extract function given an extension.
-
-    Args:
-        ext: The extension of the archive, not including the period.
-            For example, zip or tar.gz
+        arc_path: The absolute path to an archive.
 
     Returns:
         The function of the form extract(filename, target).
 
     Raises:
-        PakitError: The extension can not be extracted.
+        PakitError: Could not determine function from mimetype.
     """
-    try:
-        return getattr(sys.modules[__name__],
-                       'extract_' + ext.replace('.', '_'))
-    except AttributeError:
-        raise PakitError('Unsupported Archive Format: extension ' + ext)
+    cmd = Command('file --mime-type ' + arc_path)
+    cmd.wait()
+    mtype = cmd.output()[0].split()[1]
+
+    if mtype not in EXT_FUNCS.keys():
+        raise PakitError('Unsupported Archive: mimetype ' + mtype)
+
+    return getattr(sys.modules[__name__], EXT_FUNCS[mtype])
 
 
 def hash_archive(archive, hash_alg='sha256'):
@@ -655,21 +594,19 @@ class Archive(Fetchable):
             uri: The URI to retrieve the archive from.
 
         Kwargs:
-            filename: If filename detection fails,
-                pass in a name with right extension.
+            filename: The filename to use, else a tempfile will be used.
             hash: The sha256 hash of the archive.
             target: Path on system to extract to.
         """
         super(Archive, self).__init__(uri, kwargs.get('target', None))
 
-        filename = kwargs.get('filename')
-        if filename:
-            self.filename = filename
-            ext = filename[filename.find('.') + 1:]
-        else:
-            self.filename, ext = find_arc_name(self.uri)
         self.__src_hash = kwargs.get('hash', '')
-        self.__extract = get_extract_func(ext)
+        self.filename = kwargs.get('filename')
+        if self.filename is None:
+            self.__tfile = TempFile(mode='wb', delete=False,
+                                    dir=pakit.conf.TMP_DIR,
+                                    prefix='arc')
+            self.filename = self.__tfile.name
 
     def __enter__(self):
         """
@@ -681,7 +618,7 @@ class Archive(Fetchable):
         logging.info('Downloading %s', self.arc_file)
         self.download()
         logging.info('Extracting %s to %s', self.arc_file, self.target)
-        self.__extract(self.arc_file, self.target)
+        get_extract_func(self.arc_file)(self.arc_file, self.target)
         with open(os.path.join(self.target, '.archive'), 'wb') as fout:
             fout.write(self.src_hash.encode())
         os.remove(self.arc_file)
@@ -1208,7 +1145,9 @@ class Command(object):
             prefix = '\n    '
             msg = prefix + prefix.join(self.output())
             logging.debug("CMD LOG: %s%s", self, msg)
-        except (AttributeError, IOError, OSError) as exc:
+        except AttributeError:
+            logging.error('Could not execute command: ' + str(self))
+        except (IOError, OSError) as exc:
             logging.error(exc)
 
     def __str__(self):

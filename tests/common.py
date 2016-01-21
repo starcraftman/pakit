@@ -88,6 +88,11 @@ def env_teardown():
     Teardown the testing environment.
     '''
     print('\n-----DESTROY ENV')
+
+    if len(PATHS) == 1:
+        print('Env setup not completed, check network connection.')
+        return
+
     src_log = [path for path in PATHS if '.log' in path][-1]
     dst_log = os.path.join('/tmp', 'test.log')
     try:
