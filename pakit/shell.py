@@ -29,7 +29,7 @@ import tarfile
 # pylint: disable=import-error
 try:
     import urllib2 as ulib
-except ImportError:
+except ImportError:  # pragma: no cover
     import urllib.request as ulib  # pylint: disable=no-name-in-module
 # pylint: enable=import-error
 import zipfile
@@ -71,7 +71,7 @@ def user_input(msg):
     """
     if sys.version_info < (3, 0):
         return raw_input(msg)
-    else:
+    else:  # pragma: no cover
         return input(msg)  # pylint: disable=bad-builtin
 
 
@@ -166,10 +166,7 @@ def extract_tar_xz(filename, tmp_dir):
         raise PakitCmdError('Need commands `xz` and `tar` to extract: ' +
                             filename)
     finally:
-        try:
-            os.remove(tar_file)
-        except OSError:
-            pass
+        os.remove(tar_file)
         try:
             os.rmdir(tmp_dir)
         except OSError:
