@@ -132,7 +132,7 @@ class InstallTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        entry = pakit.conf.IDB.get(self.recipe.name)
+        entry = pakit.conf.IDB.get(self.recipe.name, None)
         if entry:
             msg = '{name}: Already Installed{nl}Repo: {repo}'
             msg += '{nl}Hash: {hash}{nl}Date: {date}'
@@ -174,7 +174,7 @@ class RemoveTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        if pakit.conf.IDB.get(self.recipe.name) is None:
+        if pakit.conf.IDB.get(self.recipe.name, None) is None:
             print(self.recipe.name + ': Not Installed')
             return
 
@@ -183,7 +183,7 @@ class RemoveTask(RecipeTask):
             shutil.rmtree(self.recipe.install_dir)
         except OSError:  # pragma: no cover
             pass
-        pakit.conf.IDB.remove(self.recipe.name)
+        del pakit.conf.IDB[self.recipe.name]
 
 
 class UpdateTask(RecipeTask):
@@ -205,7 +205,7 @@ class UpdateTask(RecipeTask):
         USER.info('%s: Saving Old Install', self.recipe.name)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         self.old_entry = pakit.conf.IDB.get(self.recipe.name)
-        pakit.conf.IDB.remove(self.recipe.name)
+        del pakit.conf.IDB[self.recipe.name]
         shutil.move(self.recipe.install_dir, self.back_dir)
 
     def restore_old_install(self):
@@ -214,7 +214,7 @@ class UpdateTask(RecipeTask):
         """
         USER.info('%s: Restoring Old Install', self.recipe.name)
         shutil.move(self.back_dir, self.recipe.install_dir)
-        pakit.conf.IDB.set(self.recipe.name, self.old_entry)
+        pakit.conf.IDB[self.recipe.name] = self.old_entry
         walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
 
     def run(self):
@@ -222,7 +222,7 @@ class UpdateTask(RecipeTask):
         Execute a set of operations to perform the Task.
         """
         USER.info('%s: Checking For Updates', self.recipe.name)
-        cur_hash = pakit.conf.IDB.get(self.recipe.name)['hash']
+        cur_hash = pakit.conf.IDB[self.recipe.name]['hash']
         if cur_hash == self.recipe.repo.src_hash:
             return
 
@@ -294,18 +294,19 @@ class ListInstalled(Task):
         """
         logging.debug('List Installed Programs')
         if self.short:
-            print(' '.join(sorted([ent for ent, _ in pakit.conf.IDB])))
+            print(' '.join([ent for ent in pakit.conf.IDB]))
             return
 
         nchars = 12
         fmt = str(nchars).join(['{prog:', '}   {repo:',
                                 '}   {hash:', '}   {date}'])
         installed = ['Program        Repo           Hash           Date']
-        installed.extend([fmt.format(prog=prog[0:nchars],
-                                     repo=entry['repo'][0:nchars],
-                                     date=entry['date'],
-                                     hash=entry['hash'][0:nchars])
-                          for prog, entry in pakit.conf.IDB])
+        for prog in pakit.conf.IDB:
+            entry = pakit.conf.IDB[prog]
+            installed.append(fmt.format(prog=prog[0:nchars],
+                                        repo=entry['repo'][0:nchars],
+                                        date=entry['date'],
+                                        hash=entry['hash'][0:nchars]))
 
         msg = 'Installed Programs:'
         msg += PREFIX + PREFIX.join(installed)
@@ -388,7 +389,8 @@ class PurgeTask(Task):
         to_remove = [config.path_to('prefix'),
                      config.path_to('source'),
                      uris_file]
-        to_remove += [entry['path'] for _, entry in ruri_db if entry['is_vcs']]
+        to_remove += [ruri_db[uri]['path'] for uri in ruri_db
+                      if ruri_db[uri]['is_vcs']]
         to_remove += glob.glob(config.get('pakit.log.file') + '*')
 
         for path in to_remove:

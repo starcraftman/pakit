@@ -155,6 +155,7 @@ def environment_check(config):
     """
     Check the environment is correct.
 
+    Ensure network connection works.
     Guarantee built programs always first in $PATH for Commands.
     """
     bin_dir = os.path.join(config.path_to('link'), 'bin')
@@ -329,7 +330,7 @@ def parse_update(args):
     """
     tasks = None
     if len(args.recipes) == 0:
-        to_update = [recipe for recipe, _ in pakit.conf.IDB]
+        to_update = [recipe for recipe in pakit.conf.IDB]
         tasks = order_tasks(to_update, UpdateTask)
     else:
         to_update = [recipe for recipe in args.recipes
@@ -446,6 +447,10 @@ def main(argv=None):
         logging.error('No arguments. What should I do?')
         parser.print_usage()
         sys.exit(1)
+
+    if not pakit.shell.check_connectivity():
+        logging.error('You do not seem to be connected to the internet.')
+        logging.error('Pakit can\'t do much without it!')
 
     try:
         args = parser.parse_args(argv[1:])

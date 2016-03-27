@@ -328,7 +328,7 @@ class Recipe(object):
             raise KeyError('Build repository not available.')
         self.opts['repo'] = new_repo
         if os.path.exists(self.source_dir):
-            self.repo.clean()
+            self.repo.clean()  # pylint: disable=no-member
 
     @property
     def repo_name(self):
@@ -557,12 +557,12 @@ class RecipeManager(object):
         Purge any uri_db entries that have been deleted from their path.
         """
         to_remove = []
-        for uri, remote in self.uri_db:
-            if not os.path.exists(remote['path']):
+        for uri in self.uri_db:
+            if not os.path.exists(self.uri_db[uri]['path']):
                 to_remove.append(uri)
 
         for uri in to_remove:
-            self.uri_db.remove(uri)
+            del self.uri_db[uri]
         self.uri_db.write()
 
     def check_for_updates(self):
@@ -574,7 +574,7 @@ class RecipeManager(object):
             - the kwargs between uri_db and active_kwargs differ
         """
         need_updates = self.uri_db.need_updates(self.interval)
-        vcs_uris = [uri for uri, entry in self.uri_db if entry['is_vcs']]
+        vcs_uris = [uri for uri in self.uri_db if self.uri_db[uri]['is_vcs']]
         for uri in set(self.active_uris).intersection(vcs_uris):
             db_kwargs = self.uri_db[uri].get('kwargs', {})
             kwargs = self.active_kwargs.get(uri, {})
@@ -601,7 +601,7 @@ class RecipeManager(object):
         Raises:
             PakitError: User attempted to use an unsupported URI.
         """
-        for uri in set(self.active_uris).difference(self.uri_db.conf.keys()):
+        for uri in set(self.active_uris).difference(self.uri_db.keys()):
             repo = None
             kwargs = self.active_kwargs.get(uri, {})
 

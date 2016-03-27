@@ -52,6 +52,8 @@ class TestSearchConfig(object):
             os.makedirs(os.path.dirname(self.home_pakit_conf))
         except OSError:
             pass
+        self.ppaths = [self.first_conf, self.second_conf, self.third_conf,
+                       self.home_conf, self.home_pakit_conf]
         for path in [self.first_conf, self.second_conf, self.third_conf,
                      self.home_conf, self.home_pakit_conf]:
             shutil.copy(tc.TEST_CONFIG, path)
@@ -62,6 +64,12 @@ class TestSearchConfig(object):
         tc.delete_it(self.test_dir)
         tc.delete_it(self.home_conf)
         tc.delete_it(self.home_pakit_conf)
+
+    def status(self):
+        print(os.getcwd())
+        print(self.ppaths)
+        for ppath in self.ppaths:
+            print(os.path.exists(ppath))
 
     def test_search_config_cur_dir(self):
         assert search_for_config() == self.third_conf
@@ -118,6 +126,9 @@ class TestParseTasks(object):
     def setup(self):
         self.parser = create_args_parser()
 
+    def teardown(self):
+        pakit.conf.IDB.data = {}
+
     def test_parse_install(self):
         args = self.parser.parse_args('install ag'.split())
         tasks = args.func(args)
@@ -135,13 +146,11 @@ class TestParseTasks(object):
         Not ideal, but mucking around internally saves hassle.
         """
         recipe_name = 'ag'
-        pakit.conf.IDB.conf = {recipe_name: None}
+        pakit.conf.IDB.data = {recipe_name: None}
 
         args = self.parser.parse_args('update'.split())
         tasks = args.func(args)
         assert UpdateTask(recipe_name) in tasks
-
-        pakit.conf.IDB._conf = {}
 
     @mock.patch('pakit.main.PLOG')
     def test_parse_update_args(self, mock_plog):
@@ -149,14 +158,12 @@ class TestParseTasks(object):
         Not ideal, but mucking around internally saves hassle.
         """
         recipe_name = 'ag'
-        pakit.conf.IDB.conf = {recipe_name: None}
+        pakit.conf.IDB.data = {recipe_name: None}
 
         args = self.parser.parse_args('update ag ack'.split())
         tasks = args.func(args)
         assert UpdateTask('ag') in tasks
         mock_plog.assert_called_with('Recipe(s) not installed: ack')
-
-        pakit.conf.IDB._conf = {}
 
     def test_parse_list(self):
         args = self.parser.parse_args('list'.split())
@@ -214,6 +221,13 @@ class TestMain(object):
     def test_normal_args(self, mock_plog):
         main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
         assert mock_plog.called
+
+    @mock.patch('pakit.main.pakit.shell.check_connectivity')
+    @mock.patch('pakit.main.logging')
+    def test_connectivity_down(self, mock_log, mock_con):
+        mock_con.return_value = False
+        main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
+        assert mock_log.error.called
 
     @mock.patch('pakit.main.argparse._sys')
     @mock.patch('pakit.main.sys')

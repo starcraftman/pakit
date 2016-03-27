@@ -15,9 +15,21 @@ from pakit.shell import (
     Archive, Dummy, Git, Hg, Command, hash_archive,
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
-    write_config, link_man_pages, unlink_man_pages, user_input
+    write_config, link_man_pages, unlink_man_pages, user_input,
+    check_connectivity
 )
+from pakit.shell import ulib
 import tests.common as tc
+
+
+def test_check_connectivity():
+    assert check_connectivity()
+
+
+@mock.patch('pakit.shell.ulib.urlopen')
+def test_check_connectivity_fails(mock_urlopen):
+    mock_urlopen.side_effect = ulib.URLError('Fail connection.')
+    assert not check_connectivity()
 
 
 def test_user_input(mock_input):

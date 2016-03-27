@@ -8,48 +8,109 @@ import mock
 import pytest
 
 import pakit.conf
-from pakit.conf import Config, InstallDB, YamlMixin, RecipeURIDB
+from pakit.conf import Config, InstallDB, RecipeURIDB, YamlDict, YamlNestedDict
 import pakit.recipe
 import tests.common as tc
 
 
-class TestYamlMixin(object):
-    """ Specifically test mixin separate from targets. """
+class TestYamlDict(object):
     def setup(self):
-        self.config_file = os.path.join(tc.STAGING, 'file.yaml')
-        self.config = YamlMixin(self.config_file)
+        self.fname = os.path.join(tc.STAGING, 'file.yaml')
+        self.dict = YamlDict(self.fname, {'a': 11, 'b': 'hello'})
 
     def teardown(self):
-        tc.delete_it(self.config_file)
+        tc.delete_it(self.fname)
 
-    def test_filename_get(self):
-        assert self.config.filename == self.config_file
+    def test__getitem__(self):
+        assert self.dict['a'] == 11
+        with pytest.raises(KeyError):
+            assert self.dict['doesnotexist']
+        assert self.dict.get('does.not.exist', 42) == 42
 
-    @mock.patch('pakit.conf.logging')
-    def test_filename_set(self, mock_log):
-        new_file = self.config_file + '2'
-        self.config.filename = new_file
-        mock_log.error.assert_called_with('File not found: %s', new_file)
-        assert self.config.filename == new_file
+    def test__setitem__(self):
+        self.dict['c'] = 'void'
+        assert self.dict['c'] == 'void'
 
-    def test_read_from(self):
-        with open(self.config.filename, 'wb') as fout:
+    def test__delitem__(self):
+        del self.dict['b']
+        with pytest.raises(KeyError):
+            assert self.dict['b']
+
+    def test__contains__(self):
+        assert 'b' in self.dict
+        assert 'doesnotexist' not in self.dict
+
+    def test__len__(self):
+        assert len(self.dict) == 2
+
+    def test__iter__(self):
+        assert [x for x in self.dict] == ['a', 'b']
+
+    def test__str__(self):
+        expect = """Class: YamlDict
+Filename: %s
+{
+  "a": 11,
+  "b": "hello"
+}""" % self.fname
+        assert str(self.dict) == expect
+
+    def test_filename(self):
+        assert self.dict.filename == self.fname
+        self.dict.filename = 'aaa'
+        assert self.dict.filename == 'aaa'
+
+    def test_read(self):
+        with open(self.dict.filename, 'wb') as fout:
             fout.write('hello: world\n'.encode())
-        obj = self.config.read_from()
-        assert isinstance(obj, dict)
-        assert obj['hello'] == 'world'
+        self.dict.read()
+        assert self.dict['hello'] == 'world'
 
     @mock.patch('pakit.conf.logging')
     def test_read_from_file_invalid(self, mock_log):
-        assert not os.path.exists(self.config.filename)
-        self.config.read_from()
+        assert not os.path.exists(self.dict.filename)
+        self.dict.read()
         assert mock_log.error.called
 
-    def test_write_to(self):
-        self.config.write_to({'hello': 'world'})
-        assert os.path.exists(self.config.filename)
-        with open(self.config.filename) as fin:
+    def test_write(self):
+        self.dict.clear()
+        self.dict['hello'] = 'world'
+        self.dict.write()
+        assert os.path.exists(self.dict.filename)
+        with open(self.dict.filename) as fin:
             assert fin.readlines() == ['hello: world\n']
+
+
+class TestYamlNestedDict(object):
+    def setup(self):
+        self.fname = os.path.join(tc.STAGING, 'file.yaml')
+        self.dict = YamlNestedDict(self.fname, {'a': 11, 'b': 'hello',
+                                   'c': {'inner': 'world'}})
+
+    def teardown(self):
+        tc.delete_it(self.fname)
+
+    def test__getitem__(self):
+        assert self.dict['a'] == 11
+        assert self.dict['c.inner'] == 'world'
+        with pytest.raises(KeyError):
+            assert self.dict['does.not.exist']
+        assert self.dict.get('does.not.exist', 42) == 42
+
+    def test__setitem__(self):
+        self.dict['c.inner'] = 'void'
+        assert self.dict['c.inner'] == 'void'
+        self.dict['d.e.f'] = 'next 3'
+        assert self.dict['d.e.f'] == 'next 3'
+
+    def test__delitem__(self):
+        del self.dict['c.inner']
+        with pytest.raises(KeyError):
+            assert self.dict['c.inner']
+
+    def test__contains__(self):
+        assert 'c.inner' in self.dict
+        assert 'does.not.exist' not in self.dict
 
 
 class TestConfig(object):
@@ -61,58 +122,12 @@ class TestConfig(object):
     def teardown(self):
         tc.delete_it(self.config_file)
 
-    def test__str__(self):
-        print()
-        print(str(self.config))
-        expect = """Config File: PLACE0
-Contents:
-{
-  "pakit": {
-    "command": {
-      "timeout": 120
-    },
-    "defaults": {
-      "repo": "stable"
-    },
-    "log": {
-      "enabled": true,
-      "file": "/tmp/pakit/main.log",
-      "level": "debug"
-    },
-    "paths": {
-      "link": "/tmp/pakit/links",
-      "prefix": "/tmp/pakit/builds",
-      "recipes": "PLACE1",
-      "source": "/tmp/pakit/src"
-    },
-    "recipe": {
-      "update_interval": 86400,
-      "uris": [
-        {
-          "uri": "https://github.com/pakit/base_recipes"
-        },
-        {
-          "uri": "user_recipes"
-        }
-      ]
-    }
-  }
-}"""
+    def test_get_default(self):
+        assert self.config.get('pakit.paths.prefixxx', 42) == 42
 
-        expect = expect.replace('PLACE0', self.config.filename)
-        expect = expect.replace('PLACE1', os.path.expanduser('~/.pakit'))
-        print(expect)
-        assert str(self.config) == expect
-
-    def test__contains__(self):
-        assert 'pakit' in self.config
-        assert 'pakit.paths' in self.config
-        assert 'pakit.paths.prefix' in self.config
-        assert 'beaver' not in self.config
-        assert 'canada.beaver' not in self.config
-
-    def test_get(self):
-        assert self.config.get('pakit.paths.prefix') == '/tmp/pakit/builds'
+    def test_get_raises(self):
+        with pytest.raises(KeyError):
+            assert self.config['pakit.paths.prefixxx']
 
     def test_get_missing_key(self):
         self.config.write()
@@ -120,6 +135,7 @@ Contents:
                   self.config.filename])
         with open(self.config.filename) as fin:
             lines = fin.readlines()
+            print(lines)
             assert 'command:' not in lines
             assert 'timeout:' not in lines
         config = Config(self.config_file)
@@ -133,10 +149,6 @@ Contents:
         with pytest.raises(KeyError):
             self.config.path_to('bad_key')
 
-    def test_get_raises(self):
-        with pytest.raises(KeyError):
-            self.config.get('pakit.paths.prefixxx')
-
     def test_opts_for(self):
         """ Requires the testing pakit.yml. """
         config_file = os.path.join(os.path.dirname(__file__), 'pakit.yml')
@@ -145,21 +157,8 @@ Contents:
         assert opts.get('repo') == 'unstable'
         assert opts.get('prefix') == '/tmp/test_pakit/builds'
 
-    def test_set(self):
-        self.config.set('pakit.paths.prefix', '/dev/null')
-        assert self.config.get('pakit.paths.prefix') == '/dev/null'
-
-        self.config.set('hello.world', True)
-        assert self.config.get('hello.world') is True
-
-    def test_write(self):
-        self.config.set('pakit.paths.install', 22)
-        self.config.write()
-        self.config.read()
-        assert self.config.get('pakit.paths.install') == 22
-
     def test_reset(self):
-        self.config.set('pakit.paths.prefix', 22)
+        self.config['pakit.paths.prefix'] = 22
         self.config.reset()
         assert self.config.get('pakit.paths.prefix') == '/tmp/pakit/builds'
 
@@ -174,59 +173,10 @@ class TestInstallDB(object):
     def teardown(self):
         tc.delete_it(self.idb_file)
 
-    def test__str__(self):
-        expect = [
-            'Config File: ' + self.idb_file,
-            'Contents:',
-            '{',
-            '  "ag": {',
-            '    "hash": "d7193e13a7f8f9fe9732e1f546a39e45d3925eb3",',
-            '    "repo": "stable",',
-            '  }',
-            '}'
-        ]
-        self.recipe.repo = 'stable'
-        self.idb.add(self.recipe)
-        print(str(self.idb))
-        lines = str(self.idb).split('\n')
-        del lines[7]
-        del lines[4]
-        assert expect == lines
-
-    def test__contains__(self):
-        self.idb.set('ag', {'hello': 'world'})
-        assert 'ag' in self.idb
-        assert 'moose' not in self.idb
-
-    def test__iter__(self):
-        self.idb.set('ack', 'ack')
-        self.idb.set('ag', 'ag')
-        actual = sorted([key + obj for key, obj in self.idb])
-        assert actual == ['ackack', 'agag']
-
-    def test__delitem__(self):
-        self.idb.add(self.recipe)
-        assert self.idb['ag']['hash'] == self.recipe.repo.src_hash
-        del self.idb['ag']
-        with pytest.raises(KeyError):
-            self.idb['ag']
-
-    def test__getitem__(self):
-        self.idb.add(self.recipe)
-        assert self.idb['ag']['hash'] == self.recipe.repo.src_hash
-        self.idb.remove('ag')
-        with pytest.raises(KeyError):
-            self.idb['ag']
-
     def test_add(self):
         self.idb.add(self.recipe)
-        ag = self.idb.get('ag')
-        assert ag['hash'] == self.recipe.repo.src_hash
-
-    def test_set(self):
-        self.idb.set('ag', {'hello': 'world'})
-        entry = self.idb.get('ag')
-        assert entry['hello'] == 'world'
+        ag_recipe = self.idb.get('ag')
+        assert ag_recipe['hash'] == self.recipe.repo.src_hash
 
     def test_get(self):
         self.idb.add(self.recipe)
@@ -234,33 +184,6 @@ class TestInstallDB(object):
         assert self.idb.get('ag')['hash'] == self.recipe.repo.src_hash
         self.idb.remove('ag')
         assert self.idb.get('ag') is None
-
-    def test_remove(self):
-        self.idb.add(self.recipe)
-        self.idb.remove('ag')
-        assert self.idb.get('ag') is None
-
-    def test_write(self):
-        self.idb.add(self.recipe)
-        self.idb.write()
-        assert os.path.exists(self.idb_file)
-
-    def test_read(self):
-        self.idb.add(self.recipe)
-        self.idb.write()
-        self.idb.read()
-        self.idb = InstallDB(self.idb_file)
-        entry = self.idb.get('ag')
-        assert entry is not None
-        assert entry['hash'] == self.recipe.repo.src_hash
-
-    def test_read_existing(self):
-        self.idb.add(self.recipe)
-        self.idb.write()
-        new_idb = InstallDB(self.idb.filename)
-        entry = new_idb.get('ag')
-        assert entry is not None
-        assert entry['hash'] == self.recipe.repo.src_hash
 
 
 class TestRecipeURIDB(object):

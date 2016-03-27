@@ -59,6 +59,19 @@ def cmd_cleanup():
     shutil.rmtree(pakit.conf.TMP_DIR)
 
 
+def check_connectivity():
+    """
+    Returns true iff and only iff can reach github.
+    """
+    connected = True
+    try:
+        ulib.urlopen('https://github.com/starcraftman/pakit', timeout=1)
+    except ulib.URLError:
+        connected = False
+
+    return connected
+
+
 def user_input(msg):
     """
     Get user input, works on python 2 and 3.

@@ -262,9 +262,9 @@ class TestRecipeManager(object):
     def setup(self):
         self.git_uri = os.path.join(tc.STAGING, 'git')
         self.config = copy.deepcopy(tc.CONF)
-        self.config.set('pakit.recipe.uris', [{'uri': self.git_uri}])
-        self.config.set('pakit.paths.recipes',
-                        os.path.join(tc.STAGING, 'test_recipes'))
+        self.config['pakit.recipe.uris'] = [{'uri': self.git_uri}]
+        self.config['pakit.paths.recipes'] = \
+            os.path.join(tc.STAGING, 'test_recipes')
         self.manager = None
 
     def teardown(self):
@@ -282,15 +282,14 @@ class TestRecipeManager(object):
         assert os.path.exists(expect)
 
     def test_init_new_uris_vcs_unsupported(self):
-        self.config.set('pakit.recipe.uris',
-                        [{'uri': 'https://www.google.ca'}])
+        self.config['pakit.recipe.uris'] = [{'uri': 'https://www.google.ca'}]
         self.manager = RecipeManager(self.config)
         with pytest.raises(PakitError):
             self.manager.init_new_uris()
 
     def test_init_new_uris_vcs_kwargs(self):
         uri = {'tag': '0.31.0', 'uri': self.git_uri}
-        self.config.set('pakit.recipe.uris', [uri])
+        self.config['pakit.recipe.uris'] = [uri]
         self.manager = RecipeManager(self.config)
         self.manager.init_new_uris()
         expect = os.path.join(self.config.path_to('recipes'),
@@ -301,7 +300,7 @@ class TestRecipeManager(object):
     def test_init_new_uris_local_path(self):
         uri = 'user_recipes'
         expect = os.path.join(self.config.path_to('recipes'), uri)
-        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.config['pakit.recipe.uris'] = [{'uri': uri}]
         self.manager = RecipeManager(self.config)
         self.manager.init_new_uris()
         assert os.path.exists(expect)
@@ -310,7 +309,7 @@ class TestRecipeManager(object):
         uri = 'user_recipes'
         expect = os.path.join(self.config.path_to('recipes'), uri)
         os.makedirs(expect)
-        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.config['pakit.recipe.uris'] = [{'uri': uri}]
         self.manager = RecipeManager(self.config)
         self.manager.init_new_uris()
         assert os.path.exists(expect)
@@ -318,7 +317,7 @@ class TestRecipeManager(object):
     def test_paths(self):
         uri = 'user_recipes'
         expect = [os.path.join(self.config.path_to('recipes'), uri)]
-        self.config.set('pakit.recipe.uris', [{'uri': uri}])
+        self.config['pakit.recipe.uris'] = [{'uri': uri}]
         self.manager = RecipeManager(self.config)
         self.manager.init_new_uris()
         assert self.manager.paths == expect
@@ -350,7 +349,7 @@ class TestRecipeManager(object):
         self.manager = RecipeManager(self.config)
         self.manager.init_new_uris()
         uri = {'tag': '0.31.0', 'uri': self.git_uri}
-        self.config.set('pakit.recipe.uris', [uri])
+        self.config['pakit.recipe.uris'] = [uri]
         self.manager = RecipeManager(self.config)
 
         old_time = self.manager.uri_db[self.git_uri]['time']
