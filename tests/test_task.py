@@ -111,6 +111,8 @@ class TestTaskInstall(TestTaskBase):
         assert os.path.exists(build_bin)
         assert os.path.exists(link_bin)
         assert os.path.realpath(link_bin) == build_bin
+        with open(pakit.conf.IDB.filename) as fin:
+            assert 'ag:' in fin.read()
 
     @mock.patch('pakit.task.USER')
     def test_is_installed(self, mock_log):
@@ -181,9 +183,13 @@ class TestTaskRemove(TestTaskBase):
     def test_is_installed(self):
         InstallTask(self.recipe).run()
         assert self.recipe.name in pakit.conf.IDB
+        with open(pakit.conf.IDB.filename) as fin:
+            assert 'ag:' in fin.read()
 
         RemoveTask(self.recipe).run()
         assert self.recipe.name not in pakit.conf.IDB
+        with open(pakit.conf.IDB.filename) as fin:
+            assert 'ag:' not in fin.read()
 
         paths = pakit.conf.CONFIG.get('pakit.paths')
         assert os.path.exists(paths['prefix'])

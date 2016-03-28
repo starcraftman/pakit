@@ -1190,9 +1190,9 @@ class Command(object):
         if self._proc is None or not os.path.exists(self.stdout.name):
             return []  # pragma: no cover
 
-        # TODO: Need to detect encoding of terminal.
+        # TODO: Handle encoding better?
         with open(self.stdout.name, 'rb') as out:
-            lines = [line.decode('utf-8', 'replace').rstrip()
+            lines = [line.strip().decode('utf-8', 'ignore')
                      for line in out.readlines()]
 
         return lines[-last_n:]

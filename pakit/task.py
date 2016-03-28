@@ -184,6 +184,7 @@ class RemoveTask(RecipeTask):
         except OSError:  # pragma: no cover
             pass
         del pakit.conf.IDB[self.recipe.name]
+        pakit.conf.IDB.write()
 
 
 class UpdateTask(RecipeTask):
