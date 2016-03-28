@@ -10,7 +10,6 @@ import logging
 import logging.handlers
 import os
 import sys
-import traceback
 
 import pakit.conf
 import pakit.recipe
@@ -448,10 +447,6 @@ def main(argv=None):
         parser.print_usage()
         sys.exit(1)
 
-    if not pakit.shell.check_connectivity():
-        logging.error('You do not seem to be connected to the internet.')
-        logging.error('Pakit can\'t do much without it!')
-
     try:
         args = parser.parse_args(argv[1:])
         if not args.conf:
@@ -467,9 +462,12 @@ def main(argv=None):
     except PakitDBError as exc:
         PLOG(str(exc))
     except PakitError as exc:
-        logging.error(exc)
-        logging.error(traceback.format_exc())
-        raise
+        if not pakit.shell.check_connectivity():
+            logging.error('You do not seem to be connected to the internet.')
+            logging.error("Pakit can't do much without it!")
+        else:
+            logging.error(exc)
+            raise
 
 if __name__ == '__main__':
     main()  # pragma: no cover

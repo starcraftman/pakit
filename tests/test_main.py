@@ -222,13 +222,6 @@ class TestMain(object):
         main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
         assert mock_plog.called
 
-    @mock.patch('pakit.main.pakit.shell.check_connectivity')
-    @mock.patch('pakit.main.logging')
-    def test_connectivity_down(self, mock_log, mock_con):
-        mock_con.return_value = False
-        main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
-        assert mock_log.error.called
-
     @mock.patch('pakit.main.argparse._sys')
     @mock.patch('pakit.main.sys')
     def test_args_none(self, mock_sys, _):
@@ -248,10 +241,19 @@ class TestMain(object):
         mock_plog.assert_called_with('Nothing to update.')
 
     @mock.patch('pakit.main.parse_list')
-    def test_pakit_error(self, mock_parse):
+    def test_pakit_error_normal(self, mock_parse):
         mock_parse.side_effect = PakitError('Just throw.')
         with pytest.raises(PakitError):
             main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
+
+    @mock.patch('pakit.main.parse_list')
+    @mock.patch('pakit.main.pakit.shell.check_connectivity')
+    @mock.patch('pakit.main.logging')
+    def test_pakit_error_connectivity(self, mock_log, mock_con, mock_parse):
+        mock_parse.side_effect = PakitError('Just throw.')
+        mock_con.return_value = False
+        main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
+        mock_log.error.assert_any_call("Pakit can't do much without it!")
 
     @mock.patch('pakit.main.PLOG')
     def test_recipe_not_found(self, mock_plog):

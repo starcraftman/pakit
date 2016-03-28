@@ -65,7 +65,7 @@ def check_connectivity():
     """
     connected = True
     try:
-        ulib.urlopen('https://github.com/starcraftman/pakit', timeout=1)
+        ulib.urlopen('https://github.com/starcraftman/pakit', timeout=2)
     except ulib.URLError:
         connected = False
 
