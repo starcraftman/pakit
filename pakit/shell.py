@@ -20,12 +20,12 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 from tempfile import NamedTemporaryFile as TempFile
 import threading
 import time
 
 import hashlib
-import tarfile
 # pylint: disable=import-error
 try:
     import urllib2 as ulib
@@ -101,7 +101,7 @@ def wrap_extract(extract_func):
         """
         Inner part of decorator.
         """
-        tmp_dir = os.path.join(pakit.conf.TMP_DIR, os.path.basename(filename))
+        tmp_dir = tempfile.mkdtemp(dir=pakit.conf.TMP_DIR)
         extract_func(filename, tmp_dir)
         extracted = glob.glob(os.path.join(tmp_dir, '*'))[0]
         shutil.move(extracted, target)
@@ -116,7 +116,7 @@ def extract_7z(filename, tmp_dir):
     """
     try:
         Command('7z x -o{tmp} {file}'.format(file=filename,
-                                             tmp=tmp_dir)).wait()
+                                             tmp=tmp_dir))
     except (OSError, PakitCmdError):
         raise PakitCmdError('Need `7z` to extract: ' + filename)
     try:
@@ -135,7 +135,7 @@ def extract_rar(filename, tmp_dir):
     for cmd in [cmd_str, 'un' + cmd_str]:
         try:
             os.makedirs(tmp_dir)
-            Command(cmd).wait()
+            Command(cmd)
             success = True
         except (OSError, PakitCmdError):
             pass
@@ -153,10 +153,9 @@ def extract_rar(filename, tmp_dir):
 @wrap_extract
 def extract_tar_gz(filename, tmp_dir):
     """
-    Extracts a tar.gz archive to a temp dir
+    Extracts any combination of tar, gz, bz2 to a temp dir
     """
-    tarf = tarfile.open(filename)
-    tarf.extractall(tmp_dir)
+    Command('tar -C {0} -xf {1}'.format(tmp_dir, filename))
 
 
 @wrap_extract
@@ -173,8 +172,8 @@ def extract_tar_xz(filename, tmp_dir):
     except OSError:  # pragma: no cover
         pass
     try:
-        Command('xz --keep --decompress ' + filename).wait()
-        Command('tar -C {0} -xf {1}'.format(tmp_dir, tar_file)).wait()
+        Command('xz --keep --decompress ' + filename)
+        Command('tar -C {0} -xf {1}'.format(tmp_dir, tar_file))
     except (OSError, PakitCmdError):
         raise PakitCmdError('Need commands `xz` and `tar` to extract: ' +
                             filename)
@@ -209,7 +208,6 @@ def get_extract_func(arc_path):
         PakitError: Could not determine function from mimetype.
     """
     cmd = Command('file --mime-type ' + arc_path)
-    cmd.wait()
     mtype = cmd.output()[0].split()[1]
 
     if mtype not in EXT_FUNCS.keys():
@@ -511,7 +509,7 @@ class Fetchable(object):
         """
         Purges the source tree from the system
         """
-        Command('rm -rf ' + self.target).wait()
+        Command('rm -rf ' + self.target)
 
     @abstractmethod
     def download(self):
@@ -900,7 +898,6 @@ class Git(VersionRepo):
             return False
 
         cmd = Command('git remote show origin', self.target)
-        cmd.wait()
         return self.uri in cmd.output()[1]
 
     @property
@@ -910,7 +907,6 @@ class Git(VersionRepo):
         """
         with self:
             cmd = Command('git rev-parse HEAD', self.target)
-            cmd.wait()
             return cmd.output()[0]
 
     @staticmethod
@@ -923,7 +919,6 @@ class Git(VersionRepo):
         """
         try:
             cmd = Command('git ls-remote ' + uri)
-            cmd.wait()
             return cmd.rcode == 0
         except PakitError:
             return False
@@ -932,32 +927,29 @@ class Git(VersionRepo):
         """
         Checkout the right tag or branch.
         """
-        Command('git checkout ' + self.tag, self.target).wait()
+        Command('git checkout ' + self.tag, self.target)
 
     def download(self):
         """
         Download the repository to the target.
         """
         tag = '' if self.tag is None else '-b ' + self.tag
-        cmd = Command('git clone --recursive {tag} {uri} {target}'.format(
+        Command('git clone --recursive {tag} {uri} {target}'.format(
             tag=tag, uri=self.uri, target=self.target))
-        cmd.wait()
 
     def reset(self):
         """
         Clears away all build files from repo.
         """
-        Command('git clean -f', self.target).wait()
+        Command('git clean -f', self.target)
 
     def update(self):
         """
         Fetches latest commit when branch is set.
         """
-        cmd = Command('git fetch origin +{0}:new{0}'.format(self.branch),
-                      self.target)
-        cmd.wait()
-        cmd = Command('git merge --ff-only new' + self.branch, self.target)
-        cmd.wait()
+        Command('git fetch origin +{0}:new{0}'.format(self.branch),
+                self.target)
+        Command('git merge --ff-only new' + self.branch, self.target)
 
 
 class Hg(VersionRepo):
@@ -1020,7 +1012,6 @@ class Hg(VersionRepo):
         """
         with self:
             cmd = Command('hg identify', self.target)
-            cmd.wait()
             return cmd.output()[0].split()[0]
 
     @staticmethod
@@ -1033,7 +1024,6 @@ class Hg(VersionRepo):
         """
         try:
             cmd = Command('hg identify ' + uri)
-            cmd.wait()
             return cmd.rcode == 0
         except PakitError:
             return False
@@ -1042,23 +1032,21 @@ class Hg(VersionRepo):
         """
         Checkout the right tag or branch.
         """
-        Command('hg update ' + self.tag, self.target).wait()
+        Command('hg update ' + self.tag, self.target)
 
     def download(self):
         """
         Download the repository to the target.
         """
         tag = '' if self.tag is None else '-u ' + self.tag
-        cmd = Command('hg clone {tag} {uri} {target}'.format(
+        Command('hg clone {tag} {uri} {target}'.format(
             tag=tag, uri=self.uri, target=self.target))
-        cmd.wait()
 
     def reset(self):
         """
         Clears away all build files from repo.
         """
         cmd = Command('hg status -un', self.target)
-        cmd.wait()
         for path in cmd.output():
             os.remove(os.path.join(self.target, path))
 
@@ -1066,10 +1054,8 @@ class Hg(VersionRepo):
         """
         Fetches latest commit when branch is set.
         """
-        cmd = Command('hg pull -b ' + self.branch, self.target)
-        cmd.wait()
-        cmd = Command('hg update', self.target)
-        cmd.wait()
+        Command('hg pull -b ' + self.branch, self.target)
+        Command('hg update', self.target)
 
 
 class Command(object):
@@ -1085,7 +1071,8 @@ class Command(object):
         alive: True only if the command is still running.
         rcode: When the command finishes, is the return code.
     """
-    def __init__(self, cmd, cmd_dir=None, prev_cmd=None, env=None):
+    def __init__(self, cmd, cmd_dir=None, prev_cmd=None, env=None,
+                 wait=True):
         """
         Run a command on the system.
 
@@ -1101,6 +1088,7 @@ class Command(object):
                 For instance, env={'HOME': '/tmp'} would change
                 HOME variable for the duration of the Command.
             prev_cmd: Read the stdout of this command for stdin.
+            wait: Wait for command before returning, default True.
 
         Raises:
             PakitCmdError: The command could not find command on system
@@ -1112,7 +1100,6 @@ class Command(object):
             self._cmd = cmd
         else:
             self._cmd = shlex.split(cmd)
-
         if self._cmd[0].find('./') != 0:
             self._cmd.insert(0, '/usr/bin/env')
 
@@ -1135,8 +1122,10 @@ class Command(object):
                 self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
                 stdin=stdin, stdout=self.stdout, stderr=subprocess.STDOUT
             )
+            if wait:
+                self.wait()
         except OSError as exc:
-            if cmd_dir and not os.path.exists(cmd_dir):
+            if self._cmd_dir and not os.path.exists(self._cmd_dir):
                 raise PakitCmdError('Command directory does not exist: ' +
                                     self._cmd_dir)
             else:

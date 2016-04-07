@@ -222,7 +222,8 @@ class Recipe(object):
         info = str_fmt.format(name=self.name,
                               desc=self.description,
                               home=self.homepage,
-                              reqs=','.join(getattr(self, 'requires', [''])),
+                              reqs=','.join(getattr(self, 'requires',
+                                                    ['N/A'])),
                               cur_repo=self.repo_name,
                               tab=tab)
         return info.rstrip('\n')

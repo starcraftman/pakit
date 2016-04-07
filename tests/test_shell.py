@@ -485,14 +485,13 @@ class TestGit(object):
             Required because with now forces right commit
             """
             cmd = Command('git log -1 ', target)
-            cmd.wait()
             return cmd.output()[0].split()[-1]
 
         self.repo.branch = 'master'
         with self.repo:
             # Lop off history to ensure updateable
             latest_hash = self.repo.src_hash
-            Command('git reset --hard HEAD~3', self.repo.target).wait()
+            Command('git reset --hard HEAD~3', self.repo.target)
             assert get_hash(self.repo.target) != latest_hash
             self.repo.update()
             assert get_hash(self.repo.target) == latest_hash
@@ -566,15 +565,13 @@ class TestHg(object):
             Required because with now forces right commit
             """
             cmd = Command('hg identify', target)
-            cmd.wait()
             return cmd.output()[0].split()[0]
 
         self.repo.branch = 'default'
         with self.repo:
             # Lop off history to ensure updateable
             latest_hash = self.repo.src_hash
-            cmd = Command('hg strip tip', self.repo.target)
-            cmd.wait()
+            Command('hg strip tip', self.repo.target)
             assert get_hash(self.repo.target) != latest_hash
             self.repo.update()
             assert get_hash(self.repo.target) == latest_hash
@@ -587,12 +584,10 @@ class TestHg(object):
 class TestCommand(object):
     def test_simple_command(self):
         cmd = Command('echo "Hello"')
-        cmd.wait()
         assert cmd.rcode == 0
 
     def test_simple_command_list(self):
         cmd = Command(['echo', '"Hello"'])
-        cmd.wait()
         assert cmd.rcode == 0
 
     def test_command_dir(self):
@@ -602,7 +597,6 @@ class TestCommand(object):
                 fout.write('this is a sample line'.encode())
 
             cmd = Command('ls', os.path.abspath('./dummy'))
-            cmd.wait()
 
             assert cmd.rcode == 0
             assert cmd.output() == ['hello']
@@ -611,47 +605,43 @@ class TestCommand(object):
 
     def test_output(self):
         cmd = Command('echo "Hello py.test"')
-        cmd.wait()
         lines = cmd.output()
         assert lines == ['Hello py.test']
 
     def test_terminate(self):
-        cmd = Command('sleep 4')
+        cmd = Command('sleep 4', wait=False)
         assert cmd.alive
         cmd.terminate()
         assert not cmd.alive
 
     def test_cmd_not_available(self):
         with pytest.raises(PakitCmdError):
-            Command('not_a_command_anywhere').wait()
+            Command('not_a_command_anywhere')
 
     def test_relative_cmd_not_available(self):
         with pytest.raises(PakitCmdError):
-            Command('./not_a_command_anywhere').wait()
+            Command('./not_a_command_anywhere')
 
     def test_cmd_dir_does_not_exist(self):
         with pytest.raises(PakitCmdError):
-            Command('pwd', cmd_dir='/tmp/should_not_exist/at_all').wait()
+            Command('pwd', cmd_dir='/tmp/should_not_exist/at_all')
 
     def test_cmd_rcode_not_zero(self):
         with pytest.raises(PakitCmdError):
-            Command('grep --aaaaa').wait()
+            Command('grep --aaaaa')
 
     def test_cmd_timeout(self):
         with pytest.raises(PakitCmdTimeout):
-            Command('sleep 20').wait(2)
+            Command('sleep 20', wait=False).wait(2)
 
     def test_prev_cmd_stdin(self):
         cmd = Command('echo -e "Hello\nGoodbye!"')
-        cmd.wait()
         cmd2 = Command('grep "ood"', prev_cmd=cmd)
-        cmd2.wait()
         assert cmd2.output() == ['Goodbye!']
 
     def test_env_override(self):
         old_environ = os.environ.copy()
         os.environ['HELLO'] = 'bad'
         cmd = Command(['env'], env={'HELLO': 'pakit'})
-        cmd.wait()
         'HELLO=pakit' in cmd.output()
         os.environ = old_environ

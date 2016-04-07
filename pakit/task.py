@@ -124,7 +124,7 @@ class InstallTask(RecipeTask):
             if not cascade:
                 logging.error('Error during build() of %s', self.recipe.name)
             try:
-                Command('rm -rf ' + self.recipe.install_dir).wait()
+                Command('rm -rf ' + self.recipe.install_dir)
             except PakitCmdError:  # pragma: no cover
                 pass
 
@@ -231,7 +231,7 @@ class UpdateTask(RecipeTask):
             self.save_old_install()
             InstallTask(self.recipe).run()
             USER.info('%s: Deleting Old Install', self.recipe.name)
-            Command('rm -rf ' + self.back_dir).wait()
+            Command('rm -rf ' + self.back_dir)
         except Exception as exc:  # pylint: disable=broad-except
             logging.error(exc)
             self.restore_old_install()

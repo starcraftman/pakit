@@ -122,24 +122,24 @@ class TestRecipe(object):
         assert str(self.recipe) == expect
 
     def test_info(self):
-        print()
-        print(self.recipe.info())
         uri = self.recipe.repo.uri
         expect = [
             'ag',
             '  Description: Grep like tool optimized for speed',
             '  Homepage: ' + uri,
-            '  Requires: ',
+            '  Requires: N/A',
             '  Current Repo: "unstable"',
             '  Repo "stable":',
             '    Git: tag: 0.31.0, uri: ' + uri,
             '  Repo "unstable":',
             '    Git: branch: master, uri: ' + uri,
         ]
+        print()
+        print(expect)
+        print(self.recipe.info())
         assert self.recipe.info().split('\n') == expect
 
     def test_info_strip_spaces(self):
-        print()
         self.recipe.__doc__ = """
         Grep like tool optimized for speed
 
@@ -149,13 +149,12 @@ class TestRecipe(object):
         Second paragraph.
 
         """
-        print(self.recipe.info())
         uri = self.recipe.repo.uri
         expect = [
             'ag',
             '  Description: Grep like tool optimized for speed',
             '  Homepage: ' + uri,
-            '  Requires: ',
+            '  Requires: N/A',
             '  Current Repo: "unstable"',
             '  Repo "stable":',
             '    Git: tag: 0.31.0, uri: ' + uri,
@@ -166,6 +165,9 @@ class TestRecipe(object):
             '    ',
             '    Second paragraph.',
         ]
+        print()
+        print(expect)
+        print(self.recipe.info())
         assert self.recipe.info().split('\n') == expect
 
     def test_install_dir(self):
