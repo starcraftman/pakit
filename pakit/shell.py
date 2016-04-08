@@ -59,17 +59,14 @@ def cmd_cleanup():
     shutil.rmtree(pakit.conf.TMP_DIR)
 
 
-def check_connectivity():
+def reach_github():
     """
     Returns true iff and only iff can reach github.
     """
-    connected = True
     try:
-        ulib.urlopen('https://github.com/starcraftman/pakit', timeout=2)
-    except ulib.URLError:
-        connected = False
-
-    return connected
+        return Command('ping -c 1 github.com').rcode == 0
+    except PakitError:
+        return False
 
 
 def user_input(msg):
@@ -1058,7 +1055,7 @@ class Hg(VersionRepo):
         Command('hg update', self.target)
 
 
-def cmd_default_kwargs(kwargs):
+def cmd_kwargs(kwargs):
     """
     Helper, process kwargs given and return ones to pass
     to subprocess.Popen.
@@ -1124,7 +1121,7 @@ class Command(object):
         super(Command, self).__init__()
 
         kwargs['cwd'] = cwd
-        cmd_default_kwargs(kwargs)
+        cmd_kwargs(kwargs)
         if isinstance(cmd, list):
             self.cmd = cmd
         else:

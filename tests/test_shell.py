@@ -16,20 +16,19 @@ from pakit.shell import (
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input,
-    check_connectivity, cmd_default_kwargs
+    reach_github, cmd_kwargs
 )
-from pakit.shell import ulib
 import tests.common as tc
 
 
-def test_check_connectivity():
-    assert check_connectivity()
+def test_reach_github():
+    assert reach_github()
 
 
-@mock.patch('pakit.shell.ulib.urlopen')
-def test_check_connectivity_fails(mock_urlopen):
-    mock_urlopen.side_effect = ulib.URLError('Fail connection.')
-    assert not check_connectivity()
+@mock.patch('pakit.shell.Command')
+def test_reach_github_fails(mock_cmd):
+    mock_cmd.side_effect = PakitError('Fail.')
+    assert not reach_github()
 
 
 def test_user_input(mock_input):
@@ -581,11 +580,10 @@ class TestHg(object):
         assert not Hg.valid_uri('www.google.com')
 
 
-def test_cmd_default_kwargs_empty():
-    import os
+def test_cmd_kwargs_empty():
     import subprocess
     kwargs = {}
-    cmd_default_kwargs(kwargs)
+    cmd_kwargs(kwargs)
     assert len(kwargs) == 6
     assert kwargs['stdin'] is None
     assert '/tmp' in kwargs['stdout'].name
@@ -595,16 +593,16 @@ def test_cmd_default_kwargs_empty():
     assert kwargs['wait']
 
 
-def test_cmd_default_kwargs_prevcmd():
+def test_cmd_kwargs_prevcmd():
     cmd = Command('ls')
     kwargs = {'prev_cmd': cmd}
-    cmd_default_kwargs(kwargs)
+    cmd_kwargs(kwargs)
     assert kwargs['stdin']
 
 
-def test_cmd_default_kwargs_newenv():
+def test_cmd_kwargs_newenv():
     kwargs = {'env': {'HELLO': 'WORLD'}}
-    cmd_default_kwargs(kwargs)
+    cmd_kwargs(kwargs)
     assert 'PATH' in kwargs['env']
     assert 'HELLO' in kwargs['env']
 

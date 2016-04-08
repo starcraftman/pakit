@@ -246,15 +246,6 @@ class TestMain(object):
         with pytest.raises(PakitError):
             main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
 
-    @mock.patch('pakit.main.parse_list')
-    @mock.patch('pakit.main.pakit.shell.check_connectivity')
-    @mock.patch('pakit.main.logging')
-    def test_pakit_error_connectivity(self, mock_log, mock_con, mock_parse):
-        mock_parse.side_effect = PakitError('Just throw.')
-        mock_con.return_value = False
-        main(['pakit', '--conf', tc.TEST_CONFIG, 'list'])
-        mock_log.error.assert_any_call("Pakit can't do much without it!")
-
     @mock.patch('pakit.main.PLOG')
     def test_recipe_not_found(self, mock_plog):
         expect = 'Missing recipe to build: iiiii'

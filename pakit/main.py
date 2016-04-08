@@ -462,12 +462,8 @@ def main(argv=None):
     except PakitDBError as exc:
         PLOG(str(exc))
     except PakitError as exc:
-        if not pakit.shell.check_connectivity():
-            logging.error('You do not seem to be connected to the internet.')
-            logging.error("Pakit can't do much without it!")
-        else:
-            logging.error(exc)
-            raise
+        logging.error(exc)
+        raise
 
 if __name__ == '__main__':
     main()  # pragma: no cover
