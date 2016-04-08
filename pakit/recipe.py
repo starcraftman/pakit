@@ -344,7 +344,7 @@ class Recipe(object):
 
         - Expand all dictionary markers in *cmd* against *self.opts*.
             Arg *cmd* may be a string or a list of strings.
-        - If no *cmd_dir* in kwargs, then execute in current directory.
+        - If no *cwd* in kwargs, then execute in current directory.
         - If no *timeout* in kwargs, use default pakit Command timeout.
         - Command will block until completed or Exception raised.
 
@@ -354,7 +354,7 @@ class Recipe(object):
                  against self.opts.
 
         Kwargs:
-            cmd_dir: The directory to execute command in.
+            cwd: The directory to execute command in.
             prev_cmd: The previous Command, use it for stdin.
             timeout: When no stdout/stderr recieved for timeout
                      kill command and raise exception.
@@ -373,7 +373,7 @@ class Recipe(object):
 
         timeout = kwargs.pop('timeout', None)
 
-        cmd_dir = kwargs.get('cmd_dir', os.getcwd())
+        cmd_dir = kwargs.get('cwd', os.getcwd())
         PLOG('Executing in %s: %s', cmd_dir, cmd)
         cmd = Command(cmd, **kwargs)
 

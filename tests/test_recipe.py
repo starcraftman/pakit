@@ -196,14 +196,14 @@ class TestRecipe(object):
         expect = [os.path.join(self.config.path_to('prefix'), 'ag')]
         assert cmd.output() == expect
 
-    def test_cmd_dir_arg(self):
+    def test_cwd_arg(self):
         try:
             test_dir = os.path.join('/tmp', 'pakit_folder')
             try:
                 os.makedirs(test_dir)
             except OSError:
                 pass
-            cmd = self.recipe.cmd('pwd', cmd_dir=test_dir)
+            cmd = self.recipe.cmd('pwd', cwd=test_dir)
             assert cmd.output() == [test_dir]
         finally:
             try:

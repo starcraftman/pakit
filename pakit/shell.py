@@ -1058,6 +1058,34 @@ class Hg(VersionRepo):
         Command('hg update', self.target)
 
 
+def cmd_default_kwargs(kwargs):
+    """
+    Helper, process kwargs given and return ones to pass
+    to subprocess.Popen.
+    Will insert default kwargs where appropriate.
+    """
+    if kwargs.get('prev_cmd'):
+        kwargs['stdin'] = open(kwargs.pop('prev_cmd').stdout.name, 'r')
+    else:
+        kwargs['stdin'] = None
+    if kwargs.get('stdout') is None:
+        kwargs['stdout'] = TempFile(mode='wb', delete=False,
+                                    dir=pakit.conf.TMP_DIR,
+                                    prefix='cmd', suffix='.log')
+    if kwargs.get('stderr') is None:
+        kwargs['stderr'] = subprocess.STDOUT
+    if kwargs.get('preexec_fn') is None:
+        kwargs['preexec_fn'] = os.setsid
+    if kwargs.get('env'):
+        new_env = os.environ.copy()
+        new_env.update(kwargs['env'])
+        kwargs['env'] = new_env
+    else:
+        kwargs['env'] = None
+    if kwargs.get('wait') is None:
+        kwargs['wait'] = True
+
+
 class Command(object):
     """
     Execute a command on the host system.
@@ -1071,8 +1099,7 @@ class Command(object):
         alive: True only if the command is still running.
         rcode: When the command finishes, is the return code.
     """
-    def __init__(self, cmd, cmd_dir=None, prev_cmd=None, env=None,
-                 wait=True):
+    def __init__(self, cmd, cwd=None, **kwargs):
         """
         Run a command on the system.
 
@@ -1083,7 +1110,7 @@ class Command(object):
             cmd: A string that you would type into the shell.
                 If shlex.split would not correctly split the line
                 then pass a list.
-            cmd_dir: Change to this directory before executing.
+            cwd: Change to this directory before executing.
             env: A dictionary of environment variables to change.
                 For instance, env={'HOME': '/tmp'} would change
                 HOME variable for the duration of the Command.
@@ -1092,42 +1119,32 @@ class Command(object):
 
         Raises:
             PakitCmdError: The command could not find command on system
-                or the cmd_dir did not exist during subprocess execution.
+                or the cwd did not exist during subprocess execution.
         """
         super(Command, self).__init__()
 
+        kwargs['cwd'] = cwd
+        cmd_default_kwargs(kwargs)
         if isinstance(cmd, list):
-            self._cmd = cmd
+            self.cmd = cmd
         else:
-            self._cmd = shlex.split(cmd)
-        if self._cmd[0].find('./') != 0:
-            self._cmd.insert(0, '/usr/bin/env')
+            self.cmd = shlex.split(cmd)
+        if self.cmd[0].find('./') != 0:
+            self.cmd.insert(0, '/usr/bin/env')
 
-        self._cmd_dir = cmd_dir
-        stdin = None
-        if prev_cmd:
-            stdin = open(prev_cmd.stdout.name, 'r')
-
-        if env:
-            to_update = env
-            env = os.environ.copy()
-            env.update(to_update)
+        self.cmd_dir = kwargs.get('cwd')
+        self.stdout = kwargs.get('stdout')
 
         logging.debug('CMD START: %s', self)
         try:
-            self.stdout = TempFile(mode='wb', delete=False,
-                                   dir=pakit.conf.TMP_DIR,
-                                   prefix='cmd', suffix='.log')
-            self._proc = subprocess.Popen(
-                self._cmd, cwd=self._cmd_dir, env=env, preexec_fn=os.setsid,
-                stdin=stdin, stdout=self.stdout, stderr=subprocess.STDOUT
-            )
+            wait = kwargs.pop('wait')
+            self._proc = subprocess.Popen(self.cmd, **kwargs)
             if wait:
                 self.wait()
         except OSError as exc:
-            if self._cmd_dir and not os.path.exists(self._cmd_dir):
+            if self.cmd_dir and not os.path.exists(self.cmd_dir):
                 raise PakitCmdError('Command directory does not exist: ' +
-                                    self._cmd_dir)
+                                    self.cmd_dir)
             else:
                 raise PakitCmdError('General OSError:\n' + str(exc))
 
@@ -1150,7 +1167,7 @@ class Command(object):
             logging.error(exc)
 
     def __str__(self):
-        return 'Command: {0}, {1}'.format(self._cmd, self._cmd_dir)
+        return 'Command: {0}, {1}'.format(self.cmd, self.cmd_dir)
 
     @property
     def alive(self):

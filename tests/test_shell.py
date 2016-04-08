@@ -16,7 +16,7 @@ from pakit.shell import (
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input,
-    check_connectivity
+    check_connectivity, cmd_default_kwargs
 )
 from pakit.shell import ulib
 import tests.common as tc
@@ -581,6 +581,34 @@ class TestHg(object):
         assert not Hg.valid_uri('www.google.com')
 
 
+def test_cmd_default_kwargs_empty():
+    import os
+    import subprocess
+    kwargs = {}
+    cmd_default_kwargs(kwargs)
+    assert len(kwargs) == 6
+    assert kwargs['stdin'] is None
+    assert '/tmp' in kwargs['stdout'].name
+    assert kwargs['stderr'] == subprocess.STDOUT
+    assert kwargs['preexec_fn'] is os.setsid
+    assert kwargs['env'] is None
+    assert kwargs['wait']
+
+
+def test_cmd_default_kwargs_prevcmd():
+    cmd = Command('ls')
+    kwargs = {'prev_cmd': cmd}
+    cmd_default_kwargs(kwargs)
+    assert kwargs['stdin']
+
+
+def test_cmd_default_kwargs_newenv():
+    kwargs = {'env': {'HELLO': 'WORLD'}}
+    cmd_default_kwargs(kwargs)
+    assert 'PATH' in kwargs['env']
+    assert 'HELLO' in kwargs['env']
+
+
 class TestCommand(object):
     def test_simple_command(self):
         cmd = Command('echo "Hello"')
@@ -622,9 +650,9 @@ class TestCommand(object):
         with pytest.raises(PakitCmdError):
             Command('./not_a_command_anywhere')
 
-    def test_cmd_dir_does_not_exist(self):
+    def test_cwd_does_not_exist(self):
         with pytest.raises(PakitCmdError):
-            Command('pwd', cmd_dir='/tmp/should_not_exist/at_all')
+            Command('pwd', cwd='/tmp/should_not_exist/at_all')
 
     def test_cmd_rcode_not_zero(self):
         with pytest.raises(PakitCmdError):
