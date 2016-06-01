@@ -16,7 +16,7 @@ from pakit.shell import (
     common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input,
-    reach_github, cmd_kwargs
+    reach_github, cmd_kwargs, cd_and_call
 )
 import tests.common as tc
 
@@ -31,6 +31,30 @@ def test_reach_github():
 def test_reach_github_fails(mock_cmd):
     mock_cmd.side_effect = PakitError('Fail.')
     assert not reach_github()
+
+
+def dummy_func(*args, **kwargs):
+    return os.getcwd()
+
+
+class TestCDCall(object):
+    def test_does_not_exist(self):
+        with pytest.raises(OSError):
+            cd_and_call(dummy_func, new_cwd='/zxyaaaa')
+
+    def test_does_exist(self):
+        old_cwd = os.getcwd()
+        cwd = cd_and_call(dummy_func, new_cwd='/tmp')
+        assert cwd == '/tmp'
+        assert os.path.exists(cwd)
+        assert os.getcwd() == old_cwd
+
+    def test_use_tempd(self):
+        old_cwd = os.getcwd()
+        cwd = cd_and_call(dummy_func, use_tempd=True)
+        assert cwd.find('/tmp/pakit') == 0
+        assert not os.path.exists(cwd)
+        assert os.getcwd() == old_cwd
 
 
 def test_user_input(mock_input):

@@ -136,6 +136,8 @@ def create_args_parser():
                           description='(Over)write the selected pakit config.')
     sub.set_defaults(func=parse_create_conf)
 
+    # TODO: Make life easier, modify bash/zsh inits: pakit infect
+
     desc = """Remove most traces of pakit. No undo!
 
     Will delete ...

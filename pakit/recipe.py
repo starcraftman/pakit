@@ -1,8 +1,6 @@
 """
 The Recipe class and RecipeDB are found here.
 
-DecChangeDir: Deocrate a method, it executes in a different CWD.
-DecPrePost: Execute optional pre/post methods.
 Recipe: The base class for all recipes.
 RecipeDB: The database that indexes all recipes.
 RecipeManager: Retrieves and manages remote recipe sources.
@@ -10,19 +8,11 @@ RecipeManager: Retrieves and manages remote recipe sources.
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 import copy
-import functools
 import glob
 import inspect
 import logging
 import os
-import shutil
 import sys
-import tempfile
-
-try:
-    from importlib import reload as ireload
-except ImportError:
-    from imp import reload as ireload
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
@@ -55,111 +45,6 @@ def check_package(path):
         with open(init, 'w') as fout:
             fout.write('# Written by pakit to mark this folder'
                        'as a python module')
-
-
-class DecChangeDir(object):  # pylint: disable=too-few-public-methods
-    """
-    Change the directory to a new one before executing the decorated
-    method. Regardless of function outcome, return to old CWD.
-
-    Before calling the wrapped function guarantee...
-        1) tempdir created if requested.
-        2) working directory is changed to new_cwd.
-
-    After calling the wrapped function guarantee...
-        1) working directory is restored to old_cwd.
-        2) If tempdir created, remove everything under it.
-    """
-    def __init__(self, new_cwd=None, use_tempd=False, attr=None):
-        """
-        Args:
-            attr: Read the value of this attribute to get new_cwd.
-            new_cwd: Change directory to this path.
-            use_tempd: Create a temporary directory and cd into it.
-        """
-        self.attr = attr
-        self.new_cwd = new_cwd
-        self.old_cwd = None
-        self.use_tempd = use_tempd
-
-    def __call__(self, func):
-        """
-        The decorator itself.
-
-        Args:
-            func: The target to wrap.
-        """
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            """
-            The inner part of the decorator.
-            """
-            if self.attr:
-                self.new_cwd = getattr(args[0], self.attr, self.new_cwd)
-
-            with self:
-                func(*args, **kwargs)
-
-        return wrapper
-
-    def __enter__(self):
-        """
-        Modify the CWD as requested.
-        """
-        self.old_cwd = os.getcwd()
-        if self.use_tempd:
-            self.new_cwd = tempfile.mkdtemp(prefix='pakit_tmp_')
-        os.chdir(self.new_cwd)
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        """
-        Undo the change to CWD.
-        """
-        os.chdir(self.old_cwd)
-        if self.use_tempd:
-            shutil.rmtree(self.new_cwd)
-
-
-class DecPrePost(object):  # pylint: disable=too-few-public-methods
-    """
-    Decorate a method and allow optional pre and post functions to
-    execute.
-
-    To be clear, if this decorator is applied to Worker.run,
-    the 'pre_func' would be 'Worker.pre_run' and the 'post_func'
-    would be 'Worker.post_run'..
-
-    The post_func called only if no exception raised in func.
-    """
-    def __call__(self, func):
-        """
-        The decorator itself.
-
-        Args:
-            func: The target to wrap.
-        """
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            """
-            The inner part of the decorator.
-            """
-            pre_func = getattr(args[0], 'pre_' + func.__name__, None)
-            post_func = getattr(args[0], 'post_' + func.__name__, None)
-
-            if pre_func:
-                PLOG("Executing '%s()' before '%s()'", pre_func.__name__,
-                     func.__name__)
-                pre_func()
-
-            PLOG("Executing '%s()'", func.__name__)
-            func(*args, **kwargs)
-
-            if post_func:
-                PLOG("Executing '%s()' after '%s()'", post_func.__name__,
-                     func.__name__)
-                post_func()
-
-        return wrapper
 
 
 class Recipe(object):
@@ -499,16 +384,12 @@ class RecipeDB(object):
             AttributeError: The module did not have the required class.
             ImportError: If the module could not be imported.
         """
-        # FIXME: Work around to prevent multiple decorations.
-        #        Recipes should be reloadable given current format.
-        mod = ireload(getattr(__import__(mod_name + '.' + cls_name), cls_name))
+        mod = getattr(__import__(mod_name + '.' + cls_name), cls_name)
         for member in inspect.getmembers(mod, inspect.isclass):
             if member[0] != 'Recipe' and issubclass(member[1], Recipe):
                 cls = member[1]
                 break
 
-        cls.build = DecChangeDir(attr='source_dir')(DecPrePost()(cls.build))
-        cls.verify = DecChangeDir(use_tempd=True)(DecPrePost()(cls.verify))
         obj = cls()
         obj.set_config(self.config)
         return obj

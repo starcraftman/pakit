@@ -18,16 +18,16 @@ import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
 from pakit.shell import (
     Command, walk_and_link, walk_and_unlink, walk_and_unlink_all,
-    write_config, unlink_man_pages, user_input
+    write_config, unlink_man_pages, user_input, cd_and_call
 )
 
 PREFIX = '\n  '
-USER = logging.getLogger('pakit')
+PLOG = logging.getLogger('pakit').info
 
 
 class Task(object):
     """
-    The abstract metaclass interface that pakit uses to perform high
+    The abstract interface that pakit uses to perform high
     level operations on a given system.
 
     The 'run' method performs the requested task.
@@ -109,7 +109,7 @@ class InstallTask(RecipeTask):
         Args:
             exc: The exception that was raised.
         """
-        USER.info('%s: Rolling Back Failed Build', self.recipe.name)
+        PLOG('%s: Rolling Back Failed Build', self.recipe.name)
         cascade = False
         if isinstance(exc, AssertionError):
             logging.error('Error during verify() of %s', self.recipe.name)
@@ -143,17 +143,17 @@ class InstallTask(RecipeTask):
             return
 
         try:
-            USER.info('%s: Downloading: %s', self.recipe.name,
-                      str(self.recipe.repo))
+            PLOG('%s: Downloading: %s', self.recipe.name,
+                 str(self.recipe.repo))
             with self.recipe.repo:
-                USER.info('%s: Building Source', self.recipe.name)
-                self.recipe.build()
+                PLOG('%s: Building Source', self.recipe.name)
+                cd_and_call(self.recipe.build, new_cwd=self.recipe.source_dir)
 
-                USER.info('%s: Symlinking Program', self.recipe.name)
+                PLOG('%s: Symlinking Program', self.recipe.name)
                 walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
 
-                USER.info('%s: Verifying Program', self.recipe.name)
-                self.recipe.verify()
+                PLOG('%s: Verifying Program', self.recipe.name)
+                cd_and_call(self.recipe.verify, use_tempd=True)
 
                 pakit.conf.IDB.add(self.recipe)
         except Exception as exc:  # pylint: disable=broad-except
@@ -203,7 +203,7 @@ class UpdateTask(RecipeTask):
             - Move the installation to a backup location.
             - Remove the pakit.conf.IDB entry.
         """
-        USER.info('%s: Saving Old Install', self.recipe.name)
+        PLOG('%s: Saving Old Install', self.recipe.name)
         walk_and_unlink(self.recipe.install_dir, self.recipe.link_dir)
         self.old_entry = pakit.conf.IDB.get(self.recipe.name)
         del pakit.conf.IDB[self.recipe.name]
@@ -213,7 +213,7 @@ class UpdateTask(RecipeTask):
         """
         The update failed, reverse the actions of save_old_install.
         """
-        USER.info('%s: Restoring Old Install', self.recipe.name)
+        PLOG('%s: Restoring Old Install', self.recipe.name)
         shutil.move(self.back_dir, self.recipe.install_dir)
         pakit.conf.IDB[self.recipe.name] = self.old_entry
         walk_and_link(self.recipe.install_dir, self.recipe.link_dir)
@@ -222,7 +222,7 @@ class UpdateTask(RecipeTask):
         """
         Execute a set of operations to perform the Task.
         """
-        USER.info('%s: Checking For Updates', self.recipe.name)
+        PLOG('%s: Checking For Updates', self.recipe.name)
         cur_hash = pakit.conf.IDB[self.recipe.name]['hash']
         if cur_hash == self.recipe.repo.src_hash:
             return
@@ -230,7 +230,7 @@ class UpdateTask(RecipeTask):
         try:
             self.save_old_install()
             InstallTask(self.recipe).run()
-            USER.info('%s: Deleting Old Install', self.recipe.name)
+            PLOG('%s: Deleting Old Install', self.recipe.name)
             Command('rm -rf ' + self.back_dir)
         except Exception as exc:  # pylint: disable=broad-except
             logging.error(exc)
@@ -377,10 +377,10 @@ class PurgeTask(Task):
         - all logs and configs EXCEPT the pakit.yml file.
         OK? y/n  """
         if user_input(msg).strip().lower()[0] != 'y':
-            USER.info('Aborted.')
+            PLOG('Aborted.')
             return
 
-        USER.info('Removing all links made by pakit.')
+        PLOG('Removing all links made by pakit.')
         config = pakit.conf.CONFIG
         unlink_man_pages(config.path_to('link'))
         walk_and_unlink_all(config.path_to('link'), config.path_to('prefix'))
@@ -396,7 +396,7 @@ class PurgeTask(Task):
 
         for path in to_remove:
             try:
-                USER.info('Deleting: %s', path)
+                PLOG('Deleting: %s', path)
                 if os.path.isdir(path):
                     shutil.rmtree(path)
                 else:

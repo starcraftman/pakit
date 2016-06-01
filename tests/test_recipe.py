@@ -5,7 +5,6 @@ from __future__ import absolute_import, print_function
 import copy
 import os
 import sys
-import tempfile
 import mock
 import pytest
 
@@ -13,7 +12,6 @@ from pakit.exc import PakitError
 import pakit.recipe
 from pakit.recipe import (
     Recipe, RecipeDB, RecipeManager, check_package,
-    DecChangeDir, DecPrePost
 )
 import tests.common as tc
 
@@ -64,46 +62,6 @@ class DummyRecipe(object):
             assert os.getcwd() == args[0]
         else:
             assert os.getcwd().find(args[0]) != -1
-
-
-class TestDecorators(object):
-    def setup(self):
-        self.old_build = DummyRecipe.build
-        self.old_verify = DummyRecipe.verify
-
-    def teardown(self):
-        DummyRecipe.build = self.old_build
-        DummyRecipe.verify = self.old_build
-
-    def test_change_dir_temp(self):
-        DummyRecipe.verify = DecChangeDir(use_tempd=True)(DummyRecipe.verify)
-        dummy = DummyRecipe()
-        dummy.verify('pakit_tmp')
-
-    def test_change_dir_attribute(self):
-        try:
-            DummyRecipe.verify = DecChangeDir(attr='idir')(DummyRecipe.verify)
-            dummy = DummyRecipe()
-            dummy.idir = tempfile.mkdtemp()
-            dummy.verify(dummy.idir)
-        finally:
-            tc.delete_it(dummy.idir)
-
-    def test_pre_and_post(self):
-        DummyRecipe.build = DecPrePost()(DummyRecipe.build)
-        dummy = DummyRecipe()
-        dummy.build()
-        assert dummy.msgs == ['pre_build', 'build', 'post_build']
-
-    def test_decorator_combined(self):
-        try:
-            tmp_dir = tempfile.mkdtemp()
-            DummyRecipe.verify = DecChangeDir('/tmp')(DummyRecipe.verify)
-            DummyRecipe.verify = DecChangeDir(tmp_dir)(DummyRecipe.verify)
-            dummy = DummyRecipe()
-            dummy.verify(tmp_dir)
-        finally:
-            tc.delete_it(tmp_dir)
 
 
 class TestRecipe(object):

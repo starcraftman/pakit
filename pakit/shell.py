@@ -59,6 +59,28 @@ def cmd_cleanup():
     shutil.rmtree(pakit.conf.TMP_DIR)
 
 
+def cd_and_call(func, new_cwd=None, use_tempd=False, *args, **kwargs):
+    """
+    Change directory and THEN execute func with *args and **kwargs.
+    Regardless of what func does, directory will be returned to original.
+
+    Kwargs:
+        new_cwd: The new directory to change to. Ignored if use_tempd set.
+        use_tempd: Create a temporary direcory and cd to it.
+    """
+    old_cwd = os.getcwd()
+    if use_tempd:
+        new_cwd = tempfile.mkdtemp(prefix='pakit_tmp_')
+
+    try:
+        os.chdir(new_cwd)
+        return func(*args, **kwargs)
+    finally:
+        os.chdir(old_cwd)
+        if use_tempd:
+            shutil.rmtree(new_cwd)
+
+
 def reach_github():
     """
     Returns true iff and only iff can reach github.
@@ -1108,6 +1130,8 @@ class Command(object):
                 If shlex.split would not correctly split the line
                 then pass a list.
             cwd: Change to this directory before executing.
+
+        Kwargs:
             env: A dictionary of environment variables to change.
                 For instance, env={'HOME': '/tmp'} would change
                 HOME variable for the duration of the Command.

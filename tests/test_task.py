@@ -114,12 +114,12 @@ class TestTaskInstall(TestTaskBase):
         with open(pakit.conf.IDB.filename) as fin:
             assert 'ag:' in fin.read()
 
-    @mock.patch('pakit.task.USER')
+    @mock.patch('pakit.task.PLOG')
     def test_is_installed(self, mock_log):
         task = InstallTask(self.recipe)
         task.run()
         task.run()
-        assert mock_log.info.called
+        assert mock_log.called
 
 
 class TestTaskRollback(object):
@@ -280,13 +280,13 @@ class TestTaskPurge(TestTaskBase):
         mock_remove.assert_any_call(config.get('pakit.log.file'))
         mock_remove.assert_any_call(os.path.join(root, 'uris.yml'))
 
-    @mock.patch('pakit.task.USER')
+    @mock.patch('pakit.task.PLOG')
     @mock.patch('pakit.task.shutil.rmtree')
     def test_purge_oserror(self, mock_rmtree, mock_user, mock_input):
         mock_input.return_value = 'y'
         mock_rmtree.side_effect = OSError
         PurgeTask().run()
-        assert mock_user.info.called
+        assert mock_user.called
 
 
 class TestTaskCreateConfig(object):
