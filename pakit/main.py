@@ -4,6 +4,7 @@ The main entry point for pakit.
 Acts as an intermediary between program arguments and pakit Tasks.
 """
 from __future__ import absolute_import, print_function
+
 import argparse
 from argparse import RawDescriptionHelpFormatter as RawDescriptionHelp
 import logging
@@ -13,16 +14,15 @@ import sys
 
 import pakit.conf
 import pakit.recipe
-import pakit.shell
 from pakit import __version__
 from pakit.conf import Config, InstallDB
-from pakit.exc import PakitError, PakitDBError
+from pakit.exc import PakitDBError, PakitError
 from pakit.graph import DiGraph, topological_sort
 from pakit.task import (
-    InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
-    DisplayTask, RelinkRecipes, SearchTask, CreateConfig, PurgeTask
+    CreateConfig, DisplayTask, InstallTask, ListAvailable, ListInstalled,
+    PurgeTask, RelinkRecipes, RemoveTask, SearchTask, UpdateTask
 )
-
+from paksys.util import link_man_pages
 
 PLOG = logging.getLogger('pakit').info
 
@@ -208,7 +208,7 @@ def global_init(config_file):
         recipe_db.index(path)
     pakit.recipe.RDB = recipe_db
 
-    pakit.shell.link_man_pages(config.path_to('link'))
+    link_man_pages(config.path_to('link'))
     environment_check(config)
 
     return config

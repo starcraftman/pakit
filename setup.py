@@ -129,6 +129,7 @@ class ReleaseCommand(Command):
             subprocess.call(shlex.split(cmd))
 
         os.chdir(old_cwd)
+        print('Suggestion: isort -rc -m 5 ./pakit ./paksys')
 
     def copy_files_to(self, target):
         """

@@ -17,7 +17,8 @@ import pakit.recipe
 
 CONF = None
 PAKIT_CONFS = []
-TEST_CONFIG = os.path.join(os.path.dirname(__file__), 'pakit.yml')
+TEST_CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           'pakit.yml')
 STAGING_REPO = 'https://github.com/pakit/test_staging'
 STAGING = '/tmp/staging'
 ARCS = os.path.join(STAGING, 'arcs')

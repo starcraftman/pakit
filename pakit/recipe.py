@@ -6,18 +6,19 @@ RecipeDB: The database that indexes all recipes.
 RecipeManager: Retrieves and manages remote recipe sources.
 """
 from __future__ import absolute_import
-from abc import ABCMeta, abstractmethod
+
 import copy
 import glob
 import inspect
 import logging
 import os
 import sys
+from abc import ABCMeta, abstractmethod
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
-from pakit.shell import Command, vcs_factory
-
+from paksys.cmd import Command
+from paksys.vcs import vcs_factory
 
 PLOG = logging.getLogger('pakit').info
 RDB = None
@@ -225,7 +226,7 @@ class Recipe(object):
 
     def cmd(self, cmd, **kwargs):
         """
-        Wrapper around pakit.shell.Command. Behaves the same except:
+        Wrapper around pakt.shell.Command. Behaves the same except:
 
         - Expand all dictionary markers in *cmd* against *self.opts*.
             Arg *cmd* may be a string or a list of strings.

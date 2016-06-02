@@ -151,8 +151,7 @@ class TestConfig(object):
 
     def test_opts_for(self):
         """ Requires the testing pakit.yml. """
-        config_file = os.path.join(os.path.dirname(__file__), 'pakit.yml')
-        config = Config(config_file)
+        config = Config(tc.TEST_CONFIG)
         opts = config.opts_for('ag')
         assert opts.get('repo') == 'unstable'
         assert opts.get('prefix') == '/tmp/test_pakit/builds'
