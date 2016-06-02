@@ -21,7 +21,7 @@ from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
     DisplayTask, RelinkRecipes, SearchTask, CreateConfig, PurgeTask
 )
-from pakshell.shell import link_man_pages
+from paksys.shell import link_man_pages
 
 
 PLOG = logging.getLogger('pakit').info

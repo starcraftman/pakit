@@ -24,7 +24,7 @@ except ImportError:  # pragma: no cover
 import pakit.conf
 from pakit.ifaces import Fetchable
 from pakit.exc import PakitError, PakitCmdError
-from pakshell.cmd import Command
+from paksys.cmd import Command
 
 EXT_FUNCS = {
     'application/x-7z-compressed': 'extract_7z',

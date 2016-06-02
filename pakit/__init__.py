@@ -27,8 +27,8 @@ The default is `$HOME/.pakit.yml`.
 from __future__ import absolute_import
 
 from pakit.recipe import Recipe
-from pakshell.shell import Dummy, Git, Hg
-from pakshell.arc import Archive
+from paksys.shell import Dummy, Git, Hg
+from paksys.arc import Archive
 
 __all__ = ['Archive', 'Dummy', 'Git', 'Hg', 'Recipe']
 

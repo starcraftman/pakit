@@ -16,11 +16,11 @@ import shutil
 import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakshell.shell import (
+from paksys.shell import (
     walk_and_link, walk_and_unlink, walk_and_unlink_all,
     write_config, unlink_man_pages, user_input, cd_and_call
 )
-from pakshell.cmd import Command
+from paksys.cmd import Command
 
 PREFIX = '\n  '
 PLOG = logging.getLogger('pakit').info

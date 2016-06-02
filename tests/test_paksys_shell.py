@@ -1,5 +1,5 @@
 """
-Test pakshell.shell
+Test paksys.shell
 """
 from __future__ import absolute_import, print_function
 import os
@@ -10,13 +10,13 @@ import pakit.conf
 from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
-from pakshell.shell import (
+from paksys.shell import (
     Dummy, Git, Hg, common_suffix, cd_and_call,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input,
 )
-from pakshell.cmd import Command, cmd_kwargs, cmd_cleanup
-from pakshell.arc import (
+from paksys.cmd import Command, cmd_kwargs, cmd_cleanup
+from paksys.arc import (
     Archive, hash_archive, get_extract_func, extract_tar_gz
 )
 import tests.common as tc
@@ -118,7 +118,7 @@ def test_hash_archive_sha256():
     os.remove(arc.arc_file)
 
 
-@mock.patch('pakshell.cmd.shutil')
+@mock.patch('paksys.cmd.shutil')
 def test_cmd_cleanup(mock_shutil):
     cmd_cleanup()
     mock_shutil.rmtree.assert_called_with(pakit.conf.TMP_DIR)
@@ -275,7 +275,7 @@ class TestExtractFuncs(object):
     def test_rar(self):
         self.__test_ext('rar')
 
-    @mock.patch('pakshell.cmd.subprocess')
+    @mock.patch('paksys.cmd.subprocess')
     def test_rar_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -305,7 +305,7 @@ class TestExtractFuncs(object):
     def test_tar_xz(self):
         self.__test_ext('tar.xz')
 
-    @mock.patch('pakshell.cmd.subprocess')
+    @mock.patch('paksys.cmd.subprocess')
     def test_tar_xz_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -317,7 +317,7 @@ class TestExtractFuncs(object):
     def test_7z(self):
         self.__test_ext('7z')
 
-    @mock.patch('pakshell.cmd.subprocess')
+    @mock.patch('paksys.cmd.subprocess')
     def test_7z_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -339,7 +339,7 @@ class TestDummy(object):
         with self.dummy:
             assert self.dummy.ready
 
-    @mock.patch('pakshell.shell.Dummy.clean')
+    @mock.patch('paksys.shell.Dummy.clean')
     def test__with__fails(self, _):
         os.makedirs(self.dummy.target)
         with pytest.raises(PakitError):
