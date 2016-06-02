@@ -2,13 +2,14 @@
 All version control logic.
 """
 from __future__ import absolute_import
-from abc import abstractmethod, abstractproperty
+
 import inspect
 import os
 import sys
+from abc import abstractmethod, abstractproperty
 
-from pakit.ifaces import Fetchable
 from pakit.exc import PakitError
+from pakit.ifaces import Fetchable
 from paksys.cmd import Command
 
 

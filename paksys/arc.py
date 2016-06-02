@@ -12,19 +12,19 @@ import shutil
 import sys
 import tempfile
 from tempfile import NamedTemporaryFile as TempFile
-import zipfile
-
 # pylint: disable=import-error
 try:
     import urllib2 as ulib
 except ImportError:  # pragma: no cover
     import urllib.request as ulib  # pylint: disable=no-name-in-module
 # pylint: enable=import-error
+import zipfile
 
 import pakit.conf
+from pakit.exc import PakitCmdError, PakitError
 from pakit.ifaces import Fetchable
-from pakit.exc import PakitError, PakitCmdError
 from paksys.cmd import Command
+
 
 EXT_FUNCS = {
     'application/x-7z-compressed': 'extract_7z',

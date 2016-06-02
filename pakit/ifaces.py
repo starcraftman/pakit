@@ -2,6 +2,7 @@
 Shared holder of interfaces for the project.
 """
 from __future__ import absolute_import
+
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 from paksys.cmd import Command

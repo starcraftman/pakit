@@ -7,20 +7,21 @@ Any action is implemented as a Task that implements a simple
 in the order they are taken from the command line.
 """
 from __future__ import absolute_import, print_function
-from abc import ABCMeta, abstractmethod
+
 import glob
 import logging
 import os
 import shutil
+from abc import ABCMeta, abstractmethod
 
 import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from paksys.shell import (
-    walk_and_link, walk_and_unlink, walk_and_unlink_all,
-    write_config, unlink_man_pages, user_input, cd_and_call
-)
 from paksys.cmd import Command
+from paksys.util import (
+    cd_and_call, unlink_man_pages, user_input, walk_and_link, walk_and_unlink,
+    walk_and_unlink_all, write_config
+)
 
 PREFIX = '\n  '
 PLOG = logging.getLogger('pakit').info

@@ -9,6 +9,7 @@ InstallDB: Handles the database of installed programs.
 RecipeURIDB: Store and track recipe URIs.
 """
 from __future__ import absolute_import
+
 import copy
 import json
 import logging

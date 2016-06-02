@@ -1,12 +1,8 @@
 """
-All code related to running system commands.
-
-Command: Class to run arbitrary system commands.
-Archive: Used to fetch a source archive.
-Git: Used to fetch a git repository.
-Hg: Used to fetch a mercurial repository.
+Utility code that relates to system functions.
 """
 from __future__ import absolute_import
+
 import glob
 import logging
 import os
@@ -15,8 +11,8 @@ import sys
 import tempfile
 
 import pakit.conf
-from pakit.ifaces import Fetchable
 from pakit.exc import PakitError, PakitLinkError
+from pakit.ifaces import Fetchable
 
 
 def cd_and_call(func, new_cwd=None, use_tempd=False, *args, **kwargs):

@@ -11,14 +11,14 @@ import pakit.conf
 from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
-from paksys.shell import (
+from paksys.arc import (
+    Archive, hash_archive, get_extract_func, extract_tar_gz
+)
+from paksys.cmd import Command, cmd_kwargs, cmd_cleanup
+from paksys.util import (
     Dummy, common_suffix, cd_and_call,
     walk_and_link, walk_and_unlink, walk_and_unlink_all,
     write_config, link_man_pages, unlink_man_pages, user_input,
-)
-from paksys.cmd import Command, cmd_kwargs, cmd_cleanup
-from paksys.arc import (
-    Archive, hash_archive, get_extract_func, extract_tar_gz
 )
 from paksys.vcs import Git, Hg, vcs_factory
 import tests.common as tc
@@ -341,7 +341,7 @@ class TestDummy(object):
         with self.dummy:
             assert self.dummy.ready
 
-    @mock.patch('paksys.shell.Dummy.clean')
+    @mock.patch('paksys.util.Dummy.clean')
     def test__with__fails(self, _):
         os.makedirs(self.dummy.target)
         with pytest.raises(PakitError):

@@ -6,19 +6,19 @@ RecipeDB: The database that indexes all recipes.
 RecipeManager: Retrieves and manages remote recipe sources.
 """
 from __future__ import absolute_import
-from abc import ABCMeta, abstractmethod
+
 import copy
 import glob
 import inspect
 import logging
 import os
 import sys
+from abc import ABCMeta, abstractmethod
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
 from paksys.cmd import Command
 from paksys.vcs import vcs_factory
-
 
 PLOG = logging.getLogger('pakit').info
 RDB = None
