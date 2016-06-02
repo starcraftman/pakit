@@ -1,6 +1,7 @@
 """
 Test paksys.shell
 """
+# TODO: Needs splitting like paksys.
 from __future__ import absolute_import, print_function
 import os
 import mock
@@ -11,14 +12,15 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 from paksys.shell import (
-    Dummy, Git, Hg, common_suffix, cd_and_call,
-    walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
+    Dummy, common_suffix, cd_and_call,
+    walk_and_link, walk_and_unlink, walk_and_unlink_all,
     write_config, link_man_pages, unlink_man_pages, user_input,
 )
 from paksys.cmd import Command, cmd_kwargs, cmd_cleanup
 from paksys.arc import (
     Archive, hash_archive, get_extract_func, extract_tar_gz
 )
+from paksys.vcs import Git, Hg, vcs_factory
 import tests.common as tc
 
 
