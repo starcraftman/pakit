@@ -56,7 +56,7 @@ def test_user_input(mock_input):
 def test_link_man_pages():
     try:
         link_dir = os.path.join(tc.STAGING, 'links')
-        src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+        src = os.path.join(os.path.dirname(os.path.dirname(tc.TEST_CONFIG)),
                            'pakit', 'extra')
         fake_man = os.path.join(src, 'test_man.1')
 
