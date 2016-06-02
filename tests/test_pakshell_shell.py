@@ -11,25 +11,15 @@ from pakit.exc import (
     PakitError, PakitCmdError, PakitCmdTimeout, PakitLinkError
 )
 from pakshell.shell import (
-    Archive, Dummy, Git, Hg, Command, hash_archive,
-    common_suffix, cmd_cleanup, get_extract_func, extract_tar_gz,
+    Dummy, Git, Hg, common_suffix, cd_and_call,
     walk_and_link, walk_and_unlink, walk_and_unlink_all, vcs_factory,
     write_config, link_man_pages, unlink_man_pages, user_input,
-    reach_github, cmd_kwargs, cd_and_call
+)
+from pakshell.cmd import Command, cmd_kwargs, cmd_cleanup
+from pakshell.arc import (
+    Archive, hash_archive, get_extract_func, extract_tar_gz
 )
 import tests.common as tc
-
-
-@pytest.mark.skip(reason='TODO: to be reviewed')
-def test_reach_github():
-    assert reach_github()
-
-
-@pytest.mark.skip(reason='TODO: to be reviewed')
-@mock.patch('pakshell.shell.Command')
-def test_reach_github_fails(mock_cmd):
-    mock_cmd.side_effect = PakitError('Fail.')
-    assert not reach_github()
 
 
 def dummy_func(*args, **kwargs):
@@ -128,7 +118,7 @@ def test_hash_archive_sha256():
     os.remove(arc.arc_file)
 
 
-@mock.patch('pakshell.shell.shutil')
+@mock.patch('pakshell.cmd.shutil')
 def test_cmd_cleanup(mock_shutil):
     cmd_cleanup()
     mock_shutil.rmtree.assert_called_with(pakit.conf.TMP_DIR)
@@ -285,7 +275,7 @@ class TestExtractFuncs(object):
     def test_rar(self):
         self.__test_ext('rar')
 
-    @mock.patch('pakshell.shell.subprocess')
+    @mock.patch('pakshell.cmd.subprocess')
     def test_rar_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -315,7 +305,7 @@ class TestExtractFuncs(object):
     def test_tar_xz(self):
         self.__test_ext('tar.xz')
 
-    @mock.patch('pakshell.shell.subprocess')
+    @mock.patch('pakshell.cmd.subprocess')
     def test_tar_xz_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):
@@ -327,7 +317,7 @@ class TestExtractFuncs(object):
     def test_7z(self):
         self.__test_ext('7z')
 
-    @mock.patch('pakshell.shell.subprocess')
+    @mock.patch('pakshell.cmd.subprocess')
     def test_7z_unavailable(self, mock_sub):
         mock_sub.side_effect = PakitCmdError('No cmd.')
         with pytest.raises(PakitCmdError):

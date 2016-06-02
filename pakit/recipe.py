@@ -16,7 +16,8 @@ import sys
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
-from pakshell.shell import Command, vcs_factory
+from pakshell.cmd import Command
+from pakshell.shell import vcs_factory
 
 
 PLOG = logging.getLogger('pakit').info
