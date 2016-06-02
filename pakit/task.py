@@ -16,7 +16,7 @@ import shutil
 import pakit.conf
 import pakit.recipe
 from pakit.exc import PakitCmdError, PakitLinkError
-from pakit.shell import (
+from pakshell.shell import (
     Command, walk_and_link, walk_and_unlink, walk_and_unlink_all,
     write_config, unlink_man_pages, user_input, cd_and_call
 )

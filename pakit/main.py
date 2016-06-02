@@ -13,7 +13,6 @@ import sys
 
 import pakit.conf
 import pakit.recipe
-import pakit.shell
 from pakit import __version__
 from pakit.conf import Config, InstallDB
 from pakit.exc import PakitError, PakitDBError
@@ -22,6 +21,7 @@ from pakit.task import (
     InstallTask, RemoveTask, UpdateTask, ListInstalled, ListAvailable,
     DisplayTask, RelinkRecipes, SearchTask, CreateConfig, PurgeTask
 )
+from pakshell.shell import link_man_pages
 
 
 PLOG = logging.getLogger('pakit').info
@@ -208,7 +208,7 @@ def global_init(config_file):
         recipe_db.index(path)
     pakit.recipe.RDB = recipe_db
 
-    pakit.shell.link_man_pages(config.path_to('link'))
+    link_man_pages(config.path_to('link'))
     environment_check(config)
 
     return config

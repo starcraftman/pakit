@@ -16,7 +16,7 @@ import sys
 
 from pakit.conf import RecipeURIDB
 from pakit.exc import PakitDBError, PakitError
-from pakit.shell import Command, vcs_factory
+from pakshell.shell import Command, vcs_factory
 
 
 PLOG = logging.getLogger('pakit').info
@@ -225,7 +225,7 @@ class Recipe(object):
 
     def cmd(self, cmd, **kwargs):
         """
-        Wrapper around pakit.shell.Command. Behaves the same except:
+        Wrapper around pakt.shell.Command. Behaves the same except:
 
         - Expand all dictionary markers in *cmd* against *self.opts*.
             Arg *cmd* may be a string or a list of strings.

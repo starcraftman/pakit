@@ -169,7 +169,7 @@ class TestRecipe(object):
             except OSError:
                 pass
 
-    @mock.patch('pakit.shell.Command.wait')
+    @mock.patch('pakshell.shell.Command.wait')
     def test_cmd_timeout_arg(self, mock_cmd):
         self.recipe.cmd('ls', timeout=1)
         mock_cmd.assert_called_with(1)

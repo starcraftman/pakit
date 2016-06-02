@@ -390,7 +390,8 @@ def link_man_pages(link_dir):
     """
     Silently links project man pages into link dir.
     """
-    src = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extra')
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src = os.path.join(root, 'pakit', 'extra')
     dst = os.path.join(link_dir, 'share', 'man', 'man1')
     try:
         os.makedirs(dst)
@@ -408,7 +409,8 @@ def unlink_man_pages(link_dir):
     """
     Unlink all man pages from the link directory.
     """
-    src = os.path.join(os.path.dirname(__file__), 'extra')
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src = os.path.join(root, 'pakit', 'extra')
     dst = os.path.join(link_dir, 'share', 'man', 'man1')
 
     for page in glob.glob(os.path.join(src, '*.1')):
