@@ -101,7 +101,7 @@ class YamlDict(MutableMapping):
         """
         try:
             with open(self.filename) as fin:
-                self.data = yaml.load(fin)
+                self.data = yaml.load(fin, Loader=yaml.FullLoader)
             logging.debug(self)
         except IOError as exc:
             logging.error('Failed to load user config. %s', exc)
